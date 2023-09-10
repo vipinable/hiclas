@@ -1,0 +1,41 @@
+
+<!DOCTYPE html><html><head><meta http-equiv="content-type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width"><style type="text/css">body,html {background:#fff;font-family:"Bitstream Vera Sans","Lucida Grande","Lucida Sans Unicode",Lucidux,Verdana,Lucida,sans-serif;}tr:nth-child(even) {background:#f4f4f4;}th,td {padding:0.1em 0.5em;}th {text-align:left;font-weight:bold;background:#eee;border-bottom:1px solid #aaa;}#list {border:1px solid #aaa;width:100%;}a {color:#a33;}a:hover {color:#e33;}</style>
+<link rel="stylesheet" href="text/css" type="text/css"/>
+
+<title>Index of /{{PreFix}}/</title>
+</head><body><h1>Index of /{{PreFix}}/</h1>
+<table id="list"><thead><tr><th style="width:55%"><a href="?C=N&amp;O=A">File Name</a>&nbsp;<a href="?C=N&amp;O=D">&nbsp;&darr;&nbsp;</a></th><th style="width:20%"><a href="?C=S&amp;O=A">File Size</a>&nbsp;<a href="?C=S&amp;O=D">&nbsp;&darr;&nbsp;</a></th><th style="width:25%"><a href="?C=M&amp;O=A">Date</a>&nbsp;<a href="?C=M&amp;O=D">&nbsp;&darr;&nbsp;</a></th></tr></thead>
+<tbody><tr><td class="link"><a href="../">Parent directory/</a></td><td class="size">-</td><td class="date">-</td></tr>
+{% for item in Objects -%}
+{% if DownloadLink is defined and item.Key == DownloadFile %}
+<tr><td class="link"><a href="?d={{ item.Key }}" title="{{ item.Key }}">{{ item.Key }}</a>  <a href="{{DownloadLink}}">Clik here to download the file/</a> </td><td class="size">{{ item.Size }}</td><td class="date">-</td></tr>
+{% else %}
+<tr><td class="link"><a href="?d={{ item.Key }}" title="{{ item.Key }}">{{ item.Key }}</a></td><td class="size">{{ item.Size }}</td><td class="date">-</td></tr>
+{% endif %}
+{% endfor %}
+</tbody></table>
+
+<a href="https://1zalmlmk8g.execute-api.eu-west-1.amazonaws.com/prod" type="button">Click Here to refresh the list</a></br>
+
+<form action="/prod">
+  <label for="fname">Type the name of the file you want to upload:</label>
+  <input type="text" id="fname" name="fname"><br>
+  <input type="submit" value="Submit">
+</form>
+
+<div>
+{% if PreSignUrl is defined %}
+    <form action="{{PreSignUrl}}" method="post" enctype="multipart/form-data">
+        <!-- Copy the 'fields' key:values returned by S3Client.generate_presigned_post() -->
+        <input type="hidden" name="key" value="{{PreSignKey}}" />
+        <input type="hidden" name="AWSAccessKeyId" value="{{PreSignAccessKey}}" />
+        <input type="hidden" name="policy" value="{{PreSignPolicy}}" />
+        <input type="hidden" name="signature" value="{{PreSignSignature}}" />
+        <input type="hidden" name="x-amz-security-token" value="{{PreSignToken}}" />
+        <input type="file" name="file"/>
+        <input type="submit" name="submit" value="Upload to Amazon S3" />
+    </form>
+{% endif %}
+</div>
+
+</body></html>

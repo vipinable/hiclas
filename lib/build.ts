@@ -1,0 +1,69 @@
+import { Stack, StackProps, Duration, RemovalPolicy } from 'aws-cdk-lib';
+import { Construct } from 'constructs';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as apigateway from 'aws-cdk-lib/aws-apigateway';
+import * as path from 'path';
+export class LambdaWithLayer extends Stack {
+//BeginStackDefinition
+  constructor(scope: Construct, id: string, props?: StackProps) {
+    super(scope, id, props);
+
+    console.log('accessing context 👉', this.node.tryGetContext('fromApp'));
+
+    //Lambda layer creation definition
+    const layer0 = new lambda.LayerVersion(this, 'LayerVersion', {
+      compatibleRuntimes: [
+        lambda.Runtime.PYTHON_3_6,
+        lambda.Runtime.PYTHON_3_7,
+        lambda.Runtime.PYTHON_3_8,
+      ],
+      code: lambda.Code.fromAsset(path.join(__dirname,'../../layer/bin')),
+      });
+
+    const s3Bucket = new s3.Bucket(this, 's3inventory', {
+      objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      enforceSSL: true,
+      versioned: true,
+    });
+
+    s3Bucket.grantRead(new iam.AccountRootPrincipal());
+    s3Bucket.grantPut(new iam.AccountRootPrincipal());
+          
+    //Main function definition
+    const mainfn = new lambda.Function(this, 'mainfn', {
+      description: 'hiclas main function',
+      runtime: lambda.Runtime.PYTHON_3_9,
+      handler: 'main.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../src')),
+      layers: [layer0],
+      environment: {
+        APPNAME: process.env.ApplicationName!,
+        ENVNAME: process.env.Environment!, 
+      },
+      });
+    
+      mainfn.addToRolePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      resources: [
+        s3Bucket.arnForObjects("*"),
+        s3Bucket.bucketArn
+      ],
+      actions: [
+        's3:PutObject',
+        's3:GetObject',
+        's3:ListBucket'
+      ],
+    }));
+
+    const apigw = new apigateway.RestApi(this, 'apigw');
+       
+    //API gateway lambda integration
+    const apigwbeIntegration = new apigateway.LambdaIntegration(mainfn);
+    apigw.root.addMethod('GET', apigwbeIntegration);
+
+  //EndStack
+  }}
