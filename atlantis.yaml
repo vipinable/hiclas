@@ -1,0 +1,51 @@
+version: 3
+automerge: false
+delete_source_branch_on_merge: true
+parallel_plan: false
+parallel_apply: false
+projects:
+- name: managegithub
+  dir: .
+  workspace: default
+  terraform_version: v1.2.8
+  delete_source_branch_on_merge: true
+  autoplan:
+    when_modified: ["*"]
+    enabled: true
+  apply_requirements: [mergeable]
+  workflow: validatebranch
+workflows:
+  validatebranch:
+    plan:
+      steps:
+      - env:
+          name: AWS_DEFAULT_REGION
+          value: "us-east-1"
+      - env:
+          name: APPNAME
+          value: "managegithub"
+      - env:
+          name: ENVNAME
+          value: "test"
+      - run: sh tfremote.sh
+      - init
+      - run: terraform plan --out tfplan > /dev/null && echo "Validate the changes."
+      - run: terraform show -json tfplan > tfplan.json 
+      - run: curl -s -X GET http://arvizhome-1.ddns.net:8181/v1/data/terraform/analysis/authz -d @tfplan.json  && echo "Validation sucess"
+      - plan
+      - run: wget https://github.com/gruntwork-io/terragrunt/releases/download/v0.38.9/terragrunt_linux_amd64 && chmod 755 terragrunt_linux_amd64
+      - run: ./terragrunt_linux_amd64 -v
+    apply:
+      steps:
+      - env:
+          name: AWS_DEFAULT_REGION
+          value: "us-east-1"
+      - env:
+          name: APPNAME
+          value: "managegithub"
+      - env:
+          name: ENVNAME
+          value: "test"
+allowed_regexp_prefixes:
+- dev/
+- staging/
