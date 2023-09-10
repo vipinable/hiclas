@@ -36,7 +36,7 @@ export class LambdaWithLayer extends Stack {
     //Main function definition
     const mainfn = new lambda.Function(this, 'mainfn', {
       description: 'hiclas main function',
-      runtime: lambda.Runtime.PYTHON_3_9,
+      runtime: lambda.Runtime.PYTHON_3_8,
       handler: 'main.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../src')),
       layers: [layer0],
