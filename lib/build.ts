@@ -4,6 +4,7 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront'
+import * as origins from 'aws_cloudfront_origins' 
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as path from 'path';
 export class LambdaWithLayer extends Stack {
@@ -75,7 +76,7 @@ export class LambdaWithLayer extends Stack {
       versioned: true,
     });
     new cloudfront.Distribution(this, 'hiclasDist', {
-      defaultBehavior: { origin: new cloudfront.origins.S3Origin(hiclasorigin) },
+      defaultBehavior: { origin: new origins.S3Origin(hiclasorigin) },
     });
 
   //EndStack
