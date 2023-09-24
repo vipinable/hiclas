@@ -3,6 +3,7 @@ import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as cloudfront from 'aws-cdk-lib/aws-cloudfront'
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as path from 'path';
 export class LambdaWithLayer extends Stack {
@@ -64,6 +65,18 @@ export class LambdaWithLayer extends Stack {
     //API gateway lambda integration
     const apigwbeIntegration = new apigateway.LambdaIntegration(mainfn);
     apigw.root.addMethod('GET', apigwbeIntegration);
+
+
+    const hiclasorigin = new s3.Bucket(this, 'hiclasOrigin', {
+      objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      enforceSSL: true,
+      versioned: true,
+    });
+    new cloudfront.Distribution(this, 'hiclasDist', {
+      defaultBehavior: { origin: new cloudfront.origins.S3Origin(hiclasorigin) },
+    });
 
   //EndStack
   }}
