@@ -87,8 +87,10 @@ export class LambdaWithLayer extends Stack {
       defaultBehavior: { 
         origin: new origins.S3Origin(hiclasorigin),
         edgeLambdas: [
+          {
           functionVersion: cfmainfn.currentVersion,
-          eventType: cloudfront.LambdaEdgeEventType.VIEWER_REQUEST
+          eventType: cloudfront.LambdaEdgeEventType.VIEWER_REQUEST,
+          }
         ] 
       },
       defaultRootObject: 'index.html'
