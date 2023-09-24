@@ -7,6 +7,7 @@ import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins'; 
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as path from 'path';
+import { EdgeFunction } from 'aws-cdk-lib/aws-cloudfront/lib/experimental';
 export class LambdaWithLayer extends Stack {
 //BeginStackDefinition
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -77,7 +78,8 @@ export class LambdaWithLayer extends Stack {
     });
     new cloudfront.Distribution(this, 'hiclasDist', {
       defaultBehavior: { origin: new origins.S3Origin(hiclasorigin) },
-      defaultRootObject: 'index.html'
+      defaultRootObject: 'index.html',
+      EdgeFunction: mainfn
     });
 
   //EndStack
