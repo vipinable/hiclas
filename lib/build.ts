@@ -76,12 +76,19 @@ export class LambdaWithLayer extends Stack {
       enforceSSL: true,
       versioned: true,
     });
+
+    const cfmainfn = new cloudfront.experimental.EdgeFunction(this, 'cfmainfn', {
+      runtime: lambda.Runtime.PYTHON_3_8,
+      handler: 'main.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../src')),
+    });
+    
     new cloudfront.Distribution(this, 'hiclasDist', {
       defaultBehavior: { 
         origin: new origins.S3Origin(hiclasorigin),
         edgeLambdas: [
-          functionVersion: mainfn.currentVersion,
-          eventType: cloudfront.LambdaEdgeEventType.ORIGIN_REQUEST
+          functionVersion: cfmainfn.currentVersion,
+          eventType: cloudfront.LambdaEdgeEventType.VIEWER_REQUEST
         ] 
       },
       defaultRootObject: 'index.html'
