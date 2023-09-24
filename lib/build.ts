@@ -77,6 +77,7 @@ export class LambdaWithLayer extends Stack {
     });
     new cloudfront.Distribution(this, 'hiclasDist', {
       defaultBehavior: { origin: new origins.S3Origin(hiclasorigin) },
+      defaultRootObject: 'index.html'
     });
 
   //EndStack
