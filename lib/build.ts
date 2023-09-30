@@ -60,7 +60,7 @@ export class LambdaWithLayer extends Stack {
         's3:GetObject',
         's3:ListBucket'
       ],
-    }));
+      }));
 
     const apigw = new apigateway.RestApi(this, 'apigw');
        
@@ -83,6 +83,19 @@ export class LambdaWithLayer extends Stack {
       code: lambda.Code.fromAsset(path.join(__dirname, '../src')),
     });
 
+    cfmainfn.addToRolePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      resources: [
+        s3Bucket.arnForObjects("*"),
+        s3Bucket.bucketArn
+      ],
+      actions: [
+        's3:PutObject',
+        's3:GetObject',
+        's3:ListBucket'
+      ],
+      }));
+
     const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
       defaultBehavior: { 
         origin: new origins.S3Origin(hiclasorigin),
@@ -94,14 +107,6 @@ export class LambdaWithLayer extends Stack {
         ] 
       },
       defaultRootObject: 'index.html'
-    });
-
-    const LambdaReplicator = new iam.CfnServiceLinkedRole(this, 'LambdaReplicator', {
-      awsServiceName: 'replicator.lambda.amazonaws.com',
-    });
-
-    const CloudFrontLogger = new iam.CfnServiceLinkedRole(this, 'CloudFrontLogger', {
-      awsServiceName: 'logger.cloudfront.amazonaws.com',
     });
 
     //cfmainfn.grantInvoke('cloudfront.amazonaws.com')
