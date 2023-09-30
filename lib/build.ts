@@ -96,7 +96,15 @@ export class LambdaWithLayer extends Stack {
       defaultRootObject: 'index.html'
     });
 
-    cfmainfn.grantInvoke('cloudfront.amazonaws.com')
+    const LambdaReplicator = new iam.CfnServiceLinkedRole(this, 'LambdaReplicator', {
+      awsServiceName: 'replicator.lambda.amazonaws.com',
+    });
+
+    const CloudFrontLogger = new iam.CfnServiceLinkedRole(this, 'CloudFrontLogger', {
+      awsServiceName: 'logger.cloudfront.amazonaws.com',
+    });
+
+    //cfmainfn.grantInvoke('cloudfront.amazonaws.com')
 
   //EndStack
   }}
