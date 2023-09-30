@@ -82,8 +82,8 @@ export class LambdaWithLayer extends Stack {
       handler: 'main.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../src')),
     });
-    
-    new cloudfront.Distribution(this, 'hiclasDist', {
+
+    const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
       defaultBehavior: { 
         origin: new origins.S3Origin(hiclasorigin),
         edgeLambdas: [
@@ -95,6 +95,8 @@ export class LambdaWithLayer extends Stack {
       },
       defaultRootObject: 'index.html'
     });
+
+    cfmainfn.grantinvoke(hiclasDist)
 
   //EndStack
   }}
