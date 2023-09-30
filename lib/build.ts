@@ -96,7 +96,7 @@ export class LambdaWithLayer extends Stack {
       defaultRootObject: 'index.html'
     });
 
-    cfmainfn.grantinvoke(hiclasDist)
+    cfmainfn.grantInvoke(hiclasDist)
 
   //EndStack
   }}
