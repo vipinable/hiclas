@@ -96,7 +96,7 @@ export class LambdaWithLayer extends Stack {
       defaultRootObject: 'index.html'
     });
 
-    cfmainfn.grantInvoke(hiclasDist)
+    cfmainfn.grantInvoke('cloudfront.amazonaws.com')
 
   //EndStack
   }}
