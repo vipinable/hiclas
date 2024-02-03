@@ -9,7 +9,8 @@ import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as path from 'path';
 import { EdgeFunction } from 'aws-cdk-lib/aws-cloudfront/lib/experimental';
 export class LambdaWithLayer extends Stack {
-//BeginStackDefinition
+
+  //BeginStackDefinition
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
