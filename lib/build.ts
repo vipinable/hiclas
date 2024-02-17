@@ -67,9 +67,8 @@ export class LambdaWithLayer extends Stack {
       authType: lambda.FunctionUrlAuthType.NONE
     })
 
-    // const url = new URL(mainfnUrl.url);
-    // url.node.addDependency(mainfnUrl);
-    // console.log(url.protocol)
+    const url = new URL(mainfnUrl.url.toString());
+    console.log(url.protocol)
 
     // new CfnOutput(this, 'TheUrl', {
     //   // The .url attributes will return the unique Function URL
@@ -117,7 +116,7 @@ export class LambdaWithLayer extends Stack {
       defaultRootObject: 'index.html'
     });
 
-    const fnUrlOrigin = new origins.HttpOrigin(mainfnUrl.split("/")[2])
+    const fnUrlOrigin = new origins.HttpOrigin(mainfnUrl.toString().split("/")[2])
 
     hiclasDist.addBehavior('/function', fnUrlOrigin)
 
