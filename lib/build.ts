@@ -1,4 +1,4 @@
-import { Stack, StackProps, Duration, RemovalPolicy, CfnOutput } from 'aws-cdk-lib';
+import { Stack, StackProps, Duration, RemovalPolicy } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
@@ -63,14 +63,10 @@ export class LambdaWithLayer extends Stack {
       ],
       }));
 
-      // const mainfnUrl = mainfn.addFunctionUrl({
-      //   authType: lambda.FunctionUrlAuthType.NONE
-      // })
+      const mainfnUrl = mainfn.addFunctionUrl({
+        authType: lambda.FunctionUrlAuthType.NONE
+      })
       
-      // new CfnOutput(this, 'mainfnUrl', {
-      //   // The .url attributes will return the unique Function URL
-      //   value: mainfnUrl.url,
-      // });
 
     // const apigw = new apigateway.RestApi(this, 'apigw');
        
