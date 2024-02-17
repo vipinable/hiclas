@@ -30,7 +30,7 @@ def handler(event, context):
     print(jobstatus(AccountID,jobId))
     
     
-    return
+    return("Hello World!")
     
     logger.info("QueryString Parameters %s" % (event['queryStringParameters']))
     
