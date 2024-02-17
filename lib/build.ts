@@ -76,7 +76,7 @@ export class LambdaWithLayer extends Stack {
         {
           customOriginSource: {
             domainName: '3b4e42j4ih2kdh6yttppexp5im0psyra.lambda-url.us-east-1.on.aws',
-            originProtocolPolicy: 'http-only'
+            originProtocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY
           },
           behaviors: [
             {
