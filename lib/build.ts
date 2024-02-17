@@ -71,7 +71,7 @@ export class LambdaWithLayer extends Stack {
     let url = new URL(mainfnUrl.url);
 
     const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
-        domainNames: url.host
+        domainNames: [url.host]
     });
       
 
