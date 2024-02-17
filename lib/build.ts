@@ -70,6 +70,11 @@ export class LambdaWithLayer extends Stack {
     let url = new URL(mainfnUrl.url);
     console.log(url.protocol)
 
+    new CfnOutput(this, 'TheUrl', {
+      // The .url attributes will return the unique Function URL
+      value: mainfnUrl.url,
+    });
+
     // const apigw = new apigateway.RestApi(this, 'apigw');
        
     // //API gateway lambda integration
