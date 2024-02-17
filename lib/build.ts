@@ -116,7 +116,7 @@ export class LambdaWithLayer extends Stack {
       defaultRootObject: 'index.html'
     });
 
-    const fnUrlOrigin = new origins.HttpOrigin(mainfnUrl.toString().split("/")[2])
+    const fnUrlOrigin = new origins.HttpOrigin(mainfnUrl.url.toString().split("/")[2])
 
     hiclasDist.addBehavior('/function', fnUrlOrigin)
 
