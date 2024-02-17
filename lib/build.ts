@@ -63,9 +63,15 @@ export class LambdaWithLayer extends Stack {
       ],
       }));
 
-      const mainfnUrl = mainfn.addFunctionUrl({
-        authType: lambda.FunctionUrlAuthType.NONE
-      })
+    const mainfnUrl = mainfn.addFunctionUrl({
+      authType: lambda.FunctionUrlAuthType.NONE
+    })
+
+    const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
+      defaultBehavior: { 
+        origin: new origins.HttpOrigin(mainfnUrl.url)
+      }
+    });
       
 
     // const apigw = new apigateway.RestApi(this, 'apigw');
