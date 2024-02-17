@@ -70,17 +70,22 @@ export class LambdaWithLayer extends Stack {
     let url = new URL(mainfnUrl.url);
     console.log(url.protocol)
 
-    const originProperty: cloudfront.CfnDistribution.OriginProperty = {
-      domainName: url.host,
-      id: 'id',
-    }
-
-    const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
-      defaultBehavior: { 
-        origin: new origins.HttpOrigin('https://3b4e42j4ih2kdh6yttppexp5im0psyra.lambda-url.us-east-1.on.aws')
-      },
-    });
-      
+    const hiclasDist = new cloudfront.CloudFrontWebDistribution(this, 'ChangelogsDistribution', {
+      aliasConfiguration: domain,
+      originConfigs: [
+        {
+          customOriginSource: {
+            domainName: '3b4e42j4ih2kdh6yttppexp5im0psyra.lambda-url.us-east-1.on.aws',
+            originProtocolPolicy: 'http-only'
+          },
+          behaviors: [
+            {
+              isDefaultBehavior: true,
+              compress: true
+            }
+          ]
+        }],
+      })  
 
     // const apigw = new apigateway.RestApi(this, 'apigw');
        
