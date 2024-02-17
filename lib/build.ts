@@ -67,8 +67,8 @@ export class LambdaWithLayer extends Stack {
       authType: lambda.FunctionUrlAuthType.NONE
     })
 
-    const url = new URL(mainfnUrl.url.toString());
-    console.log(url.protocol)
+    // const url = new URL(mainfnUrl.url.toString());
+    // console.log(url.protocol)
 
     // new CfnOutput(this, 'TheUrl', {
     //   // The .url attributes will return the unique Function URL
