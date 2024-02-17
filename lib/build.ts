@@ -71,7 +71,6 @@ export class LambdaWithLayer extends Stack {
     console.log(url.protocol)
 
     const hiclasDist = new cloudfront.CloudFrontWebDistribution(this, 'ChangelogsDistribution', {
-      aliasConfiguration: domain,
       originConfigs: [
         {
           customOriginSource: {
