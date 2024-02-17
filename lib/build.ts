@@ -69,23 +69,7 @@ export class LambdaWithLayer extends Stack {
 
     let url = new URL(mainfnUrl.url);
     console.log(url.protocol)
-
-    const hiclasDist = new cloudfront.CloudFrontWebDistribution(this, 'ChangelogsDistribution', {
-      originConfigs: [
-        {
-          customOriginSource: {
-            domainName: '3b4e42j4ih2kdh6yttppexp5im0psyra.lambda-url.us-east-1.on.aws',
-            originProtocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY
-          },
-          behaviors: [
-            {
-              isDefaultBehavior: true,
-              compress: true
-            }
-          ]
-        }],
-      })  
-
+    
     // const apigw = new apigateway.RestApi(this, 'apigw');
        
     // //API gateway lambda integration
@@ -93,13 +77,13 @@ export class LambdaWithLayer extends Stack {
     // apigw.root.addMethod('GET', apigwbeIntegration);
 
 
-    // const hiclasorigin = new s3.Bucket(this, 'hiclasOrigin', {
-    //   objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,
-    //   blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-    //   encryption: s3.BucketEncryption.S3_MANAGED,
-    //   enforceSSL: true,
-    //   versioned: true,
-    // });
+    const hiclasorigin = new s3.Bucket(this, 'hiclasOrigin', {
+      objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      enforceSSL: true,
+      versioned: true,
+    });
 
     // const cfmainfn = new cloudfront.experimental.EdgeFunction(this, 'cfmainfn', {
     //   runtime: lambda.Runtime.PYTHON_3_8,
@@ -120,18 +104,12 @@ export class LambdaWithLayer extends Stack {
     //   ],
     //   }));
 
-    // const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
-    //   defaultBehavior: { 
-    //     origin: new origins.S3Origin(hiclasorigin),
-    //     edgeLambdas: [
-    //       {
-    //       functionVersion: cfmainfn.currentVersion,
-    //       eventType: cloudfront.LambdaEdgeEventType.VIEWER_REQUEST,
-    //       }
-    //     ] 
-    //   },
-    //   defaultRootObject: 'index.html'
-    // });
+    const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
+      defaultBehavior: { 
+        origin: new origins.S3Origin(hiclasorigin), 
+      },
+      defaultRootObject: 'index.html'
+    });
 
     //cfmainfn.grantInvoke('cloudfront.amazonaws.com')
 
