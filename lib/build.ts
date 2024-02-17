@@ -1,4 +1,4 @@
-import { Stack, StackProps, Duration, RemovalPolicy } from 'aws-cdk-lib';
+import { Stack, StackProps, Duration, RemovalPolicy, CfnOutput } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
@@ -67,8 +67,8 @@ export class LambdaWithLayer extends Stack {
       authType: lambda.FunctionUrlAuthType.NONE
     })
 
-    let url = new URL(mainfnUrl.url);
-    console.log(url.protocol)
+    // let url = new URL(mainfnUrl.url);
+    // console.log(url.protocol)
 
     new CfnOutput(this, 'TheUrl', {
       // The .url attributes will return the unique Function URL
