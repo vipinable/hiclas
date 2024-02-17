@@ -67,9 +67,9 @@ export class LambdaWithLayer extends Stack {
       authType: lambda.FunctionUrlAuthType.NONE
     })
 
-    let url = new URL(mainfnUrl.url);
-    console.log(url.protocol)
-    
+    // let url = new URL(mainfnUrl.url);
+    // console.log(url.protocol)
+
     // const apigw = new apigateway.RestApi(this, 'apigw');
        
     // //API gateway lambda integration
