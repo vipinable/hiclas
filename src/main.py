@@ -25,9 +25,6 @@ def handler(event, context):
     AccountID = sts.get_caller_identity()['Account']
     jobId = '0f98e445-2d38-430e-a027-a10c259183cd'
     prefix = 'test1'
-    #print(s3batchops(AccountID))
-    #print(joblist(AccountID))
-    print(jobstatus(AccountID,jobId))
     
     
     return("Hello World!")
