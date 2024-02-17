@@ -67,7 +67,7 @@ export class LambdaWithLayer extends Stack {
       authType: lambda.FunctionUrlAuthType.NONE
     })
 
-    let url = new URL('https://3b4e42j4ih2kdh6yttppexp5im0psyra.lambda-url.us-east-1.on.aws/');
+    let url = new URL(mainfnUrl.url);
     console.log(url.protocol)
 
     // new CfnOutput(this, 'TheUrl', {
