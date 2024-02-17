@@ -63,14 +63,14 @@ export class LambdaWithLayer extends Stack {
       ],
       }));
 
-      const mainfnUrl = mainfn.addFunctionUrl({
-        authType: lambda.FunctionUrlAuthType.NONE
-      })
+      // const mainfnUrl = mainfn.addFunctionUrl({
+      //   authType: lambda.FunctionUrlAuthType.NONE
+      // })
       
-      new CfnOutput(this, 'mainfnUrl', {
-        // The .url attributes will return the unique Function URL
-        value: mainfnUrl.url,
-      });
+      // new CfnOutput(this, 'mainfnUrl', {
+      //   // The .url attributes will return the unique Function URL
+      //   value: mainfnUrl.url,
+      // });
 
     // const apigw = new apigateway.RestApi(this, 'apigw');
        
