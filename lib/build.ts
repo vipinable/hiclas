@@ -16,52 +16,52 @@ export class LambdaWithLayer extends Stack {
 
     console.log('accessing context 👉', this.node.tryGetContext('fromApp'));
 
-    // //Lambda layer creation definition
-    // const layer0 = new lambda.LayerVersion(this, 'LayerVersion', {
-    //   compatibleRuntimes: [
-    //     lambda.Runtime.PYTHON_3_6,
-    //     lambda.Runtime.PYTHON_3_7,
-    //     lambda.Runtime.PYTHON_3_8,
-    //   ],
-    //   code: lambda.Code.fromAsset(path.join(__dirname,'../../layer/bin')),
-    //   });
+    //Lambda layer creation definition
+    const layer0 = new lambda.LayerVersion(this, 'LayerVersion', {
+      compatibleRuntimes: [
+        lambda.Runtime.PYTHON_3_6,
+        lambda.Runtime.PYTHON_3_7,
+        lambda.Runtime.PYTHON_3_8,
+      ],
+      code: lambda.Code.fromAsset(path.join(__dirname,'../../layer/bin')),
+      });
 
-    // const s3Bucket = new s3.Bucket(this, 's3inventory', {
-    //   objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,
-    //   blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-    //   encryption: s3.BucketEncryption.S3_MANAGED,
-    //   enforceSSL: true,
-    //   versioned: true,
-    // });
+    const s3Bucket = new s3.Bucket(this, 's3inventory', {
+      objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      enforceSSL: true,
+      versioned: true,
+    });
 
-    // s3Bucket.grantRead(new iam.AccountRootPrincipal());
-    // s3Bucket.grantPut(new iam.AccountRootPrincipal());
+    s3Bucket.grantRead(new iam.AccountRootPrincipal());
+    s3Bucket.grantPut(new iam.AccountRootPrincipal());
           
-    // //Main function definition
-    // const mainfn = new lambda.Function(this, 'mainfn', {
-    //   description: 'hiclas main function',
-    //   runtime: lambda.Runtime.PYTHON_3_8,
-    //   handler: 'main.handler',
-    //   code: lambda.Code.fromAsset(path.join(__dirname, '../src')),
-    //   //layers: [layer0],
-    //   environment: {
-    //     APPNAME: process.env.ApplicationName!,
-    //     ENVNAME: process.env.Environment!, 
-    //   },
-    //   });
+    //Main function definition
+    const mainfn = new lambda.Function(this, 'mainfn', {
+      description: 'hiclas main function',
+      runtime: lambda.Runtime.PYTHON_3_8,
+      handler: 'main.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../src')),
+      //layers: [layer0],
+      environment: {
+        APPNAME: process.env.ApplicationName!,
+        ENVNAME: process.env.Environment!, 
+      },
+      });
     
-    //   mainfn.addToRolePolicy(new iam.PolicyStatement({
-    //   effect: iam.Effect.ALLOW,
-    //   resources: [
-    //     s3Bucket.arnForObjects("*"),
-    //     s3Bucket.bucketArn
-    //   ],
-    //   actions: [
-    //     's3:PutObject',
-    //     's3:GetObject',
-    //     's3:ListBucket'
-    //   ],
-    //   }));
+      mainfn.addToRolePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      resources: [
+        s3Bucket.arnForObjects("*"),
+        s3Bucket.bucketArn
+      ],
+      actions: [
+        's3:PutObject',
+        's3:GetObject',
+        's3:ListBucket'
+      ],
+      }));
 
     // const apigw = new apigateway.RestApi(this, 'apigw');
        
