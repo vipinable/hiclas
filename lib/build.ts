@@ -63,8 +63,9 @@ export class LambdaWithLayer extends Stack {
       ],
       }));
 
-      const mainfnUrl = mainfn.addFunctionUrl();
-      mainfnUrl.grantInvokeUrl(mainfn.role);
+      const mainfnUrl = mainfn.addFunctionUrl({
+        authType: lambda.FunctionUrlAuthType.NONE
+      })
       
       new CfnOutput(this, 'mainfnUrl', {
         // The .url attributes will return the unique Function URL
