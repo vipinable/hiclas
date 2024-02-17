@@ -69,7 +69,7 @@ export class LambdaWithLayer extends Stack {
 
     const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
       defaultBehavior: { 
-        origin: new origins.HttpOrigin(mainfnUrl.url)
+        origin: new origins.HttpOrigin(mainfnUrl)
       }
     });
       
