@@ -8,6 +8,7 @@ import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as path from 'path';
 import { EdgeFunction } from 'aws-cdk-lib/aws-cloudfront/lib/experimental';
+import { URL } from "url";
 export class LambdaWithLayer extends Stack {
 
   //BeginStackDefinition
@@ -67,10 +68,10 @@ export class LambdaWithLayer extends Stack {
       authType: lambda.FunctionUrlAuthType.NONE
     })
 
+    let url = new URL(mainfnUrl.url);
+
     const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
-      defaultBehavior: { 
-        origin: new origins.HttpOrigin(mainfnUrl)
-      }
+        domainNames: url.host
     });
       
 
