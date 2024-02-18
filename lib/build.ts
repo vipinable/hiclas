@@ -69,19 +69,6 @@ export class LambdaWithLayer extends Stack {
       authType: lambda.FunctionUrlAuthType.NONE
     })
 
-    // Get the Lambda function's URL using a Token
-    const lambdaFunctionUrl = mainfnUrl.url;
-
-    const fnUrlParam =  new ssm.StringParameter(this, 'fnUrlParam', {
-      parameterName: `/${id}/fnUrlParam`,
-      stringValue: Fn.parseDomainName(lambdaFunctionUrl),
-    });
-
-    // new CfnOutput(this, 'TheUrl', {
-    //   // The .url attributes will return the unique Function URL
-    //   value: mainfnUrl.url,
-    // });
-
     // const apigw = new apigateway.RestApi(this, 'apigw');
        
     // //API gateway lambda integration
@@ -123,44 +110,14 @@ export class LambdaWithLayer extends Stack {
       defaultRootObject: 'index.html'
     });
 
-    // this.fnUrl = ssm.StringParameter.fromStringParameterAttributes(this, 'MyValue', {
-    //     parameterName: `/${id}/fnUrlParam`,
-    // }).stringValue;
-
-    // // let domainName: string 
-    // // const url = new URL(Lazy.stringValue({
-    // //   produce(context) {
-    // //     return domainName;
-    // //   }
-    // // }));
-
-    // const encodingOptions: EncodingOptions = {
-    //   displayHint: 'https://example.com',
-    // };
-
-    // console.log(Token.asString(this.fnUrl, encodingOptions))
-
-    // if (Token.isUnresolved(this.fnUrl)) {
-    //   let urloutput = 'https://example.com'
-    // } else {
-    //   let urloutput = new URL(this.fnUrl)
-    // }
-  
-    // //  const urloutput = new URL(Token.asString(this.fnUrl, encodingOptions))
-
     const TheUrl = new CfnOutput(this, 'TheUrl', {
       // The .url attributes will return the unique Function URL
       value: Fn.parseDomainName(mainfnUrl.url)
     });
 
+    const fnUrlOrigin = new origins.HttpOrigin(Fn.parseDomainName(mainfnUrl.url))
 
-
-    //  console.log(this.fnUrl)
-
-
-    // const fnUrlOrigin = new origins.HttpOrigin(mainfnUrl)
-
-    // hiclasDist.addBehavior('/function', fnUrlOrigin)
+    hiclasDist.addBehavior('/function', fnUrlOrigin)
 
     //cfmainfn.grantInvoke('cloudfront.amazonaws.com')
 
