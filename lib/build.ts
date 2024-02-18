@@ -127,12 +127,13 @@ export class LambdaWithLayer extends Stack {
     if (!Token.isUnresolved(this.fnUrl)) {
       const url = new URL(this.fnUrl);
       console.log(this.fnUrl)
+      const TheUrl = new CfnOutput(this, 'TheUrl', {
+        // The .url attributes will return the unique Function URL
+        value: url.host,
+      });
     }
 
-    const TheUrl = new CfnOutput(this, 'TheUrl', {
-      // The .url attributes will return the unique Function URL
-      value: url.host,
-    });
+
 
     //  console.log(this.fnUrl)
 
