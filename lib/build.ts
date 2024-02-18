@@ -116,7 +116,7 @@ export class LambdaWithLayer extends Stack {
       defaultRootObject: 'index.html'
     });
 
-    console.log(mainfnUrl.url.toString().split("/")[2])
+    console.log(mainfnUrl.url.toString())
 
     // const fnUrlOrigin = new origins.HttpOrigin(mainfnUrl.url.toString().split("/")[2])
 
