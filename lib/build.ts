@@ -123,18 +123,16 @@ export class LambdaWithLayer extends Stack {
       defaultRootObject: 'index.html'
     });
 
-    const stringValue = ssm.StringParameter.fromStringParameterAttributes(this, 'MyValue', {
-      parameterName: fnUrlParam.parameterName,
-    }).stringValue;
-
-   this.fnUrl = mainfnUrl.url
-
-    const TheUrl = new CfnOutput(this, 'TheUrl', {
-      // The .url attributes will return the unique Function URL
-      value: this.fnUrl,
+    this.fnUrl = ssm.StringParameter.fromStringParameterAttributes(this, 'MyValue', {
+        parameterName: fnUrlParam.parameterName,
     });
 
-    console.log(stringValue)
+    // const TheUrl = new CfnOutput(this, 'TheUrl', {
+    //   // The .url attributes will return the unique Function URL
+    //   value: this.fnUrl,
+    // });
+
+    // console.log())
 
 
     // const fnUrlOrigin = new origins.HttpOrigin(mainfnUrl)
