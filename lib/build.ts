@@ -124,14 +124,18 @@ export class LambdaWithLayer extends Stack {
         parameterName: `/${id}/fnUrlParam`,
     }).stringValue;
 
-    if (!Token.isUnresolved(this.fnUrl)) {
-      const url = new URL(this.fnUrl);
-      console.log(this.fnUrl)
-      const TheUrl = new CfnOutput(this, 'TheUrl', {
-        // The .url attributes will return the unique Function URL
-        value: url.host,
-      });
-    }
+    let domainName: string 
+    const url = new URL(Lazy.stringValue({
+      produce(context) {
+        return domainName;
+      }
+    }));
+    
+    console.log(this.fnUrl)
+    const TheUrl = new CfnOutput(this, 'TheUrl', {
+      // The .url attributes will return the unique Function URL
+      value: url.host,
+    });
 
 
 
