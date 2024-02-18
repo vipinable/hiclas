@@ -9,6 +9,7 @@ import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as path from 'path';
 import { EdgeFunction } from 'aws-cdk-lib/aws-cloudfront/lib/experimental';
 export class LambdaWithLayer extends Stack {
+  public fnUrl: string
 
   //BeginStackDefinition
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -116,14 +117,14 @@ export class LambdaWithLayer extends Stack {
       defaultRootObject: 'index.html'
     });
 
-    let cfdn = mainfnUrl.url.toString()
+   this.fnUrl = mainfnUrl.url
 
     const TheUrl = new CfnOutput(this, 'TheUrl', {
       // The .url attributes will return the unique Function URL
-      value: cfdn,
+      value: this.fnUrl,
     });
 
-    console.log(cfdn.split("/"))
+    console.log(this.fnUrl)
 
 
     // const fnUrlOrigin = new origins.HttpOrigin(mainfnUrl)
