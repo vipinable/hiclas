@@ -74,11 +74,6 @@ export class LambdaWithLayer extends Stack {
       stringValue: mainfnUrl.url,
     });
 
-    const fnUrlParam =  new ssm.StringParameter(this, 'fnUrlParam', {
-      parameterName: `/${id}/fnUrlParam`,
-      stringValue: mainfnUrl.url,
-    });
-
     // new CfnOutput(this, 'TheUrl', {
     //   // The .url attributes will return the unique Function URL
     //   value: mainfnUrl.url,
