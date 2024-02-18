@@ -132,7 +132,7 @@ export class LambdaWithLayer extends Stack {
     //   value: this.fnUrl,
     // });
 
-     console.log(fnUrlParam.stringValue)
+     console.log(fnUrlParam.stringValue.split("/"))
 
 
     // const fnUrlOrigin = new origins.HttpOrigin(mainfnUrl)
