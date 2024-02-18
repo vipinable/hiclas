@@ -138,9 +138,9 @@ export class LambdaWithLayer extends Stack {
     console.log(Token.asString(this.fnUrl, encodingOptions))
 
     if (Token.isUnresolved(this.fnUrl)) {
-      const urloutput = 'https://example.com'
+      let urloutput = 'https://example.com'
     } else {
-      const urloutput = new URL(this.fnUrl)
+      let urloutput = new URL(this.fnUrl)
     }
   
     //  const urloutput = new URL(Token.asString(this.fnUrl, encodingOptions))
