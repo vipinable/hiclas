@@ -70,10 +70,10 @@ export class LambdaWithLayer extends Stack {
     })
 
     // Get the Lambda function's URL using a Token
-    const lambdaFunctionUrl = new cdk.Token(() => myLambdaFunction.functionArn);
+    const lambdaFunctionUrl = new Token(() => mainfn.functionArn);
 
     // Use the Token to extract the host part of the URL
-    const lambdaFunctionHost = new cdk.Token(() => {
+    const lambdaFunctionHost = new Token(() => {
       const urlParts = lambdaFunctionUrl.toString().split(':');
       return `${urlParts[1]}:${urlParts[2]}`;
     });
