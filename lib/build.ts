@@ -69,9 +69,18 @@ export class LambdaWithLayer extends Stack {
       authType: lambda.FunctionUrlAuthType.NONE
     })
 
+    // Get the Lambda function's URL using a Token
+    const lambdaFunctionUrl = new cdk.Token(() => myLambdaFunction.functionArn);
+
+    // Use the Token to extract the host part of the URL
+    const lambdaFunctionHost = new cdk.Token(() => {
+      const urlParts = lambdaFunctionUrl.toString().split(':');
+      return `${urlParts[1]}:${urlParts[2]}`;
+    });
+
     const fnUrlParam =  new ssm.StringParameter(this, 'fnUrlParam', {
       parameterName: `/${id}/fnUrlParam`,
-      stringValue: mainfnUrl.url.split('/')[1],
+      stringValue: lambdaFunctionHost.toString(),
     });
 
     // new CfnOutput(this, 'TheUrl', {
