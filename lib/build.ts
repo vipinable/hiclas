@@ -123,6 +123,10 @@ export class LambdaWithLayer extends Stack {
       defaultRootObject: 'index.html'
     });
 
+    const stringValue = ssm.StringParameter.fromStringParameterAttributes(this, 'MyValue', {
+      parameterName: fnUrlParam.parameterName,
+    }).stringValue;
+
    this.fnUrl = mainfnUrl.url
 
     const TheUrl = new CfnOutput(this, 'TheUrl', {
@@ -130,7 +134,7 @@ export class LambdaWithLayer extends Stack {
       value: this.fnUrl,
     });
 
-    console.log(this.fnUrl)
+    console.log(stringValue)
 
 
     // const fnUrlOrigin = new origins.HttpOrigin(mainfnUrl)
