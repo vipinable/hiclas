@@ -103,14 +103,14 @@ export class LambdaWithLayer extends Stack {
     //   ],
     //   }));
 
-    // const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
-    //   defaultBehavior: { 
-    //     origin: new origins.S3Origin(hiclasorigin), 
-    //   },
-    //   defaultRootObject: 'index.html'
-    // });
+    const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
+      defaultBehavior: { 
+        origin: new origins.HttpOrigin(Fn.parseDomainName(mainfnUrl.url), 
+      },
+      // defaultRootObject: 'index.html'
+    });
 
-    // const fnUrlOrigin = new origins.HttpOrigin(Fn.parseDomainName(mainfnUrl.url))
+    const s3Origin = new origins.S3Origin(hiclasorigin)
 
     // hiclasDist.addBehavior('/function', fnUrlOrigin)
 
