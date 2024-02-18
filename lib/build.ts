@@ -40,30 +40,30 @@ export class LambdaWithLayer extends Stack {
     s3Bucket.grantPut(new iam.AccountRootPrincipal());
           
     //Main function definition
-    const mainfn = new lambda.Function(this, 'mainfn', {
-      description: 'hiclas main function',
-      runtime: lambda.Runtime.PYTHON_3_8,
-      handler: 'main.handler',
-      code: lambda.Code.fromAsset(path.join(__dirname, '../src')),
-      //layers: [layer0],
-      environment: {
-        APPNAME: process.env.ApplicationName!,
-        ENVNAME: process.env.Environment!, 
-      },
-      });
+    // const mainfn = new lambda.Function(this, 'mainfn', {
+    //   description: 'hiclas main function',
+    //   runtime: lambda.Runtime.PYTHON_3_8,
+    //   handler: 'main.handler',
+    //   code: lambda.Code.fromAsset(path.join(__dirname, '../src')),
+    //   //layers: [layer0],
+    //   environment: {
+    //     APPNAME: process.env.ApplicationName!,
+    //     ENVNAME: process.env.Environment!, 
+    //   },
+    //   });
     
-      mainfn.addToRolePolicy(new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      resources: [
-        s3Bucket.arnForObjects("*"),
-        s3Bucket.bucketArn
-      ],
-      actions: [
-        's3:PutObject',
-        's3:GetObject',
-        's3:ListBucket'
-      ],
-      }));
+    //   mainfn.addToRolePolicy(new iam.PolicyStatement({
+    //   effect: iam.Effect.ALLOW,
+    //   resources: [
+    //     s3Bucket.arnForObjects("*"),
+    //     s3Bucket.bucketArn
+    //   ],
+    //   actions: [
+    //     's3:PutObject',
+    //     's3:GetObject',
+    //     's3:ListBucket'
+    //   ],
+    //   }));
 
     // const mainfnUrl = mainfn.addFunctionUrl({
     //   authType: lambda.FunctionUrlAuthType.NONE
@@ -76,13 +76,13 @@ export class LambdaWithLayer extends Stack {
     // apigw.root.addMethod('GET', apigwbeIntegration);
 
 
-    const hiclasorigin = new s3.Bucket(this, 'hiclasOrigin', {
-      objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,
-      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-      encryption: s3.BucketEncryption.S3_MANAGED,
-      enforceSSL: true,
-      versioned: true,
-    });
+    // const hiclasorigin = new s3.Bucket(this, 'hiclasOrigin', {
+    //   objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,
+    //   blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+    //   encryption: s3.BucketEncryption.S3_MANAGED,
+    //   enforceSSL: true,
+    //   versioned: true,
+    // });
 
     // const cfmainfn = new cloudfront.experimental.EdgeFunction(this, 'cfmainfn', {
     //   runtime: lambda.Runtime.PYTHON_3_8,
