@@ -122,7 +122,7 @@ export class LambdaWithLayer extends Stack {
     });
 
 
-    const fnUrlOrigin = new origins.HttpOrigin(mainfnUrl)
+    // const fnUrlOrigin = new origins.HttpOrigin(mainfnUrl)
 
     // hiclasDist.addBehavior('/function', fnUrlOrigin)
 
