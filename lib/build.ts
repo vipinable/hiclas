@@ -69,10 +69,10 @@ export class LambdaWithLayer extends Stack {
       authType: lambda.FunctionUrlAuthType.NONE
     })
 
-    const fnUrlParam =  new ssm.StringParameter(this, 'fnUrlParam', {
-      parameterName: `/${id}/fnUrlParam`,
-      stringValue: mainfnUrl.url.split('/')[0],
-    });
+    // const fnUrlParam =  new ssm.StringParameter(this, 'fnUrlParam', {
+    //   parameterName: `/${id}/fnUrlParam`,
+    //   stringValue: mainfnUrl.url.split('/')[0],
+    // });
 
     // const url = new URL(mainfnUrl.url.toString());
     // console.log(url.protocol)
@@ -123,16 +123,16 @@ export class LambdaWithLayer extends Stack {
       defaultRootObject: 'index.html'
     });
 
-    this.fnUrl = ssm.StringParameter.fromStringParameterAttributes(this, 'MyValue', {
-        parameterName: `/${id}/fnUrlParam`,
-    }).stringValue;
+    // this.fnUrl = ssm.StringParameter.fromStringParameterAttributes(this, 'MyValue', {
+    //     parameterName: `/${id}/fnUrlParam`,
+    // }).stringValue;
 
     // const TheUrl = new CfnOutput(this, 'TheUrl', {
     //   // The .url attributes will return the unique Function URL
     //   value: this.fnUrl,
     // });
 
-     console.log(this.fnUrl)
+    //  console.log(this.fnUrl)
 
 
     // const fnUrlOrigin = new origins.HttpOrigin(mainfnUrl)
