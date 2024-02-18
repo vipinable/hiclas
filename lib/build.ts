@@ -116,9 +116,11 @@ export class LambdaWithLayer extends Stack {
       defaultRootObject: 'index.html'
     });
 
-    const fnUrlOrigin = new origins.HttpOrigin(mainfnUrl.url.toString().split("/")[2])
+    console.log(mainfnUrl.url.toString().split("/")[2])
 
-    hiclasDist.addBehavior('/function', fnUrlOrigin)
+    // const fnUrlOrigin = new origins.HttpOrigin(mainfnUrl.url.toString().split("/")[2])
+
+    // hiclasDist.addBehavior('/function', fnUrlOrigin)
 
     //cfmainfn.grantInvoke('cloudfront.amazonaws.com')
 
