@@ -121,11 +121,11 @@ export class LambdaWithLayer extends Stack {
       value: mainfnUrl.url,
     });
 
-    console.log(TheUrl.value)
+    console.log(TheUrl.value.split("/")[2])
 
 
 
-    // const fnUrlOrigin = new origins.HttpOrigin(mainfnUrl.url.toString().split("/")[2])
+    const fnUrlOrigin = new origins.HttpOrigin(mainfnUrl.url.split("/")[2])
 
     // hiclasDist.addBehavior('/function', fnUrlOrigin)
 
