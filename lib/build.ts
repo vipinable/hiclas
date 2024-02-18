@@ -71,7 +71,7 @@ export class LambdaWithLayer extends Stack {
 
     const fnUrlParam =  new ssm.StringParameter(this, 'fnUrlParam', {
       parameterName: `/${id}/fnUrlParam`,
-      stringValue: mainfnUrl.url.split('/')[0],
+      stringValue: mainfnUrl.url,
     });
 
     // new CfnOutput(this, 'TheUrl', {
@@ -129,10 +129,10 @@ export class LambdaWithLayer extends Stack {
       console.log(this.fnUrl)
     }
 
-    // const TheUrl = new CfnOutput(this, 'TheUrl', {
-    //   // The .url attributes will return the unique Function URL
-    //   value: this.fnUrl,
-    // });
+    const TheUrl = new CfnOutput(this, 'TheUrl', {
+      // The .url attributes will return the unique Function URL
+      value: this.fnUrl,
+    });
 
     //  console.log(this.fnUrl)
 
