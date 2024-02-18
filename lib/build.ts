@@ -116,12 +116,14 @@ export class LambdaWithLayer extends Stack {
       defaultRootObject: 'index.html'
     });
 
+    let cfdn = mainfnUrl.url.toString()
+
     const TheUrl = new CfnOutput(this, 'TheUrl', {
       // The .url attributes will return the unique Function URL
-      value: mainfnUrl.url,
+      value: cfdn,
     });
 
-    console.log(mainfnUrl.toString())
+    console.log(cdfn.split("/"))
 
 
     // const fnUrlOrigin = new origins.HttpOrigin(mainfnUrl)
