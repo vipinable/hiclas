@@ -124,7 +124,7 @@ export class LambdaWithLayer extends Stack {
         parameterName: `/${id}/fnUrlParam`,
     }).stringValue;
 
-    if (!Token.isUnresolved(this.fnUrl) {
+    if (!Token.isUnresolved(this.fnUrl)) {
       const url = new URL(this.fnUrl);
       console.log(this.fnUrl)
     }
