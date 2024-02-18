@@ -1,4 +1,4 @@
-import { Stack, StackProps, Duration, RemovalPolicy, CfnOutput, Token, Lazy, EncodingOptions } from 'aws-cdk-lib';
+import { Stack, StackProps, Duration, RemovalPolicy, CfnOutput, Token, Lazy, EncodingOptions, Fn } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
@@ -70,17 +70,11 @@ export class LambdaWithLayer extends Stack {
     })
 
     // Get the Lambda function's URL using a Token
-    const lambdaFunctionUrl = new Token(() => mainfn.functionArn);
-
-    // Use the Token to extract the host part of the URL
-    const lambdaFunctionHost = new Token(() => {
-      const urlParts = lambdaFunctionUrl.toString().split(':');
-      return `${urlParts[1]}:${urlParts[2]}`;
-    });
+    const lambdaFunctionUrl = mainfnUrl.url;
 
     const fnUrlParam =  new ssm.StringParameter(this, 'fnUrlParam', {
       parameterName: `/${id}/fnUrlParam`,
-      stringValue: lambdaFunctionHost.toString(),
+      stringValue: Fn.parseDomainName(lambdaFunctionUrl),
     });
 
     // new CfnOutput(this, 'TheUrl', {
