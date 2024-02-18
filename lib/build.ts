@@ -71,7 +71,7 @@ export class LambdaWithLayer extends Stack {
 
     const fnUrlParam =  new ssm.StringParameter(this, 'fnUrlParam', {
       parameterName: `/${id}/fnUrlParam`,
-      stringValue: mainfnUrl.url,
+      stringValue: mainfnUrl.url.split('/')[0],
     });
 
     // const url = new URL(mainfnUrl.url.toString());
