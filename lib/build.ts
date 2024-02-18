@@ -118,7 +118,10 @@ export class LambdaWithLayer extends Stack {
 
     const fnUrlOrigin = new origins.HttpOrigin('zwo7n24wiimd2ego2sam53znce0cdrqs.lambda-url.us-east-1.on.aws')
 
-    hiclasDist.addBehavior('/function', fnUrlOrigin)
+    hiclasDist.addBehavior({
+      domainName: 'zwo7n24wiimd2ego2sam53znce0cdrqs.lambda-url.us-east-1.on.aws',
+      origin: fnUrlOrigin
+    })
 
     //cfmainfn.grantInvoke('cloudfront.amazonaws.com')
 
