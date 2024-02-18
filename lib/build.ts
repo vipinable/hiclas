@@ -131,7 +131,7 @@ export class LambdaWithLayer extends Stack {
 
     const TheUrl = new CfnOutput(this, 'TheUrl', {
       // The .url attributes will return the unique Function URL
-      value: this.fnUrl,
+      value: this.fnUrl.split('/'),
     });
 
     //  console.log(this.fnUrl)
