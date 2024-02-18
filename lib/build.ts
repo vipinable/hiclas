@@ -137,18 +137,18 @@ export class LambdaWithLayer extends Stack {
 
     console.log(Token.asString(this.fnUrl, encodingOptions))
 
-    if (Token.isUnresolved(this.fnUrl)) {
-      let urloutput = 'https://example.com'
-    } else {
-      let urloutput = new URL(this.fnUrl)
-    }
+    // if (Token.isUnresolved(this.fnUrl)) {
+    //   let urloutput = 'https://example.com'
+    // } else {
+    //   let urloutput = new URL(this.fnUrl)
+    // }
   
-    //  const urloutput = new URL(Token.asString(this.fnUrl, encodingOptions))
+    // //  const urloutput = new URL(Token.asString(this.fnUrl, encodingOptions))
 
-    const TheUrl = new CfnOutput(this, 'TheUrl', {
-      // The .url attributes will return the unique Function URL
-      value: urloutput
-    });
+    // const TheUrl = new CfnOutput(this, 'TheUrl', {
+    //   // The .url attributes will return the unique Function URL
+    //   value: urloutput
+    // });
 
 
 
