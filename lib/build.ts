@@ -123,22 +123,22 @@ export class LambdaWithLayer extends Stack {
       defaultRootObject: 'index.html'
     });
 
-    this.fnUrl = ssm.StringParameter.fromStringParameterAttributes(this, 'MyValue', {
-        parameterName: `/${id}/fnUrlParam`,
-    }).stringValue;
+    // this.fnUrl = ssm.StringParameter.fromStringParameterAttributes(this, 'MyValue', {
+    //     parameterName: `/${id}/fnUrlParam`,
+    // }).stringValue;
 
-    // let domainName: string 
-    // const url = new URL(Lazy.stringValue({
-    //   produce(context) {
-    //     return domainName;
-    //   }
-    // }));
+    // // let domainName: string 
+    // // const url = new URL(Lazy.stringValue({
+    // //   produce(context) {
+    // //     return domainName;
+    // //   }
+    // // }));
 
-    const encodingOptions: EncodingOptions = {
-      displayHint: 'https://example.com',
-    };
+    // const encodingOptions: EncodingOptions = {
+    //   displayHint: 'https://example.com',
+    // };
 
-    console.log(Token.asString(this.fnUrl, encodingOptions))
+    // console.log(Token.asString(this.fnUrl, encodingOptions))
 
     // if (Token.isUnresolved(this.fnUrl)) {
     //   let urloutput = 'https://example.com'
@@ -148,10 +148,10 @@ export class LambdaWithLayer extends Stack {
   
     // //  const urloutput = new URL(Token.asString(this.fnUrl, encodingOptions))
 
-    // const TheUrl = new CfnOutput(this, 'TheUrl', {
-    //   // The .url attributes will return the unique Function URL
-    //   value: urloutput
-    // });
+    const TheUrl = new CfnOutput(this, 'TheUrl', {
+      // The .url attributes will return the unique Function URL
+      value: Fn.parseDomainName(mainfnUrl.url)
+    });
 
 
 
