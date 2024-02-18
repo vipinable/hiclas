@@ -65,9 +65,9 @@ export class LambdaWithLayer extends Stack {
       ],
       }));
 
-    const mainfnUrl = mainfn.addFunctionUrl({
-      authType: lambda.FunctionUrlAuthType.NONE
-    })
+    // const mainfnUrl = mainfn.addFunctionUrl({
+    //   authType: lambda.FunctionUrlAuthType.NONE
+    // })
 
     // const apigw = new apigateway.RestApi(this, 'apigw');
        
@@ -103,21 +103,16 @@ export class LambdaWithLayer extends Stack {
     //   ],
     //   }));
 
-    const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
-      defaultBehavior: { 
-        origin: new origins.S3Origin(hiclasorigin), 
-      },
-      defaultRootObject: 'index.html'
-    });
+    // const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
+    //   defaultBehavior: { 
+    //     origin: new origins.S3Origin(hiclasorigin), 
+    //   },
+    //   defaultRootObject: 'index.html'
+    // });
 
-    const TheUrl = new CfnOutput(this, 'TheUrl', {
-      // The .url attributes will return the unique Function URL
-      value: Fn.parseDomainName(mainfnUrl.url)
-    });
+    // const fnUrlOrigin = new origins.HttpOrigin(Fn.parseDomainName(mainfnUrl.url))
 
-    const fnUrlOrigin = new origins.HttpOrigin(Fn.parseDomainName(mainfnUrl.url))
-
-    hiclasDist.addBehavior('/function', fnUrlOrigin)
+    // hiclasDist.addBehavior('/function', fnUrlOrigin)
 
     //cfmainfn.grantInvoke('cloudfront.amazonaws.com')
 
