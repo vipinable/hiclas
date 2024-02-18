@@ -39,35 +39,35 @@ export class LambdaWithLayer extends Stack {
     s3Bucket.grantRead(new iam.AccountRootPrincipal());
     s3Bucket.grantPut(new iam.AccountRootPrincipal());
           
-    //Main function definition
-    // const mainfn = new lambda.Function(this, 'mainfn', {
-    //   description: 'hiclas main function',
-    //   runtime: lambda.Runtime.PYTHON_3_8,
-    //   handler: 'main.handler',
-    //   code: lambda.Code.fromAsset(path.join(__dirname, '../src')),
-    //   //layers: [layer0],
-    //   environment: {
-    //     APPNAME: process.env.ApplicationName!,
-    //     ENVNAME: process.env.Environment!, 
-    //   },
-    //   });
+    //Index function definition
+    const indexfn = new lambda.Function(this, 'indexfn', {
+      description: 'hiclas index function',
+      runtime: lambda.Runtime.PYTHON_3_8,
+      handler: 'main.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../src')),
+      //layers: [layer0],
+      environment: {
+        APPNAME: process.env.ApplicationName!,
+        ENVNAME: process.env.Environment!, 
+      },
+      });
     
-    //   mainfn.addToRolePolicy(new iam.PolicyStatement({
-    //   effect: iam.Effect.ALLOW,
-    //   resources: [
-    //     s3Bucket.arnForObjects("*"),
-    //     s3Bucket.bucketArn
-    //   ],
-    //   actions: [
-    //     's3:PutObject',
-    //     's3:GetObject',
-    //     's3:ListBucket'
-    //   ],
-    //   }));
+      indexfn.addToRolePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      resources: [
+        s3Bucket.arnForObjects("*"),
+        s3Bucket.bucketArn
+      ],
+      actions: [
+        's3:PutObject',
+        's3:GetObject',
+        's3:ListBucket'
+      ],
+      }));
 
-    // const mainfnUrl = mainfn.addFunctionUrl({
-    //   authType: lambda.FunctionUrlAuthType.NONE
-    // })
+    const indexfnUrl = indexfn.addFunctionUrl({
+      authType: lambda.FunctionUrlAuthType.NONE
+    })
 
     // const apigw = new apigateway.RestApi(this, 'apigw');
        
@@ -76,13 +76,13 @@ export class LambdaWithLayer extends Stack {
     // apigw.root.addMethod('GET', apigwbeIntegration);
 
 
-    // const hiclasorigin = new s3.Bucket(this, 'hiclasOrigin', {
-    //   objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,
-    //   blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-    //   encryption: s3.BucketEncryption.S3_MANAGED,
-    //   enforceSSL: true,
-    //   versioned: true,
-    // });
+    const hiclastore = new s3.Bucket(this, 'hiclastore', {
+      objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      enforceSSL: true,
+      versioned: true,
+    });
 
     // const cfmainfn = new cloudfront.experimental.EdgeFunction(this, 'cfmainfn', {
     //   runtime: lambda.Runtime.PYTHON_3_8,
@@ -103,14 +103,14 @@ export class LambdaWithLayer extends Stack {
     //   ],
     //   }));
 
-    // const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
-    //   defaultBehavior: { 
-    //     origin: new origins.HttpOrigin(Fn.parseDomainName(mainfnUrl.url), 
-    //   },
-    //   // defaultRootObject: 'index.html'
-    // });
+    const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
+      defaultBehavior: { 
+        origin: new origins.HttpOrigin(Fn.parseDomainName(indexfnUrl.url)), 
+      },
+      // defaultRootObject: 'index.html'
+    });
 
-    // const s3Origin = new origins.S3Origin(hiclasorigin)
+    const s3Origin = new origins.S3Origin(hiclastore)
 
     // hiclasDist.addBehavior('/function', fnUrlOrigin)
 
