@@ -2,6 +2,7 @@ import { Stack, StackProps, Duration, RemovalPolicy, CfnOutput, Token, Lazy, Enc
 import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as acm from 'aws-cdk-lib/aws-acm';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
@@ -103,10 +104,17 @@ export class LambdaWithLayer extends Stack {
     //   ],
     //   }));
 
+    const certificateArn = `arn:aws:acm:${props.env.region}:${props.env.account}:certificate/e2803f4f-7240-4f20-8fab-510f8a833e15`;
+
+    const domainCert = acm.Certificate.fromCertificateArn(this, 'domainCert', certificateArn);
+
     const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
       defaultBehavior: { 
         origin: new origins.HttpOrigin(Fn.parseDomainName(indexfnUrl.url)), 
       },
+      domainNames: ['fn.theworkingmethods.com'],
+      certificate: domainCert
+
       // defaultRootObject: 'index.html'
     });
 
