@@ -104,7 +104,7 @@ export class LambdaWithLayer extends Stack {
     //   ],
     //   }));
 
-    const certificateArn = `arn:aws:acm:${props.env.region}:${props.env.account}:certificate/e2803f4f-7240-4f20-8fab-510f8a833e15`;
+    const certificateArn = `arn:aws:acm:${process.env.CDK_DEFAULT_REGION}:${process.env.CDK_DEFAULT_ACCOUNT}:certificate/e2803f4f-7240-4f20-8fab-510f8a833e15`;
 
     const domainCert = acm.Certificate.fromCertificateArn(this, 'domainCert', certificateArn);
 
