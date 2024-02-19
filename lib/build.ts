@@ -109,12 +109,12 @@ export class LambdaWithLayer extends Stack {
     const domainCert = acm.Certificate.fromCertificateArn(this, 'domainCert', certificateArn);
 
     const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
+      comment: 'Distribution for hiclas deployment',
       defaultBehavior: { 
         origin: new origins.HttpOrigin(Fn.parseDomainName(indexfnUrl.url)), 
       },
       domainNames: ['fn.theworkingmethods.com'],
       certificate: domainCert
-
       // defaultRootObject: 'index.html'
     });
 
