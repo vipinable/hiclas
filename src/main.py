@@ -23,14 +23,16 @@ def handler(event, context):
     logger.info("Response received")
     
     if 'CloudFront' in event['requestContext']['http']['userAgent']:
-        return("<h1>Hello World!</h1>")
+        return({
+            'statusCode': '200',
+            'body': '<h1>Hello World!</h1>'
+            'headers': {'Content-Type': 'application/json'}
+            })
     else:
         return({
             'statusCode': '403',
-            'body': 'forbidden!',
-            'headers': {
-                'Content-Type': 'application/json',
-            }
+            'body': '<h1>Access Denied</h1>',
+            'headers': {'Content-Type': 'application/json'}
             })
     
     logger.info("QueryString Parameters %s" % (event['queryStringParameters']))
