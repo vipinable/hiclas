@@ -23,12 +23,12 @@ def handler(event, context):
     logger.info("Response received")
     
     if 'CloudFront' in event['requestContext']['http']['userAgent']:
-        return("Hello World!")
+        return("<h1>Hello World!</h1>")
     else:
         return({
-            statusCode: '403',
-            body: 'forbidden!',
-            headers: {
+            'statusCode': '403',
+            'body': 'forbidden!',
+            'headers': {
                 'Content-Type': 'application/json',
             }
             })
