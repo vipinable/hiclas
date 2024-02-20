@@ -121,7 +121,6 @@ export class LambdaWithLayer extends Stack {
     const s3Origin = new origins.S3Origin(hiclastore)
 
     // hiclasDist.addBehavior('/function', fnUrlOrigin)
-
     //cfmainfn.grantInvoke('cloudfront.amazonaws.com')
 
   //EndStack
