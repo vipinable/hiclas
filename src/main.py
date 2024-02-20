@@ -22,7 +22,7 @@ def handler(event, context):
     logger.info("An event received %s" % (event))
     logger.info("Response received")
     
-    if 'lambda-url' in event['headers']['referer']:
+    if 'cloudfront' not in json.dumps(event):
         ''' Deny access if using lambda url'''
         return({
             'statusCode': '403',
