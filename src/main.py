@@ -22,20 +22,21 @@ def handler(event, context):
     logger.info("An event received %s" % (event))
     logger.info("Response received")
     
-    if 'CloudFront' in event['requestContext']['http']['userAgent']:
-        return({
-            'statusCode': '200',
-            'body': '<h1>Hello World!</h1>',
-            'headers': {'Content-Type': 'text/html',
-            }
-            })
-    else:
+    if 'lambda-url' in event['headers']['referer']:
+        ''' Deny access if using lambda url'''
         return({
             'statusCode': '403',
             'body': '<h1>forbidden!</h1>',
             'headers': {'Content-Type': 'text/html',
             }
             })
+
+    return({
+        'statusCode': '200',
+        'body': '<h1>Hello World!</h1>',
+        'headers': {'Content-Type': 'text/html',
+        }
+        })
     
     logger.info("QueryString Parameters %s" % (event['queryStringParameters']))
     
