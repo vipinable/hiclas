@@ -22,12 +22,16 @@ def handler(event, context):
     logger.info("An event received %s" % (event))
     logger.info("Response received")
     
-    AccountID = sts.get_caller_identity()['Account']
-    jobId = '0f98e445-2d38-430e-a027-a10c259183cd'
-    prefix = 'test1'
-    
-    
-    return("Hello World!")
+    if 'CloudFront' in event['requestContext']['http']['userAgent']:
+        return("Hello World!")
+    else:
+        return({
+            statusCode: '403',
+            body: 'forbidden!',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+            })
     
     logger.info("QueryString Parameters %s" % (event['queryStringParameters']))
     
