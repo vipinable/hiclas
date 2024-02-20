@@ -26,13 +26,13 @@ def handler(event, context):
         return({
             'statusCode': '200',
             'body': '<h1>Hello World!</h1>'
-            'headers': {'Content-Type': 'application/json'}
+            'headers': {'Content-Type': 'application/json',}
             })
     else:
         return({
             'statusCode': '403',
             'body': '<h1>Access Denied</h1>',
-            'headers': {'Content-Type': 'application/json'}
+            'headers': {'Content-Type': 'application/json',}
             })
     
     logger.info("QueryString Parameters %s" % (event['queryStringParameters']))
