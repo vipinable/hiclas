@@ -26,7 +26,7 @@ def handler(event, context):
         ''' Deny access if using lambda url'''
         return({
             'statusCode': '403',
-            'body': render_template(templatepath="templates/page404.j2")
+            'body': render_template(templatepath="templates/page404.j2"),
             'headers': {'Content-Type': 'text/html',
             }
             })
