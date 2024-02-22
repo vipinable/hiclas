@@ -6,7 +6,7 @@ import os
 from botocore.exceptions import ClientError
 from botocore.config import Config
 import uuid
-#import jinja2
+import jinja2
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)

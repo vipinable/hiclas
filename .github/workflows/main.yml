@@ -30,6 +30,8 @@ jobs:
       - uses: actions/checkout@v3
       - name: Check aws cli
         run: aws --version && aws sts get-caller-identity --query Account --output text
+      - name: Prepare lambda layer
+        run: mkdir -p layer/bin/python && pip install -r src/requirements.txt -t layer/bin/python && ls -l 
       - name: update npm package
         run: npm install -g npm@9.3.1
       - name: install aws cdk package
