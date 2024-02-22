@@ -26,7 +26,7 @@ export class LambdaWithLayer extends Stack {
         lambda.Runtime.PYTHON_3_7,
         lambda.Runtime.PYTHON_3_8,
       ],
-      code: lambda.Code.fromAsset(path.join(__dirname,'../layer/bin')),
+      code: lambda.Code.fromAsset(path.join(__dirname,'../../layer/bin')),
       });
 
     const s3Bucket = new s3.Bucket(this, 's3inventory', {
