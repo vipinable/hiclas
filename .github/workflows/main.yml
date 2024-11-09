@@ -33,7 +33,7 @@ jobs:
       - name: Prepare lambda layer
         run: mkdir -p layer/bin/python && pip install -r src/requirements.txt -t layer/bin/python
       - name: update npm package
-        run: npm install -g npm@9.3.1
+        run: npm install -g npm
       - name: install aws cdk package
         run: npm install -g aws-cdk && cdk --version
       - name: Check running versions
