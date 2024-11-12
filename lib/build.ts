@@ -126,7 +126,7 @@ export class LambdaWithLayer extends Stack {
     /**
      * Behavior for CSS files
      */
-    hiclasDist.addBehavior('/css/*', new origins.S3Origin(hiclastore), {
+    hiclasDist.addBehavior('/css/*', new origins.S3BucketOrigin(hiclastore), {
       cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
       viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
     });
@@ -134,7 +134,7 @@ export class LambdaWithLayer extends Stack {
     /**
      * Behavior for images
      */
-    hiclasDist.addBehavior('/images/*', new origins.S3Origin(hiclastore), {
+    hiclasDist.addBehavior('/images/*', new origins.S3BucketOrigin(hiclastore), {
       cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
       viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       compress: true
@@ -145,7 +145,8 @@ export class LambdaWithLayer extends Stack {
      */
     new s3deploy.BucketDeployment(this, 'DeployCSS', {
       sources: [s3deploy.Source.asset('../src/css')], 
-      destinationBucket: hiclastore
+      destinationBucket: hiclastore,
+      destinationKeyPrefix: 'css/'
     });
 
     // hiclasDist.addBehavior('/function', fnUrlOrigin)
