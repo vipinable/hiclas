@@ -1,98 +1,115 @@
-/* Basic Color Variables */
-:root {
-    --primary-color: #4A90E2;
-    --secondary-color: #50E3C2;
-    --accent-color: #F5A623;
-    --background-color: #F4F6F9;
-    --text-color: #333333;
-  }
-  
-  /* General styles */
-  body {
-    background-color: var(--background-color);
-    color: var(--text-color);
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-  }
-  
-  /* Header */
-  header {
-    background-color: var(--primary-color);
-    color: white;
-    padding: 1em;
-    text-align: center;
-  }
-  
-  /* Buttons */
-  button {
-    background-color: var(--secondary-color);
-    color: white;
-    border: none;
-    padding: 0.5em 1em;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  
-  button:hover {
-    background-color: var(--accent-color);
-  }
-  
-  /* Links */
-  a {
-    color: var(--primary-color);
-    text-decoration: none;
-  }
-  
-  a:hover {
-    color: var(--accent-color);
-  }
-  
-  /* Card or Container */
-  .card {
-    background-color: white;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    padding: 1.5em;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  }
-  
-  .card-header {
-    background-color: var(--primary-color);
-    color: white;
-    padding: 0.75em;
-    border-radius: 6px 6px 0 0;
-  }
-  
-  /* Footer */
-  footer {
-    background-color: var(--primary-color);
-    color: white;
-    text-align: center;
-    padding: 1em;
-    margin-top: 2em;
-  }
-  
-  /* Form */
-  input[type="text"],
-  input[type="email"],
-  textarea {
-    border: 1px solid #ddd;
-    padding: 0.5em;
-    width: 100%;
-    margin: 0.5em 0;
-    border-radius: 4px;
-  }
-  
-  input[type="submit"] {
-    background-color: var(--accent-color);
-    color: white;
-    border: none;
-    padding: 0.75em 1.5em;
-    cursor: pointer;
-    border-radius: 4px;
-  }
-  
-  input[type="submit"]:hover {
-    background-color: var(--secondary-color);
-  }  
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  background-color: #f5f5f5;
+}
+
+header {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+#search-bar {
+  padding: 8px;
+  width: 300px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+header button {
+  padding: 8px 16px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#categories {
+  margin: 20px 0;
+}
+
+#categories h2 {
+  margin-bottom: 10px;
+}
+
+#categories ul {
+  list-style-type: none;
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+#categories ul li a {
+  text-decoration: none;
+  color: #007bff;
+  font-weight: bold;
+}
+
+#featured-listings {
+  width: 100%;
+  max-width: 1200px;
+  margin-top: 20px;
+}
+
+#featured-listings h2 {
+  margin-bottom: 10px;
+}
+
+.listing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.listing-card {
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.listing-card img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.listing-card h3 {
+  font-size: 1.2em;
+  margin: 10px 0;
+}
+
+.listing-card p {
+  color: #555;
+  margin-bottom: 15px;
+}
+
+.listing-card button {
+  padding: 8px 12px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+footer {
+  margin-top: 30px;
+  text-align: center;
+  color: #777;
+}
