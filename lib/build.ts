@@ -4,6 +4,7 @@ import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as s3 from 'aws-cdk-lib/aws-s3';
+import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins'; 
@@ -122,7 +123,32 @@ export class LambdaWithLayer extends Stack {
       // defaultRootObject: 'index.html'
     });
 
-    const s3Origin = new origins.S3Origin(hiclastore)
+    /**
+     * Behavior for CSS files
+     */
+    hiclasDist.addBehavior('/css/*', new origins.S3Origin(hiclastore), {
+      cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+      viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+    });
+
+    /**
+     * Behavior for images
+     */
+    hiclasDist.addBehavior('/images/*', new origins.S3Origin(hiclastore), {
+      cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+      viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      compress: true
+    });
+
+    /**
+     * Deploy CSS files to the S3 bucket
+     */
+    new s3deploy.BucketDeployment(this, 'DeployCSS', {
+      sources: [s3deploy.Source.asset('../src/css')], 
+      destinationBucket: hiclastore,
+      hiclasDist, // Invalidate CloudFront cache upon deployment
+      distributionPaths: ['/css/*'], // Invalidate css path
+    });
 
     // hiclasDist.addBehavior('/function', fnUrlOrigin)
     //cfmainfn.grantInvoke('cloudfront.amazonaws.com')
