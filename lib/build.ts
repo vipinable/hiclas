@@ -145,9 +145,7 @@ export class LambdaWithLayer extends Stack {
      */
     new s3deploy.BucketDeployment(this, 'DeployCSS', {
       sources: [s3deploy.Source.asset('../src/css')], 
-      destinationBucket: hiclastore,
-      hiclasDist, // Invalidate CloudFront cache upon deployment
-      distributionPaths: ['/css/*'], // Invalidate css path
+      destinationBucket: hiclastore
     });
 
     // hiclasDist.addBehavior('/function', fnUrlOrigin)
