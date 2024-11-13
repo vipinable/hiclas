@@ -190,7 +190,7 @@ export class LambdaWithLayer extends Stack {
      * Enable lambda access to dynamodb
      */
     classifiedsTable.grantReadWriteData(indexfn);
-    indexfn.environment('TABLE_CLASSIFIEDS', classifiedsTable.tableName)
+    indexfn.addEnvironment('TABLE_CLASSIFIEDS', classifiedsTable.tableName)
 
   //EndStack
   }}
