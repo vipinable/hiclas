@@ -106,15 +106,15 @@ export class LambdaWithLayer extends Stack {
     /**
      * Create s3 origin for CloudFront
      */
-    const hiclastoreOrigin = new cloudfront.origin.s3Bucket(hiclastore, {
-      originAccessIdentity: originAccessIdentity,
-    })
+    // const hiclastoreOrigin = new cloudfront.origin.s3Bucket(hiclastore, {
+    //   originAccessIdentity: originAccessIdentity,
+    // }) 
+    const hiclastoreOrigin = new origins.S3Origin(hiclastore)
 
-    const test =new cloudfront.origin.s3Bucket()
 
     // const cfmainfn = new cloudfront.experimental.EdgeFunction(this, 'cfmainfn', {
     //   runtime: lambda.Runtime.PYTHON_3_8,
-    //   handler: 'main.handler',
+    //   handler: 'main.handler', 
     //   code: lambda.Code.fromAsset(path.join(__dirname, '../src')),
     // });
 
