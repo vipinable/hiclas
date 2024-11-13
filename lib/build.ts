@@ -1,4 +1,4 @@
-import { cdk, Stack, StackProps, Duration, RemovalPolicy, CfnOutput, Token, Lazy, EncodingOptions, Fn } from 'aws-cdk-lib';
+import { Stack, StackProps, Duration, RemovalPolicy, CfnOutput, Token, Lazy, EncodingOptions, Fn } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
@@ -183,7 +183,7 @@ export class LambdaWithLayer extends Stack {
       partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING }, 
       sortKey: { name: 'category', type: dynamodb.AttributeType.STRING }, 
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST, // On-demand pricing
-      removalPolicy: cdk.RemovalPolicy.DESTROY, // Change to RETAIN for production
+      removalPolicy: RemovalPolicy.DESTROY, // Change to RETAIN for production
     });
 
     /**
