@@ -1,10 +1,11 @@
-import { Stack, StackProps, Duration, RemovalPolicy, CfnOutput, Token, Lazy, EncodingOptions, Fn } from 'aws-cdk-lib';
+import { cdk, Stack, StackProps, Duration, RemovalPolicy, CfnOutput, Token, Lazy, EncodingOptions, Fn } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as acm from 'aws-cdk-lib/aws-certificatemanager';
 import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
+import * as dynamodb from 'aws-cdk-lib/aws-dynamodb'
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins'; 
@@ -175,8 +176,21 @@ export class LambdaWithLayer extends Stack {
       destinationKeyPrefix: 'css/'
     });
 
-    // hiclasDist.addBehavior('/function', fnUrlOrigin)
-    //cfmainfn.grantInvoke('cloudfront.amazonaws.com')
+    /**
+     * Create DynamoDB Table data store
+     */ 
+    const classifiedsTable = new dynamodb.Table(this, 'ClassifiedsTable', {
+      partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING }, 
+      sortKey: { name: 'category', type: dynamodb.AttributeType.STRING }, 
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST, // On-demand pricing
+      removalPolicy: cdk.RemovalPolicy.DESTROY, // Change to RETAIN for production
+    });
+
+    /**
+     * Enable lambda access to dynamodb
+     */
+    classifiedsTable.grantReadWriteData(indexfn);
+    indexfn.environment('TABLE_CLASSIFIEDS', classifiedsTable.tableName)
 
   //EndStack
   }}
