@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add New Classified</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    form { max-width: 500px; margin: 0 auto; }
+    label { display: block; margin-top: 15px; font-weight: bold; }
+    input, textarea, select { width: 100%; padding: 8px; margin-top: 5px; }
+    button { margin-top: 20px; padding: 10px 20px; background-color: #28a745; color: #fff; border: none; cursor: pointer; }
+    button:hover { background-color: #218838; }
+  </style>
+</head>
+<body>
+
+  <h1>Add New Classified</h1>
+  <form id="addItemForm">
+    <label for="name">Item Name</label>
+    <input type="text" id="name" name="name" required>
+
+    <label for="description">Description</label>
+    <textarea id="description" name="description" rows="4" required></textarea>
+
+    <label for="category">Category</label>
+    <select id="category" name="category" required>
+      <option value="Electronics">Electronics</option>
+      <option value="Vehicles">Vehicles</option>
+      <option value="Home & Garden">Home & Garden</option>
+      <option value="Jobs">Jobs</option>
+      <option value="Others">Others</option>
+    </select>
+
+    <label for="price">Price</label>
+    <input type="number" id="price" name="price" required>
+
+    <button type="submit">Add Item</button>
+  </form>
+
+  <p id="message"></p>
+
+  <script>
+    const form = document.getElementById('addItemForm');
+    const message = document.getElementById('message');
+
+    // Replace this with your actual API endpoint
+    const apiEndpoint = 'https://your-api-id.execute-api.region.amazonaws.com/Prod/items';
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      const item = {
+        id: Date.now().toString(), // Generate a unique ID
+        name: form.name.value,
+        description: form.description.value,
+        category: form.category.value,
+        price: parseFloat(form.price.value),
+      };
+
+      try {
+        const response = await fetch(apiEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(item),
+        });
+
+        if (response.ok) {
+          message.textContent = 'Item successfully added!';
+          form.reset();
+        } else {
+          message.textContent = 'Failed to add item. Please try again.';
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        message.textContent = 'An error occurred. Please try again.';
+      }
+    });
+  </script>
+
+</body>
+</html>

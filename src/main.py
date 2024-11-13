@@ -25,15 +25,15 @@ def handler(event, context):
     if 'cloudfront' not in json.dumps(event):
         ''' Deny access if using lambda url'''
         return({
-            'statusCode': '403',
-            'body': render_template(templatepath="templates/page404.j2"),
-            'headers': {'Content-Type': 'text/html',
+                'statusCode': '403',
+                'body': render_template(templatepath="templates/page404.j2"),
+                'headers': {'Content-Type': 'text/html',
             }
             })
 
     return({
         'statusCode': '200',
-        'body': render_template(templatepath="templates/index.j2"),
+        'body': render_template(templatepath="templates/additem.j2"),
         'headers': {'Content-Type': 'text/html',
         }
         })
