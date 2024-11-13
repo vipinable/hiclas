@@ -77,14 +77,38 @@ export class LambdaWithLayer extends Stack {
     // const apigwbeIntegration = new apigateway.LambdaIntegration(mainfn);
     // apigw.root.addMethod('GET', apigwbeIntegration);
 
-
+    /**
+     * Create an s3 bucket as backend storage
+     */
     const hiclastore = new s3.Bucket(this, 'hiclastore', {
       objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,
+      publicReadAccess: false,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       encryption: s3.BucketEncryption.S3_MANAGED,
       enforceSSL: true,
       versioned: true,
     });
+
+    /**
+     * Create an Origin Access Identity (OAI) for CloudFront to securely access the S3 bucket
+     */
+    const originAccessIdentity = new cloudfront.OriginAccessIdentity(this, 'OAI');
+
+    /**
+     * Grant CloudFront access to the bucket
+     */
+    hiclastore.addToResourcePolicy(new iam.PolicyStatement({
+      actions: ['s3:GetObject'],
+      resources: [hiclastore.arnForObjects('*')],
+      principals: [new iam.CanonicalUserPrincipal(originAccessIdentity.cloudFrontOriginAccessIdentityS3CanonicalUserId)],
+    }));
+
+    /**
+     * Create s3 origin for CloudFront
+     */
+    const hiclastoreOrigin = new cloudfront.origins.S3Origin(hiclastore, {
+      originAccessIdentity: originAccessIdentity,
+    })
 
     // const cfmainfn = new cloudfront.experimental.EdgeFunction(this, 'cfmainfn', {
     //   runtime: lambda.Runtime.PYTHON_3_8,
@@ -126,7 +150,7 @@ export class LambdaWithLayer extends Stack {
     /**
      * Behavior for CSS files
      */
-    hiclasDist.addBehavior('/css/*', new origins.S3BucketOrigin.withOriginAccessControl(hiclastore), {
+    hiclasDist.addBehavior('/css/*', hiclastoreOrigin, {
       cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
       viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
     });
@@ -134,7 +158,7 @@ export class LambdaWithLayer extends Stack {
     /**
      * Behavior for images
      */
-    hiclasDist.addBehavior('/images/*', new origins.S3BucketOrigin.withOriginAccessControl(hiclastore), {
+    hiclasDist.addBehavior('/images/*', hiclastoreOrigin, {
       cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
       viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       compress: true
