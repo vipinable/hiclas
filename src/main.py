@@ -33,7 +33,7 @@ def handler(event, context):
 
     return({
         'statusCode': '200',
-        'body': render_template(templatepath="templates/additem.j2"),
+        'body': render_template(templatepath="templates/index.j2"),
         'headers': {'Content-Type': 'text/html',
         }
         })
