@@ -113,27 +113,26 @@
             };
             console.log('Item Submitted:', item);
 
-            try {
-                // Post the data to the root URL
-                const response = fetch('https://fn.theworkingmethods.com/addItem', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(item),
-                })
-                .then((response) => {
-                    if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                    }
-                    console.log(response.json()); // Returns another promise
-                })
-                .then((data) => {
-                    console.log("Data received:", data);
-                })
-                .catch((error) => {
-                    console.error("Fetch error:", error);
-                });
+            // Post the data to the root URL
+            const response = fetch('https://fn.theworkingmethods.com/addItem', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(item),
+            })
+            .then((response) => {
+                if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                console.log(response.json()); // Returns another promise
+            })
+            .then((data) => {
+                console.log("Data received:", data);
+            })
+            .catch((error) => {
+                console.error("Fetch error:", error);
+            });
 
                 
 
