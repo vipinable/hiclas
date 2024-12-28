@@ -3,77 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Classifieds</title>
+    <title>HighlyClassifids</title>
     <link rel="stylesheet" href="https://fn.theworkingmethods.com/css/styles.css">
+	<style>
+    /* Main Page Styles */
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f8f9fa; }
+    .container { text-align: center; padding: 50px; }
+    .open-popup { background-color: #007bff; color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 5px; cursor: pointer; }
+    .open-popup:hover { background-color: #0056b3; }
+    /* Modal (Popup) Styles */
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center; }
+    .modal-content { background-color: #fff; padding: 20px; border-radius: 8px; width: 400px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); }
+    .modal-content h2 { margin: 0 0 20px; }
+    .modal-content label { display: block; margin: 10px 0 5px; font-weight: bold; }
+    .modal-content input, .modal-content textarea, .modal-content select { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; }
+    .modal-content button { width: 100%; padding: 10px; background-color: #007bff; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
+    .modal-content button:hover { background-color: #0056b3; }
+    .close-modal { background-color: #dc3545; margin-top: 10px; }
+    .close-modal:hover { background-color: #a71d2a; }
+	</style>
 </head>
 <body>
 
     <!-- Header -->
     <header>
-        <h1>Classifieds</h1>
+        <h1>HighlyClassifids</h1>
         <input type="text" placeholder="Search classifieds..." id="search-bar">
         <button>Search</button>
         <button class="open-popup" onclick="openModal()">Add New Item</button>
-        <!-- Modal -->
-        <div class="modal" id="addItemModal">
-            <div class="modal-content">
-            <h2>Add New Item</h2>
-            <form id="addItemForm">
-                <label for="name">Item Name</label>
-                <input type="text" id="name" name="name" required>
-
-                <label for="description">Description</label>
-                <textarea id="description" name="description" rows="3" required></textarea>
-
-                <label for="category">Category</label>
-                <select id="category" name="category" required>
-                <option value="Electronics">Electronics</option>
-                <option value="Vehicles">Vehicles</option>
-                <option value="Home & Garden">Home & Garden</option>
-                <option value="Jobs">Jobs</option>
-                <option value="Others">Others</option>
-                </select>
-
-                <label for="price">Price</label>
-                <input type="number" id="price" name="price" required>
-
-                <button type="submit">Add Item</button>
-            </form>
-            <button class="close-modal" onclick="closeModal()">Close</button>
-            </div>
-        </div>
-
-        <script>
-            const modal = document.getElementById('addItemModal');
-
-            function openModal() {
-            modal.style.display = 'flex';
-            }
-
-            function closeModal() {
-            modal.style.display = 'none';
-            }
-
-            document.getElementById('addItemForm').addEventListener('submit', (event) => {
-            event.preventDefault();
-            const form = event.target;
-            const item = {
-                name: form.name.value,
-                description: form.description.value,
-                category: form.category.value,
-                price: form.price.value,
-            };
-
-            console.log('Item Submitted:', item);
-            // Add logic to send data to your backend API here
-
-            alert('Item added successfully!');
-            form.reset();
-            closeModal();
-            });
-        </script>
-
     </header>
+	
+	<!-- Modal -->
+	<div class="modal" id="addItemModal">
+		<div class="modal-content">
+		<h2>Add New Item</h2>
+		<form id="addItemForm">
+			<label for="name">Item Name</label>
+			<input type="text" id="name" name="name" required>
+
+			<label for="description">Description</label>
+			<textarea id="description" name="description" rows="3" required></textarea>
+
+			<label for="category">Category</label>
+			<select id="category" name="category" required>
+			<option value="Electronics">Electronics</option>
+			<option value="Vehicles">Vehicles</option>
+			<option value="Home & Garden">Home & Garden</option>
+			<option value="Jobs">Jobs</option>
+			<option value="Others">Others</option>
+			</select>
+
+			<label for="price">Price</label>
+			<input type="number" id="price" name="price" required>
+
+			<button type="submit">Add Item</button>
+		</form>
+		<button class="close-modal" onclick="closeModal()">Close</button>
+		</div>
+	</div>
+	
+	<script>
+		const modal = document.getElementById('addItemModal');
+
+		function openModal() {
+		modal.style.display = 'flex';
+		}
+
+		function closeModal() {
+		modal.style.display = 'none';
+		}
+
+		document.getElementById('addItemForm').addEventListener('submit', (event) => {
+		event.preventDefault();
+		const form = event.target;
+		const item = {
+			name: form.name.value,
+			description: form.description.value,
+			category: form.category.value,
+			price: form.price.value,
+		};
+
+		console.log('Item Submitted:', item);
+		// Add logic to send data to your backend API here
+
+		alert('Item added successfully!');
+		form.reset();
+		closeModal();
+		});
+	</script>
 
     <!-- Categories Section -->
     <section id="categories">
