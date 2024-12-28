@@ -125,7 +125,7 @@
                 if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
                 }
-                console.log(response.json()); // Returns another promise
+                console.log(response); // Returns another promise
             })
             .then((data) => {
                 console.log("Data received:", data);
