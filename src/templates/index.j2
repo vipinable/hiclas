@@ -64,6 +64,7 @@
 	
 	<script>
 		const modal = document.getElementById('addItemModal');
+        const apiEndpoint = 'https://fn.theworkingmethods.com/addItem';
 
 		function openModal() {
 		modal.style.display = 'flex';
@@ -77,16 +78,37 @@
 		event.preventDefault();
 		const form = event.target;
 		const item = {
+            id: Date.now().toString(), // Generate a unique ID
 			name: form.name.value,
 			description: form.description.value,
 			category: form.category.value,
 			price: form.price.value,
 		};
 
-		console.log('Item Submitted:', item);
+        try {
+            const response = await fetch(apiEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(item),
+            });
+
+            if (response.ok) {
+            message.textContent = 'Item successfully added!';
+            message.style.color = '#28a745';
+            } else {
+            message.textContent = 'Failed to add item. Please try again.';
+            message.style.color = '#dc3545';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            message.textContent = 'An error occurred. Please try again.';
+            message.style.color = '#dc3545';
+        }
+
+		// console.log('Item Submitted:', item);
 		// Add logic to send data to your backend API here
 
-		alert('Item added successfully!');
+		// alert('Item added successfully!');
 		form.reset();
 		closeModal();
 		});
