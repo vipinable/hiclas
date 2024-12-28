@@ -84,33 +84,13 @@
                 category: form.category.value,
                 price: form.price.value,
             };
+            console.log('Item Submitted:', item);
+            // Add logic to send data to your backend API here
 
-            try {
-                // Post the data to the root URL
-                const response = await fetch('/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(item),
-                });
-
-                // Handle the response
-                if (response.ok) {
-                const result = await response.json();
-                console.log('Item added successfully:', result);
-                alert('Item added successfully!');
-                form.reset();
-                closeModal();
-                } else {
-                console.error('Failed to add item:', response.statusText);
-                alert('Failed to add item. Please try again.');
-                }
-            } catch (error) {
-                console.error('Error adding item:', error);
-                alert('An error occurred. Please try again later.');
-            }
-		});
+            alert('Item added successfully!');
+            form.reset();
+            closeModal();
+            });
 	</script>
 
     <!-- Categories Section -->
