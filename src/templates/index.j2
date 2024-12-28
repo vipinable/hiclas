@@ -13,6 +13,66 @@
         <h1>Classifieds</h1>
         <input type="text" placeholder="Search classifieds..." id="search-bar">
         <button>Search</button>
+        <button class="open-popup" onclick="openModal()">Add New Item</button>
+        <!-- Modal -->
+        <div class="modal" id="addItemModal">
+            <div class="modal-content">
+            <h2>Add New Item</h2>
+            <form id="addItemForm">
+                <label for="name">Item Name</label>
+                <input type="text" id="name" name="name" required>
+
+                <label for="description">Description</label>
+                <textarea id="description" name="description" rows="3" required></textarea>
+
+                <label for="category">Category</label>
+                <select id="category" name="category" required>
+                <option value="Electronics">Electronics</option>
+                <option value="Vehicles">Vehicles</option>
+                <option value="Home & Garden">Home & Garden</option>
+                <option value="Jobs">Jobs</option>
+                <option value="Others">Others</option>
+                </select>
+
+                <label for="price">Price</label>
+                <input type="number" id="price" name="price" required>
+
+                <button type="submit">Add Item</button>
+            </form>
+            <button class="close-modal" onclick="closeModal()">Close</button>
+            </div>
+        </div>
+
+        <script>
+            const modal = document.getElementById('addItemModal');
+
+            function openModal() {
+            modal.style.display = 'flex';
+            }
+
+            function closeModal() {
+            modal.style.display = 'none';
+            }
+
+            document.getElementById('addItemForm').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const form = event.target;
+            const item = {
+                name: form.name.value,
+                description: form.description.value,
+                category: form.category.value,
+                price: form.price.value,
+            };
+
+            console.log('Item Submitted:', item);
+            // Add logic to send data to your backend API here
+
+            alert('Item added successfully!');
+            form.reset();
+            closeModal();
+            });
+        </script>
+
     </header>
 
     <!-- Categories Section -->

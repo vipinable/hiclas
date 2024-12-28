@@ -52,7 +52,7 @@ export class LambdaWithLayer extends Stack {
       environment: {
         APPNAME: process.env.ApplicationName!,
         ENVNAME: process.env.Environment!, 
-      },
+        },
       });
     
       indexfn.addToRolePolicy(new iam.PolicyStatement({
