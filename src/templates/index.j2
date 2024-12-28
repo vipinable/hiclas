@@ -86,8 +86,23 @@
 		};
 
 		console.log('Item Submitted:', item);
-		// Add logic to send data to your backend API here
 
+		// Add logic to send data to your backend API here
+        try {
+            const response = await fetch(apiEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(item),
+            });
+
+            if (response.ok) {
+            message.textContent = 'Item successfully added!';
+            message.style.color = '#28a745';
+            } else {
+            message.textContent = 'Failed to add item. Please try again.';
+            message.style.color = '#dc3545';
+            }
+        }
 		alert('Item added successfully!');
 		form.reset();
 		closeModal();
