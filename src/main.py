@@ -208,11 +208,7 @@ def render_template(templatepath, items, *args, **kargs):
     with open(templatepath) as templatefile:
         template = jinja2.Template(templatefile.read())
 
-    args.append(items)
-
-    print(args)
-    
-    outputTemplate = template.render(*args, **kargs)
+    outputTemplate = template.render(items)
 
     return outputTemplate
     
