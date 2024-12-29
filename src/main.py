@@ -18,6 +18,9 @@ sts = session.client('sts')
 s3c = session.client('s3control',region_name='us-east-1')
 dynamodb = session.resource('dynamodb')
 
+#Load environment variable values
+TABLE_CLASSIFIEDS = os.getenv('TABLE_CLASSIFIEDS')
+
 def handler(event, context):
     
     logger.info("An event received %s" % (event))
@@ -34,10 +37,9 @@ def handler(event, context):
         body = json.loads(event['body'])
         write_data(body)
 
-
     return({
         'statusCode': '200',
-        'body': render_template(templatepath="templates/index.j2"),
+        'body': render_template(templatepath="templates/index.j2", items=query_data(TABLE_CLASSIFIEDS)),
         'headers': {'Content-Type': 'text/html',
         }
         })
@@ -206,6 +208,8 @@ def render_template(templatepath, *args, **kargs):
     with open(templatepath) as templatefile:
         template = jinja2.Template(templatefile.read())
 
+    print(items)
+
     outputTemplate = template.render(*args, **kargs)
 
     return outputTemplate
@@ -286,9 +290,9 @@ def joblist(AccountID):
     )
     return(response)
 
+# function to write data to dynamodb table
 def write_data(body):
-    TABLE_NAME = os.getenv('TABLE_CLASSIFIEDS')
-    table = dynamodb.Table(TABLE_NAME)
+    table = dynamodb.Table(TABLE_CLASSIFIEDS)
     response = table.put_item(Item={
         'id': str(uuid.uuid4()),
         'ts': str(body['id']),
@@ -298,6 +302,13 @@ def write_data(body):
         'price': body['price']
     })
     print(response)
+
+# function to write data to dynamodb table
+def query_data(TABLE_NAME):
+    table = dynamodb.Table(TABLE_NAME)
+    response = table.scan()
+    print(response)
+    return response['Items']
 
 
 
