@@ -61,9 +61,37 @@
 		<button class="close-modal" onclick="closeModal()">Close</button>
 		</div>
 	</div>
+
+	<div class="modal" id="viewItemModal">
+		<div class="modal-content">
+		<h2>View Item</h2>
+		<form id="viewItemForm">
+			<label for="name">Item Name</label>
+			<input type="text" id="name" name="name" required>
+
+			<label for="description">Description</label>
+			<textarea id="description" name="description" rows="3" required></textarea>
+
+			<label for="category">Category</label>
+			<select id="category" name="category" required>
+			<option value="Electronics">Electronics</option>
+			<option value="Vehicles">Vehicles</option>
+			<option value="Home & Garden">Home & Garden</option>
+			<option value="Jobs">Jobs</option>
+			<option value="Others">Others</option>
+			</select>
+
+			<label for="price">Price</label>
+			<input type="number" id="price" name="price" required>
+		</form>
+		<button class="close-modal" onclick="CloseViewItemModal()">Close</button>
+		</div>
+	</div>
 	
 	<script>
 		const modal = document.getElementById('addItemModal');
+
+        const viewItemModal = document.getElementById('viewItemModal');
 
 		function openModal() {
 		modal.style.display = 'flex';
@@ -71,6 +99,14 @@
 
 		function closeModal() {
 		modal.style.display = 'none';
+		}
+
+        function OpenViewItemModal() {
+		viewItemModal.style.display = 'flex';
+		}
+
+		function CloseViewItemModal() {
+		viewItemModal.style.display = 'none';
 		}
 
 		document.getElementById('addItemForm').addEventListener('submit', (event) => {
@@ -135,7 +171,7 @@
                 <img src="car.jpg" alt="Car">
                 <h3>{{ item.name }}</h3>
                 <p>{{ item.price }} - Excellent Condition</p>
-                <button>View Details</button>
+                <button class="open-popup" onclick="openModal()">View Details</button>
             </div>
             {% endfor %}
             <div class="listing-card">
