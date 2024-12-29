@@ -16,11 +16,11 @@ session = boto3.session.Session()
 s3 = session.client('s3')
 sts = session.client('sts')
 s3c = session.client('s3control',region_name='us-east-1')
+dynamodb = session.resource('dynamodb')
 
 def handler(event, context):
     
     logger.info("An event received %s" % (event))
-    logger.info("Response received")
     
     if 'cloudfront' not in json.dumps(event):
         ''' Deny access if using lambda url'''
@@ -30,6 +30,10 @@ def handler(event, context):
                 'headers': {'Content-Type': 'text/html',
             }
             })
+    if event['rawPath'] == '/addItem':
+        body = json.loads(event['body'])
+        write_data(body)
+
 
     return({
         'statusCode': '200',
@@ -281,3 +285,19 @@ def joblist(AccountID):
         AccountId=AccountID,
     )
     return(response)
+
+def write_data(body):
+    TABLE_NAME = os.getenv('TABLE_CLASSIFIEDS')
+    table = dynamodb.Table(TABLE_NAME)
+    response = table.put_item(Item={
+        'id': str(uuid.uuid4()),
+        'ts': str(body['id'])
+        'name': body['name'],
+        'description': body['description'],
+        'category': body['category'],
+        'price': body['price']
+    })
+    print(response)
+
+
+
