@@ -291,7 +291,7 @@ def write_data(body):
     table = dynamodb.Table(TABLE_NAME)
     response = table.put_item(Item={
         'id': str(uuid.uuid4()),
-        'ts': str(body['id'])
+        'ts': str(body['id']),
         'name': body['name'],
         'description': body['description'],
         'category': body['category'],
