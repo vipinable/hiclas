@@ -37,9 +37,11 @@ def handler(event, context):
         body = json.loads(event['body'])
         write_data(body)
 
+    data = query_data(TABLE_CLASSIFIEDS)
+
     return({
         'statusCode': '200',
-        'body': render_template(templatepath="templates/index.j2", items=query_data(TABLE_CLASSIFIEDS)),
+        'body': render_template(templatepath="templates/index.j2", data ),
         'headers': {'Content-Type': 'text/html',
         }
         })
@@ -188,7 +190,7 @@ def create_downloadurl(bucket ,key, expiration):
     url = s3.generate_presigned_url('get_object', Params=params, ExpiresIn=expiration)
     return (url)
     
-def render_template(templatepath, items, *args, **kargs):
+def render_template(templatepath, *args, **kargs):
     """Generates the html body for upload form on the jinja template.
 
     Parameters
@@ -208,9 +210,9 @@ def render_template(templatepath, items, *args, **kargs):
     with open(templatepath) as templatefile:
         template = jinja2.Template(templatefile.read())
 
-    print(items)
+    print(args[0])
 
-    outputTemplate = template.render(items, *args, **kargs)
+    outputTemplate = template.render(*args, **kargs)
 
     return outputTemplate
     
