@@ -188,7 +188,7 @@ def create_downloadurl(bucket ,key, expiration):
     url = s3.generate_presigned_url('get_object', Params=params, ExpiresIn=expiration)
     return (url)
     
-def render_template(templatepath, *args, **kargs):
+def render_template(templatepath, items, *args, **kargs):
     """Generates the html body for upload form on the jinja template.
 
     Parameters
