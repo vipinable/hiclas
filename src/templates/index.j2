@@ -105,6 +105,7 @@
             event.preventDefault();
             const form = event.target;
             const item = {
+                method: 'addItem'
                 id: Date.now().toString(), // Generate a unique ID
                 name: form.name.value,
                 description: form.description.value,
@@ -114,7 +115,7 @@
             console.log('Item Submitted:', item);
 
             // Post the data to the root URL
-            const response = fetch('https://fn.theworkingmethods.com/addItem', {
+            const response = fetch('https://fn.theworkingmethods.com', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -125,17 +126,19 @@
                 if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
                 }
-                console.log(response); // Returns another promise
+                alert('Failed to add item. Please try again.');
             })
-            .then((data) => {
-                console.log("Data received:", data);
+            .then((item) => {
+                const result = response.json();
+                console.log('Item added successfully:', result);
+                alert('Item added successfully!');
+                form.reset();
+                closeModal();
             })
             .catch((error) => {
                 console.error("Fetch error:", error);
+                alert('An error occurred. Please try again later.');
             });
-
-                
-
 
             });
 	</script>
