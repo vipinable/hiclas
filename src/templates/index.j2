@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HighlyClassifids</title>
-    <link rel="stylesheet" href="https://fn.theworkingmethods.com/css/styles.css">
+    <link rel="stylesheet" href="/css/styles.css">
 	<style>
     /* Main Page Styles */
     body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f8f9fa; }
@@ -78,7 +78,6 @@
             const form = event.target;
             const item = {
                 id: Date.now().toString(), // Generate a unique ID
-                method: 'addItem',
                 name: form.name.value,
                 description: form.description.value,
                 category: form.category.value,
@@ -87,7 +86,7 @@
             console.log('Item Submitted:', item);
 
             // Post the data to the root URL
-            const response = fetch('https://fn.theworkingmethods.com', {
+            const response = fetch('/addItem', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -97,8 +96,8 @@
             .then((response) => {
                 if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
-                }
                 alert('Failed to add item. Please try again.');
+                }
             })
             .then((item) => {
                 alert('Item added successfully!');
@@ -110,7 +109,7 @@
                 alert('An error occurred. Please try again later.');
             });
 
-            });
+        });
 	</script>
 
     <!-- Categories Section -->
