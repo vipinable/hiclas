@@ -210,7 +210,7 @@ def render_template(templatepath, items, *args, **kargs):
 
     print(items)
 
-    outputTemplate = template.render(*args, **kargs)
+    outputTemplate = template.render(items, *args, **kargs)
 
     return outputTemplate
     
