@@ -30,10 +30,10 @@
         <h1>HighlyClassifids</h1>
         <input type="text" placeholder="Search classifieds..." id="search-bar">
         <button>Search</button>
-        <button class="open-popup" onclick="openModal()">Add New Item</button>
+        <button class="open-popup" onclick="OpenAddItemModal()">Add New Item</button>
     </header>
 	
-	<!-- Modal -->
+	<!-- Modal for add item window -->
 	<div class="modal" id="addItemModal">
 		<div class="modal-content">
 		<h2>Add New Item</h2>
@@ -58,10 +58,11 @@
 
 			<button type="submit">Add Item</button>
 		</form>
-		<button class="close-modal" onclick="closeModal()">Close</button>
+		<button class="close-modal" onclick="CloseAddItemModal()">Close</button>
 		</div>
 	</div>
 
+    <!-- Modal for view item window -->
 	<div class="modal" id="viewItemModal">
 		<div class="modal-content">
 		<h2>View Item</h2>
@@ -89,16 +90,16 @@
 	</div>
 	
 	<script>
-		const modal = document.getElementById('addItemModal');
+		const addItemModal = document.getElementById('addItemModal');
 
         const viewItemModal = document.getElementById('viewItemModal');
 
-		function openModal() {
-		modal.style.display = 'flex';
+		function OpenAddItemModal() {
+		addItemModal.style.display = 'flex';
 		}
 
-		function closeModal() {
-		modal.style.display = 'none';
+		function CloseAddItemModal() {
+		addItemModal.style.display = 'none';
 		}
 
         function OpenViewItemModal() {
