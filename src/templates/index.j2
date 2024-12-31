@@ -148,6 +148,45 @@
                 alert('An error occurred. Please try again later.');
             });
         });
+
+        // Function to open the details in a new window
+        function openDetailsInNewWindow(item) {
+            const newWindow = window.open('', '_blank', 'width=600,height=400');
+
+            if (newWindow) {
+            newWindow.document.write(`
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>${item.name}</title>
+                <style>
+                    body {
+                    font-family: Arial, sans-serif;
+                    margin: 20px;
+                    }
+                    h1 {
+                    color: #333;
+                    }
+                    p {
+                    margin: 10px 0;
+                    }
+                </style>
+                </head>
+                <body>
+                <h1>${item.name}</h1>
+                <p><strong>Category:</strong> ${item.category}</p>
+                <p><strong>Description:</strong> ${item.description}</p>
+                <p><strong>Price:</strong> $${item.price}</p>
+                <button onclick="window.close()">Close</button>
+                </body>
+                </html>
+            `);
+            } else {
+            alert('Pop-up blocked! Please allow pop-ups for this site.');
+            }
+        }
 	</script>
 
     <!-- Categories Section -->

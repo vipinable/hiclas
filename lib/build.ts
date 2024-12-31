@@ -46,7 +46,7 @@ export class LambdaWithLayer extends Stack {
     const indexfn = new lambda.Function(this, 'indexfn', {
       description: 'hiclas index function',
       runtime: lambda.Runtime.PYTHON_3_8,
-      handler: 'main.handler',
+      handler: 'indexfn.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../src')),
       layers: [layer0],
       environment: {
@@ -72,11 +72,37 @@ export class LambdaWithLayer extends Stack {
       authType: lambda.FunctionUrlAuthType.NONE
     })
 
-    // const apigw = new apigateway.RestApi(this, 'apigw');
+    //Index function definition
+    const apifn = new lambda.Function(this, 'apifn', {
+      description: 'hiclas api function',
+      runtime: lambda.Runtime.PYTHON_3_8,
+      handler: 'apifn.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../src')),
+      layers: [layer0],
+      environment: {
+        APPNAME: process.env.ApplicationName!,
+        ENVNAME: process.env.Environment!, 
+        },
+      });
+    
+      apifn.addToRolePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      resources: [
+        s3Bucket.arnForObjects("*"),
+        s3Bucket.bucketArn
+      ],
+      actions: [
+        's3:PutObject',
+        's3:GetObject',
+        's3:ListBucket'
+      ],
+      }));
+
+    const hiclasapi = new apigateway.RestApi(this, 'hiclasapi');
        
-    // //API gateway lambda integration
-    // const apigwbeIntegration = new apigateway.LambdaIntegration(mainfn);
-    // apigw.root.addMethod('GET', apigwbeIntegration);
+    //API gateway lambda integration
+    const hiclasapiIntegration = new apigateway.LambdaIntegration(apifn);
+    hiclasapi.root.addMethod('GET', hiclasapiIntegration);
 
     /**
      * Create an s3 bucket as backend storage
@@ -112,25 +138,6 @@ export class LambdaWithLayer extends Stack {
     // }) 
     const hiclastoreOrigin = new origins.S3Origin(hiclastore)
 
-
-    // const cfmainfn = new cloudfront.experimental.EdgeFunction(this, 'cfmainfn', {
-    //   runtime: lambda.Runtime.PYTHON_3_8,
-    //   handler: 'main.handler', 
-    //   code: lambda.Code.fromAsset(path.join(__dirname, '../src')),
-    // });
-
-    // cfmainfn.addToRolePolicy(new iam.PolicyStatement({
-    //   effect: iam.Effect.ALLOW,
-    //   resources: [
-    //     s3Bucket.arnForObjects("*"),
-    //     s3Bucket.bucketArn
-    //   ],
-    //   actions: [
-    //     's3:PutObject',
-    //     's3:GetObject',
-    //     's3:ListBucket'
-    //   ],
-    //   }));
     const certificateArn = `arn:aws:acm:${process.env.CDK_DEFAULT_REGION}:${process.env.CDK_DEFAULT_ACCOUNT}:certificate/e2803f4f-7240-4f20-8fab-510f8a833e15`;
 
     const domainCert = acm.Certificate.fromCertificateArn(this, 'domainCert', certificateArn);
