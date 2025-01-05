@@ -201,7 +201,7 @@ export class LambdaWithLayer extends Stack {
     /** 
      * Create an api gateway origin
      */
-    const ApiUrl = new URL(hiclasapi.url)
+    const ApiUrl = new URL(hiclasapi.restApiId)
     const hiclasApiOrigin = new origins.HttpOrigin(ApiUrl.hostname, {
       originPath: '/prod', // Replace 'prod' with your API stage name
     });
