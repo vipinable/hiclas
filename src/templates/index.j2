@@ -111,46 +111,8 @@
 		viewItemModal.style.display = 'none';
 		}
 
-		document.getElementById('addItemForm').addEventListener('submit', (event) => {
-            event.preventDefault();
-            const form = event.target;
-            const item = {
-                id: Date.now().toString(), // Generate a unique ID
-                name: form.name.value,
-                description: form.description.value,
-                category: form.category.value,
-                price: form.price.value,
-            };
-            console.log('Item Submitted:', item);
-
-            // Post the data to the root URL
-            const response = fetch('/addItem', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(item),
-            })
-            .then((response) => {
-                if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
-                alert('Failed to add item. Please try again.');
-                }
-            })
-            .then((item) => {
-                alert('Item added successfully!');
-                form.reset();
-                closeModal();
-                window.location.reload();
-            })
-            .catch((error) => {
-                console.error("Fetch error:", error);
-                alert('An error occurred. Please try again later.');
-            });
-        });
-
         // Function to open the details in a new window
-        function openDetailsInNewWindow(item) {
+        function openDetailsInNewWindow() {
             const newWindow = window.open('', '_blank', 'width=600,height=400');
 
             if (newWindow) {
@@ -198,6 +160,45 @@
                 alert('An error occurred. Please try again later.');
             });
         }
+
+		document.getElementById('addItemForm').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const form = event.target;
+            const item = {
+                id: Date.now().toString(), // Generate a unique ID
+                name: form.name.value,
+                description: form.description.value,
+                category: form.category.value,
+                price: form.price.value,
+            };
+            console.log('Item Submitted:', item);
+
+            // Post the data to the root URL
+            const response = fetch('/addItem', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(item),
+            })
+            .then((response) => {
+                if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+                alert('Failed to add item. Please try again.');
+                }
+            })
+            .then((item) => {
+                alert('Item added successfully!');
+                form.reset();
+                closeModal();
+                window.location.reload();
+            })
+            .catch((error) => {
+                console.error("Fetch error:", error);
+                alert('An error occurred. Please try again later.');
+            });
+        });
+
 	</script>
 
     <!-- Categories Section -->
