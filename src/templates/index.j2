@@ -146,13 +146,14 @@
                     </html>
                 `);
                 }); 
-            } else {
-                    alert('Pop-up blocked! Please allow pop-ups for this site.');
-            }
             .catch((error) => {
                 console.error("Fetch error:", error);
                 alert('An error occurred. Please try again later.');
             });
+            } else {
+                    alert('Pop-up blocked! Please allow pop-ups for this site.');
+            }
+
         }
 
 		document.getElementById('addItemForm').addEventListener('submit', (event) => {
