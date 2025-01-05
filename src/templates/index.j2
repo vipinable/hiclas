@@ -118,11 +118,6 @@
             if (newWindow) {
 
             const response = fetch('https://x257rwnem6.execute-api.us-east-1.amazonaws.com/prod/'), {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(item),
             })
             .then((item) => {
                 newWindow.document.write(`
