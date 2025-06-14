@@ -8,8 +8,8 @@ import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb'
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
-// import * as origins from 'aws-cdk-lib/aws-cloudfront-origins'; 
-import { S3Origin, Http } from 'aws-cdk-lib/aws-cloudfront-origins';
+import * as origins from 'aws-cdk-lib/aws-cloudfront-origins'; 
+import { S3Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as path from 'path';
 // import { EdgeFunction } from 'aws-cdk-lib/aws-cloudfront/lib/experimental';
