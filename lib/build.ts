@@ -22,12 +22,12 @@ export class LambdaWithLayer extends Stack {
     console.log('accessing context 👉', this.node.tryGetContext('fromApp'));
 
     //Lambda layer creation definition
-    const layer0 = new lambda.LayerVersion(this, 'LayerVersion', {
-      compatibleRuntimes: [
-        lambda.Runtime.PYTHON_3_12,
-      ],
-      code: lambda.Code.fromAsset(path.join(__dirname,'../../layer/bin')),
-      });
+    // const layer0 = new lambda.LayerVersion(this, 'LayerVersion', {
+    //   compatibleRuntimes: [
+    //     lambda.Runtime.PYTHON_3_12,
+    //   ],
+    //   code: lambda.Code.fromAsset(path.join(__dirname,'../../layer/bin')),
+    //   });
 
     const s3Bucket = new s3.Bucket(this, 's3inventory', {
       objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,
@@ -46,7 +46,7 @@ export class LambdaWithLayer extends Stack {
       runtime: lambda.Runtime.PYTHON_3_12,
       handler: 'indexfn.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../src')),
-      layers: [layer0],
+      // layers: [layer0],
       environment: {
         APPNAME: process.env.ApplicationName!,
         ENVNAME: process.env.Environment!, 
@@ -76,7 +76,7 @@ export class LambdaWithLayer extends Stack {
       runtime: lambda.Runtime.PYTHON_3_12,
       handler: 'apifn.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../src')),
-      layers: [layer0],
+      // layers: [layer0],
       environment: {
         APPNAME: process.env.ApplicationName!,
         ENVNAME: process.env.Environment!, 
