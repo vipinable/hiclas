@@ -144,13 +144,14 @@ export class LambdaWithLayer extends Stack {
 
     const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
       comment: 'Distribution for hiclas deployment',
-      // defaultBehavior: { 
-      //   origin: new origins.HttpOrigin(Fn.parseDomainName(indexfnUrl.url)), 
-      //   allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
-      //   viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-      //   cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
-      //   originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-      // },
+      defaultBehavior: { 
+        // origin: new origins.HttpOrigin(Fn.parseDomainName(indexfnUrl.url)), 
+        origin: hiclastoreOrigin,
+        allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+        originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+      },
       domainNames: ['fn.theworkingmethods.com'],
       certificate: domainCert,
       defaultRootObject: 'index.html'
