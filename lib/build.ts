@@ -24,9 +24,7 @@ export class LambdaWithLayer extends Stack {
     //Lambda layer creation definition
     const layer0 = new lambda.LayerVersion(this, 'LayerVersion', {
       compatibleRuntimes: [
-        lambda.Runtime.PYTHON_3_6,
-        lambda.Runtime.PYTHON_3_7,
-        lambda.Runtime.PYTHON_3_8,
+        lambda.Runtime.PYTHON_3_12,
       ],
       code: lambda.Code.fromAsset(path.join(__dirname,'../../layer/bin')),
       });
@@ -45,7 +43,7 @@ export class LambdaWithLayer extends Stack {
     //Index function definition
     const indexfn = new lambda.Function(this, 'indexfn', {
       description: 'hiclas index function',
-      runtime: lambda.Runtime.PYTHON_3_8,
+      runtime: lambda.Runtime.PYTHON_3_12,
       handler: 'indexfn.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../src')),
       layers: [layer0],
@@ -75,7 +73,7 @@ export class LambdaWithLayer extends Stack {
     //Index function definition
     const apifn = new lambda.Function(this, 'apifn', {
       description: 'hiclas api function',
-      runtime: lambda.Runtime.PYTHON_3_8,
+      runtime: lambda.Runtime.PYTHON_3_12,
       handler: 'apifn.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../src')),
       layers: [layer0],
