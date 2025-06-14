@@ -9,7 +9,6 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb'
 import * as ssm from 'aws-cdk-lib/aws-ssm';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins'; 
-import { S3Origin } from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as path from 'path';
 // import { EdgeFunction } from 'aws-cdk-lib/aws-cloudfront/lib/experimental';
@@ -137,7 +136,11 @@ export class LambdaWithLayer extends Stack {
     // const hiclastoreOrigin = new cloudfront.origin.s3Bucket(hiclastore, {
     //   originAccessIdentity: originAccessIdentity,
     // }) 
-    const hiclastoreOrigin = new S3Origin(hiclastore)
+    // const hiclastoreOrigin = new S3Origin(hiclastore)
+
+    const s3BucketOrigin = origins.S3BucketOrigin.withOriginAccessControl(s3Bucket, {
+             originAccessLevels: [cloudfront.AccessLevel.READ, cloudfront.AccessLevel.LIST],
+    });
 
     const certificateArn = `arn:aws:acm:${process.env.CDK_DEFAULT_REGION}:${process.env.CDK_DEFAULT_ACCOUNT}:certificate/e2803f4f-7240-4f20-8fab-510f8a833e15`;
 
@@ -147,7 +150,7 @@ export class LambdaWithLayer extends Stack {
       comment: 'Distribution for hiclas deployment',
       defaultBehavior: { 
         // origin: new origins.HttpOrigin(Fn.parseDomainName(indexfnUrl.url)), 
-        origin: new S3Origin(s3Bucket),
+        origin: s3BucketOrigin,
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
@@ -156,6 +159,10 @@ export class LambdaWithLayer extends Stack {
       domainNames: ['fn.theworkingmethods.com'],
       certificate: domainCert,
       defaultRootObject: 'index.html'
+    });
+
+    const hiclastoreOrigin = origins.S3BucketOrigin.withOriginAccessControl(hiclastore, {
+             originAccessLevels: [cloudfront.AccessLevel.READ, cloudfront.AccessLevel.LIST],
     });
 
     /**
