@@ -208,19 +208,19 @@ export class LambdaWithLayer extends Stack {
     /** 
      * Create an api gateway origin
      */
-    const ApiUrl = new URL(hiclasapi.restApiId)
-    const hiclasApiOrigin = new origins.HttpOrigin(ApiUrl.hostname, {
-      originPath: '/prod', // Replace 'prod' with your API stage name
-    });
+    // const ApiUrl = new URL(hiclasapi.restApiId)
+    // const hiclasApiOrigin = new origins.HttpOrigin(ApiUrl.hostname, {
+    //   originPath: '/prod', // Replace 'prod' with your API stage name
+    // });
 
     /**
      * Behavior for api gateway
      */
-    hiclasDist.addBehavior('/api/*', hiclasApiOrigin, {
-      viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-      allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
-      cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
-    });
+    // hiclasDist.addBehavior('/api/*', hiclasApiOrigin, {
+    //   viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+    //   allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+    //   cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+    // });
 
   //EndStack
   }}
