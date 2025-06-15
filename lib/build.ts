@@ -200,8 +200,6 @@ export class LambdaWithLayer extends Stack {
       destinationKeyPrefix: 'css/',
       prune: false, // Set to true to remove files not in the source
       retainOnDelete: false, // Set to true to retain files on stack deletion
-      logRetention: logs.RetentionDays.ONE_WEEK, // Set to your desired retention period  
-      logGroup: hiclasLogGroup,
     });
 
     /**
@@ -213,8 +211,6 @@ export class LambdaWithLayer extends Stack {
       destinationKeyPrefix: 'assets/',
       prune: false, // Set to true to remove files not in the source
       retainOnDelete: false, // Set to true to retain files on stack deletion
-      logRetention: logs.RetentionDays.ONE_WEEK, // Set to your desired retention period  
-      logGroup: hiclasLogGroup,
     });
 
     /**
