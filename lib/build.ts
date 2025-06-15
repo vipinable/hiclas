@@ -183,6 +183,14 @@ export class LambdaWithLayer extends Stack {
     });
 
     /**
+     * Behavior for Assets files
+     */
+    hiclasDist.addBehavior('/assets/*', hiclastoreOrigin, {
+      cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+      viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+    });
+
+    /**
      * Behavior for images
      */
     hiclasDist.addBehavior('/images/*', hiclastoreOrigin, {
