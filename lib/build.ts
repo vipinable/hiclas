@@ -158,8 +158,8 @@ export class LambdaWithLayer extends Stack {
     const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
       comment: 'Distribution for hiclas deployment',
       defaultBehavior: { 
-        // origin: new origins.HttpOrigin(Fn.parseDomainName(indexfnUrl.url)), 
-        origin: s3BucketOrigin,
+        origin: new origins.HttpOrigin(Fn.parseDomainName(indexfnUrl.url)), 
+        // origin: s3BucketOrigin,
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
@@ -206,9 +206,9 @@ export class LambdaWithLayer extends Stack {
      * Deploy assets files to the S3 bucket.
      */
     new s3deploy.BucketDeployment(this, 'DeployAssets', {
-      sources: [s3deploy.Source.asset('../dist')], 
+      sources: [s3deploy.Source.asset('../dist/assets')], 
       destinationBucket: hiclastore,
-      destinationKeyPrefix: '',
+      destinationKeyPrefix: 'assets/',
       prune: false, // Set to true to remove files not in the source
       retainOnDelete: false, // Set to true to retain files on stack deletion
     });
