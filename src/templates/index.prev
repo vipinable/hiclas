@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HighlyClassifids</title>
+    <link href="/css/styles.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/@mdi/font/css/materialdesignicons.min.css" rel="stylesheet">
+	<style>
+    /* Main Page Styles */
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f8f9fa; }
+    .container { text-align: center; padding: 50px; }
+    .open-popup { background-color: #007bff; color: white; border: none; padding: 10px 20px; font-size: 16px; border-radius: 5px; cursor: pointer; }
+    .open-popup:hover { background-color: #0056b3; }
+    /* Modal (Popup) Styles */
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center; }
+    .modal-content { background-color: #fff; padding: 20px; border-radius: 8px; width: 400px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); }
+    .modal-content h2 { margin: 0 0 20px; }
+    .modal-content label { display: block; margin: 10px 0 5px; font-weight: bold; }
+    .modal-content input, .modal-content textarea, .modal-content select { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; }
+    .modal-content button { width: 100%; padding: 10px; background-color: #007bff; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
+    .modal-content button:hover { background-color: #0056b3; }
+    .close-modal { background-color: #dc3545; margin-top: 10px; }
+    .close-modal:hover { background-color: #a71d2a; }
+	</style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header>
+        <h1>HighlyClassifids</h1>
+        <input type="text" placeholder="Search classifieds..." id="search-bar">
+        <button>Search</button>
+        <button class="open-popup" onclick="OpenAddItemModal()">Add New Item</button>
+    </header>
+	
+	<!-- Modal for add item window -->
+	<div class="modal" id="addItemModal">
+		<div class="modal-content">
+		<h2>Add New Item</h2>
+		<form id="addItemForm">
+			<label for="name">Item Name</label>
+			<input type="text" id="name" name="name" required>
+
+			<label for="description">Description</label>
+			<textarea id="description" name="description" rows="3" required></textarea>
+
+			<label for="category">Category</label>
+			<select id="category" name="category" required>
+			<option value="Electronics">Electronics</option>
+			<option value="Vehicles">Vehicles</option>
+			<option value="Home & Garden">Home & Garden</option>
+			<option value="Jobs">Jobs</option>
+			<option value="Others">Others</option>
+			</select>
+
+			<label for="price">Price</label>
+			<input type="number" id="price" name="price" required>
+
+			<button type="submit">Add Item</button>
+		</form>
+		<button class="close-modal" onclick="CloseAddItemModal()">Close</button>
+		</div>
+	</div>
+
+    <!-- Modal for view item window -->
+	<div class="modal" id="viewItemModal">
+		<div class="modal-content">
+		<h2>View Item</h2>
+		<form id="viewItemForm">
+			<label for="name">Item Name</label>
+			<input type="text" id="name" name="name" required>
+
+			<label for="description">Description</label>
+			<textarea id="description" name="description" rows="3" required></textarea>
+
+			<label for="category">Category</label>
+			<select id="category" name="category" required>
+			<option value="Electronics">Electronics</option>
+			<option value="Vehicles">Vehicles</option>
+			<option value="Home & Garden">Home & Garden</option>
+			<option value="Jobs">Jobs</option>
+			<option value="Others">Others</option>
+			</select>
+
+			<label for="price">Price</label>
+			<input type="number" id="price" name="price" required>
+		</form>
+		<button class="close-modal" onclick="CloseViewItemModal()">Close</button>
+		</div>
+	</div>
+	
+	<script>
+		const addItemModal = document.getElementById('addItemModal');
+
+        const viewItemModal = document.getElementById('viewItemModal');
+
+		function OpenAddItemModal() {
+		addItemModal.style.display = 'flex';
+		}
+
+		function CloseAddItemModal() {
+		addItemModal.style.display = 'none';
+		}
+
+        function OpenViewItemModal() {
+		viewItemModal.style.display = 'flex';
+		}
+
+		function CloseViewItemModal() {
+		viewItemModal.style.display = 'none';
+		}
+
+        // Function to open the details in a new window
+        function openDetailsInNewWindow() {
+            const newWindow = window.open('', '_blank', 'width=600,height=400');
+
+            if (newWindow) {
+
+            const response = fetch('/api')
+            .then((item) => {
+                newWindow.document.write(`
+                    <!DOCTYPE html>
+                    <html lang="en">
+                    <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>${item.name}</title>
+                    <style>
+                        body {
+                        font-family: Arial, sans-serif;
+                        margin: 20px;
+                        }
+                        h1 {
+                        color: #333;
+                        }
+                        p {
+                        margin: 10px 0;
+                        }
+                    </style>
+                    </head>
+                    <body>
+                    <h1>${item}</h1>
+                    <button onclick="window.close()">Close</button>
+                    </body>
+                    </html>
+                `);
+                })
+            .catch((error) => {
+                console.error("Fetch error:", error);
+                alert('An error occurred. Please try again later.');
+            });
+            } else {
+                    alert('Pop-up blocked! Please allow pop-ups for this site.');
+            }
+
+        }
+
+		document.getElementById('addItemForm').addEventListener('submit', (event) => {
+            event.preventDefault();
+            const form = event.target;
+            const item = {
+                id: Date.now().toString(), // Generate a unique ID
+                name: form.name.value,
+                description: form.description.value,
+                category: form.category.value,
+                price: form.price.value,
+            };
+            console.log('Item Submitted:', item);
+
+            // Post the data to the root URL
+            const response = fetch('/addItem', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(item),
+            })
+            .then((response) => {
+                if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+                alert('Failed to add item. Please try again.');
+                }
+            })
+            .then((item) => {
+                alert('Item added successfully!');
+                form.reset();
+                closeModal();
+                window.location.reload();
+            })
+            .catch((error) => {
+                console.error("Fetch error:", error);
+                alert('An error occurred. Please try again later.');
+            });
+        });
+
+	</script>
+
+    <!-- Categories Section -->
+    <section id="categories">
+        <h2>Categories</h2>
+        <ul>
+            <li><a href="#">Cars</a></li>
+            <li><a href="#">Real Estate</a></li>
+            <li><a href="#">Jobs</a></li>
+            <li><a href="#">Electronics</a></li>
+            <li><a href="#">Services</a></li>
+            <li><a href="#">Furniture</a></li>
+        </ul>
+    </section>
+
+    <!-- Featured Listings Section -->
+    <section id="featured-listings">
+        <h2>Featured Listings</h2>
+        <div class="listing-grid">
+
+            {%- for item in items %}
+            <div class="listing-card">
+                <h1><span class="mdi mdi-home-circle-outline"></span></h1>
+                <h3>{{ item.name }}</h3>
+                <p>{{ item.price }} - Excellent Condition</p>
+                <button class="open-popup" onclick="openDetailsInNewWindow()">View Details</button>
+            </div>
+            {% endfor %}
+            <div class="listing-card">
+                <img src="car.jpg" alt="Car">
+                <h3>2015 Sedan</h3>
+                <p>$7,000 - Excellent Condition</p>
+                <button>View Details</button>
+            </div>
+            <div class="listing-card">
+                <img src="apartment.jpg" alt="Apartment">
+                <h3>2 Bedroom Apartment</h3>
+                <p>$1,200/month - Downtown</p>
+                <button>View Details</button>
+            </div>
+            <div class="listing-card">
+                <img src="laptop.jpg" alt="Laptop">
+                <h3>MacBook Pro 2020</h3>
+                <p>$1,000 - Like New</p>
+                <button>View Details</button>
+            </div>
+            <div class="listing-card">
+                <img src="car.jpg" alt="Car">
+                <h3>2015 Sedan</h3>
+                <p>$7,000 - Excellent Condition</p>
+                <button>View Details</button>
+            </div>
+            <div class="listing-card">
+                <img src="apartment.jpg" alt="Apartment">
+                <h3>2 Bedroom Apartment</h3>
+                <p>$1,200/month - Downtown</p>
+                <button>View Details</button>
+            </div>
+            <div class="listing-card">
+                <img src="laptop.jpg" alt="Laptop">
+                <h3>MacBook Pro 2020</h3>
+                <p>$1,000 - Like New</p>
+                <button>View Details</button>
+            </div>
+            <div class="listing-card">
+                <img src="car.jpg" alt="Car">
+                <h3>2015 Sedan</h3>
+                <p>$7,000 - Excellent Condition</p>
+                <button>View Details</button>
+            </div>
+            <div class="listing-card">
+                <img src="apartment.jpg" alt="Apartment">
+                <h3>2 Bedroom Apartment</h3>
+                <p>$1,200/month - Downtown</p>
+                <button>View Details</button>
+            </div>
+            <div class="listing-card">
+                <img src="laptop.jpg" alt="Laptop">
+                <h3>MacBook Pro 2020</h3>
+                <p>$1,000 - Like New</p>
+                <button>View Details</button>
+            </div>
+            <div class="listing-card">
+                <img src="car.jpg" alt="Car">
+                <h3>2015 Sedan</h3>
+                <p>$7,000 - Excellent Condition</p>
+                <button>View Details</button>
+            </div>
+            <div class="listing-card">
+                <img src="apartment.jpg" alt="Apartment">
+                <h3>2 Bedroom Apartment</h3>
+                <p>$1,200/month - Downtown</p>
+                <button>View Details</button>
+            </div>
+            <div class="listing-card">
+                <img src="laptop.jpg" alt="Laptop">
+                <h3>MacBook Pro 2020</h3>
+                <p>$1,000 - Like New</p>
+                <button>View Details</button>
+            </div>
+            <div class="listing-card">
+                <img src="car.jpg" alt="Car">
+                <h3>2015 Sedan</h3>
+                <p>$7,000 - Excellent Condition</p>
+                <button>View Details</button>
+            </div>
+            <div class="listing-card">
+                <img src="apartment.jpg" alt="Apartment">
+                <h3>2 Bedroom Apartment</h3>
+                <p>$1,200/month - Downtown</p>
+                <button>View Details</button>
+            </div>
+            <div class="listing-card">
+                <img src="laptop.jpg" alt="Laptop">
+                <h3>MacBook Pro 2020</h3>
+                <p>$1,000 - Like New</p>
+                <button>View Details</button>
+            </div>
+            <div class="listing-card">
+                <img src="car.jpg" alt="Car">
+                <h3>2015 Sedan</h3>
+                <p>$7,000 - Excellent Condition</p>
+                <button>View Details</button>
+            </div>
+            <div class="listing-card">
+                <img src="apartment.jpg" alt="Apartment">
+                <h3>2 Bedroom Apartment</h3>
+                <p>$1,200/month - Downtown</p>
+                <button>View Details</button>
+            </div>
+            <div class="listing-card">
+                <img src="laptop.jpg" alt="Laptop">
+                <h3>MacBook Pro 2020</h3>
+                <p>$1,000 - Like New</p>
+                <button>View Details</button>
+            </div>
+            <div class="listing-card">
+                <img src="car.jpg" alt="Car">
+                <h3>2015 Sedan</h3>
+                <p>$7,000 - Excellent Condition</p>
+                <button>View Details</button>
+            </div>
+            <div class="listing-card">
+                <img src="apartment.jpg" alt="Apartment">
+                <h3>2 Bedroom Apartment</h3>
+                <p>$1,200/month - Downtown</p>
+                <button>View Details</button>
+            </div>
+            <div class="listing-card">
+                <img src="laptop.jpg" alt="Laptop">
+                <h3>MacBook Pro 2020</h3>
+                <p>$1,000 - Like New</p>
+                <button>View Details</button>
+            </div>
+            <div class="listing-card">
+                <img src="car.jpg" alt="Car">
+                <h3>2015 Sedan</h3>
+                <p>$7,000 - Excellent Condition</p>
+                <button>View Details</button>
+            </div>
+            <div class="listing-card">
+                <img src="apartment.jpg" alt="Apartment">
+                <h3>2 Bedroom Apartment</h3>
+                <p>$1,200/month - Downtown</p>
+                <button>View Details</button>
+            </div>
+            <div class="listing-card">
+                <img src="laptop.jpg" alt="Laptop">
+                <h3>MacBook Pro 2020</h3>
+                <p>$1,000 - Like New</p>
+                <button>View Details</button>
+            </div>
+            <div class="listing-card">
+                <img src="car.jpg" alt="Car">
+                <h3>2015 Sedan</h3>
+                <p>$7,000 - Excellent Condition</p>
+                <button>View Details</button>
+            </div>
+            <div class="listing-card">
+                <img src="apartment.jpg" alt="Apartment">
+                <h3>2 Bedroom Apartment</h3>
+                <p>$1,200/month - Downtown</p>
+                <button>View Details</button>
+            </div>
+            <div class="listing-card">
+                <img src="laptop.jpg" alt="Laptop">
+                <h3>MacBook Pro 2020</h3>
+                <p>$1,000 - Like New</p>
+                <button>View Details</button>
+            </div>
+            <div class="listing-card">
+                <img src="car.jpg" alt="Car">
+                <h3>2015 Sedan</h3>
+                <p>$7,000 - Excellent Condition</p>
+                <button>View Details</button>
+            </div>
+            <div class="listing-card">
+                <img src="apartment.jpg" alt="Apartment">
+                <h3>2 Bedroom Apartment</h3>
+                <p>$1,200/month - Downtown</p>
+                <button>View Details</button>
+            </div>
+            <div class="listing-card">
+                <img src="laptop.jpg" alt="Laptop">
+                <h3>MacBook Pro 2020</h3>
+                <p>$1,000 - Like New</p>
+                <button>View Details</button>
+            </div>
+            <div class="listing-card">
+                <img src="car.jpg" alt="Car">
+                <h3>2015 Sedan</h3>
+                <p>$7,000 - Excellent Condition</p>
+                <button>View Details</button>
+            </div>
+            <div class="listing-card">
+                <img src="apartment.jpg" alt="Apartment">
+                <h3>2 Bedroom Apartment</h3>
+                <p>$1,200/month - Downtown</p>
+                <button>View Details</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2024 Classifieds Inc. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>

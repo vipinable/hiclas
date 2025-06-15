@@ -192,12 +192,25 @@ export class LambdaWithLayer extends Stack {
     });
 
     /**
-     * Deploy CSS files to the S3 bucket disabled cloudwatch logs
+     * Deploy CSS files to the S3 bucket.
      */
     new s3deploy.BucketDeployment(this, 'DeployCSS', {
       sources: [s3deploy.Source.asset('../src/css')], 
       destinationBucket: hiclastore,
       destinationKeyPrefix: 'css/',
+      prune: false, // Set to true to remove files not in the source
+      retainOnDelete: false, // Set to true to retain files on stack deletion
+      logRetention: logs.RetentionDays.ONE_WEEK, // Set to your desired retention period  
+      logGroup: hiclasLogGroup,
+    });
+
+    /**
+     * Deploy assets files to the S3 bucket.
+     */
+    new s3deploy.BucketDeployment(this, 'DeployAssets', {
+      sources: [s3deploy.Source.asset('../src/dist/assets')], 
+      destinationBucket: hiclastore,
+      destinationKeyPrefix: 'assets/',
       prune: false, // Set to true to remove files not in the source
       retainOnDelete: false, // Set to true to retain files on stack deletion
       logRetention: logs.RetentionDays.ONE_WEEK, // Set to your desired retention period  
