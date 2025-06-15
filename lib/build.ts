@@ -194,11 +194,15 @@ export class LambdaWithLayer extends Stack {
     /**
      * Deploy CSS files to the S3 bucket disabled cloudwatch logs
      */
-    // new s3deploy.BucketDeployment(this, 'DeployCSS', {
-    //   sources: [s3deploy.Source.asset('../src/css')], 
-    //   destinationBucket: hiclastore,
-    //   destinationKeyPrefix: 'css/'
-    // });
+    new s3deploy.BucketDeployment(this, 'DeployCSS', {
+      sources: [s3deploy.Source.asset('../src/css')], 
+      destinationBucket: hiclastore,
+      destinationKeyPrefix: 'css/',
+      prune: false, // Set to true to remove files not in the source
+      retainOnDelete: false, // Set to true to retain files on stack deletion
+      logRetention: logs.RetentionDays.ONE_WEEK, // Set to your desired retention period  
+      logGroup: hiclasLogGroup,
+    });
 
     /**
      * Create DynamoDB Table data store
