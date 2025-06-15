@@ -206,9 +206,9 @@ export class LambdaWithLayer extends Stack {
      * Deploy assets files to the S3 bucket.
      */
     new s3deploy.BucketDeployment(this, 'DeployAssets', {
-      sources: [s3deploy.Source.asset('../dist/assets')], 
+      sources: [s3deploy.Source.asset('../dist')], 
       destinationBucket: hiclastore,
-      destinationKeyPrefix: 'assets/',
+      destinationKeyPrefix: '',
       prune: false, // Set to true to remove files not in the source
       retainOnDelete: false, // Set to true to retain files on stack deletion
     });
