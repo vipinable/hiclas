@@ -7,6 +7,7 @@ import * as s3 from 'aws-cdk-lib/aws-s3';
 import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb'
 import * as ssm from 'aws-cdk-lib/aws-ssm';
+import * as logs from 'aws-cdk-lib/aws-logs';
 import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins'; 
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
@@ -20,6 +21,14 @@ export class LambdaWithLayer extends Stack {
     super(scope, id, props);
 
     console.log('accessing context 👉', this.node.tryGetContext('fromApp'));
+
+    // Create a loggroup for the resources in this stack
+    const hiclasLogGroup = new logs.LogGroup(this, 'hiclasLogGroup', {
+      logGroupName: `/aws/${id}/logs`,
+      removalPolicy: RemovalPolicy.DESTROY, // Change to RETAIN for production
+      retention: logs.RetentionDays.ONE_WEEK, // Change to your desired retention period
+    });
+
 
     // Lambda layer creation definition
     const layer0 = new lambda.LayerVersion(this, 'LayerVersion', {
@@ -47,6 +56,7 @@ export class LambdaWithLayer extends Stack {
       handler: 'indexfn.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../src')),
       layers: [layer0],
+      logGroup: hiclasLogGroup,
       environment: {
         APPNAME: process.env.ApplicationName!,
         ENVNAME: process.env.Environment!, 
@@ -77,6 +87,7 @@ export class LambdaWithLayer extends Stack {
       handler: 'apifn.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../src')),
       layers: [layer0],
+      logGroup: hiclasLogGroup,
       environment: {
         APPNAME: process.env.ApplicationName!,
         ENVNAME: process.env.Environment!, 
