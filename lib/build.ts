@@ -181,13 +181,13 @@ export class LambdaWithLayer extends Stack {
     });
 
     /**
-     * Deploy CSS files to the S3 bucket
+     * Deploy CSS files to the S3 bucket disabled cloudwatch logs
      */
-    new s3deploy.BucketDeployment(this, 'DeployCSS', {
-      sources: [s3deploy.Source.asset('../src/css')], 
-      destinationBucket: hiclastore,
-      destinationKeyPrefix: 'css/'
-    });
+    // new s3deploy.BucketDeployment(this, 'DeployCSS', {
+    //   sources: [s3deploy.Source.asset('../src/css')], 
+    //   destinationBucket: hiclastore,
+    //   destinationKeyPrefix: 'css/'
+    // });
 
     /**
      * Create DynamoDB Table data store
