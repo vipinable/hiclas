@@ -48,7 +48,7 @@ jobs:
             gh api -H "Accept: application/vnd.github+json" \
               repos/$SOURCE_REPO/actions/artifacts/$artifact_id/zip > artifact.zip
 
-            unzip artifact.zip -d dist
+            unzip -o artifact.zip -d dist
             ls -la dist
       - name: update npm package
         run: sudo npm install -g npm
