@@ -15,6 +15,7 @@ import * as path from 'path';
 // import { EdgeFunction } from 'aws-cdk-lib/aws-cloudfront/lib/experimental';
 export class LambdaWithLayer extends Stack {
   public fnUrl: string
+  public apiUrl: string
 
   //BeginStackDefinition
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -267,14 +268,19 @@ export class LambdaWithLayer extends Stack {
     const hiclasapiIntegration = new apigateway.LambdaIntegration(apifn);
     hiclasapi.root.addMethod('GET', hiclasapiIntegration);
 
-    //Add beheavior for api gateway
-    hiclasDist.addBehavior('/api/*', new origins.HttpOrigin(hiclasapi.url), {
-      viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-      allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
-      cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
-    });
+    // //Add beheavior for api gateway
+    // hiclasDist.addBehavior('/api/*', new origins.HttpOrigin(hiclasapi.url), {
+    //   viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+    //   allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+    //   cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+    // });
 
-    
+    // Output the API URL
+    this.apiUrl = hiclasapi.url;
+    this.fnUrl = indexfnUrl.url;  
+
+
+
     /** 
      * Create an api gateway origin
      */
