@@ -224,23 +224,23 @@ export class LambdaWithLayer extends Stack {
     classifiedsTable.grantReadWriteData(indexfn);
     indexfn.addEnvironment('TABLE_CLASSIFIEDS', classifiedsTable.tableName)
 
-    // Create a private api endpoint for backend access
-    const hiclasapi = new apigateway.RestApi(this, 'hiclasapi', {
-      endpointConfiguration: {
-        types: [apigateway.EndpointType.PRIVATE],
-      },
-    });
+    // // Create a private api endpoint for backend access
+    // const hiclasapi = new apigateway.RestApi(this, 'hiclasapi', {
+    //   endpointConfiguration: {
+    //     types: [apigateway.EndpointType.PRIVATE],
+    //   },
+    // });
 
-    //Integrate the apifn lambda with the backend api gateway
-    const hiclasapiIntegration = new apigateway.LambdaIntegration(apifn);
-    hiclasapi.root.addMethod('GET', hiclasapiIntegration);
+    // //Integrate the apifn lambda with the backend api gateway
+    // const hiclasapiIntegration = new apigateway.LambdaIntegration(apifn);
+    // hiclasapi.root.addMethod('GET', hiclasapiIntegration);
 
-    //Add beheavior for api gateway
-    hiclasDist.addBehavior('/api/*', new origins.HttpOrigin(hiclasapi.url), {
-      viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-      allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
-      cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
-    });
+    // //Add beheavior for api gateway
+    // hiclasDist.addBehavior('/api/*', new origins.HttpOrigin(hiclasapi.url), {
+    //   viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+    //   allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+    //   cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+    // });
 
     /** 
      * Create an api gateway origin
