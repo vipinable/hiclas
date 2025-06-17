@@ -242,7 +242,17 @@ export class LambdaWithLayer extends Stack {
       endpointConfiguration: {
         types: [apigateway.EndpointType.PRIVATE],
       },
-      policy: apiResourcePolicy,
+      policy: new iam.PolicyDocument({
+        statements: [apiResourcePolicy],
+      }),
+      deployOptions: {
+        stageName: 'prod',
+        loggingLevel: apigateway.MethodLoggingLevel.INFO,
+        dataTraceEnabled: true,
+        metricsEnabled: true,
+      },
+      description: 'Hiclas API Gateway',
+      cloudWatchRole: true, // Enable CloudWatch logging  
     });
 
     //Integrate the apifn lambda with the backend api gateway
