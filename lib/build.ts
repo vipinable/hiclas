@@ -224,17 +224,25 @@ export class LambdaWithLayer extends Stack {
     classifiedsTable.grantReadWriteData(indexfn);
     indexfn.addEnvironment('TABLE_CLASSIFIEDS', classifiedsTable.tableName)
 
-    // Create a resource policy for api gateway
+    // Create a deny statement for any other accounts to prevent them from invoking the API Gateway
     const apiResourcePolicy = new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
+      effect: iam.Effect.DENY,
       principals: [new iam.AccountRootPrincipal()],
       actions: ['execute-api:Invoke'],
       resources: ['arn:aws:execute-api:*:*:*/*/*/*'],
       conditions: {
-        'StringEquals': {
+        'StringNotEquals': {
           'aws:SourceAccount': process.env.CDK_DEFAULT_ACCOUNT,
         },
       },
+    });
+
+    // Create another policy statement to allow CloudFront to invoke the API Gateway
+    const cloudfrontInvokePolicy = new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      principals: [new iam.ServicePrincipal('cloudfront.amazonaws.com')],
+      actions: ['execute-api:Invoke'],
+      resources: ['arn:aws:execute-api:*:*:*/*/*/*']
     });
 
     // Create a private API Gateway for the backend with resource policy
@@ -243,7 +251,7 @@ export class LambdaWithLayer extends Stack {
         types: [apigateway.EndpointType.PRIVATE],
       },
       policy: new iam.PolicyDocument({
-        statements: [apiResourcePolicy],
+        statements: [apiResourcePolicy, cloudfrontInvokePolicy],
       }),
       deployOptions: {
         stageName: 'prod',
