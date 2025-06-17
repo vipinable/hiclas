@@ -241,6 +241,19 @@ export class LambdaWithLayer extends Stack {
       allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
       cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
     });
+    
+    // Attach resource policy to allow cloudfront to access the API gateway
+    hiclasapi.addToResourcePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      principals: [new iam.ServicePrincipal('cloudfront.amazonaws.com')],
+      actions: ['execute-api:Invoke'],
+      resources: [hiclasapi.arnForExecuteApi()],
+      conditions: {
+        'StringEquals': {
+          'AWS:SourceArn': hiclasDist.distributionArn + '/*',
+        },
+      },
+    }));
 
     /** 
      * Create an api gateway origin
