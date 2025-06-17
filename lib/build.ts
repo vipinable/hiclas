@@ -224,11 +224,25 @@ export class LambdaWithLayer extends Stack {
     classifiedsTable.grantReadWriteData(indexfn);
     indexfn.addEnvironment('TABLE_CLASSIFIEDS', classifiedsTable.tableName)
 
-    // Create a private api endpoint for backend access
+    // Create a resource policy for api gateway
+    const apiResourcePolicy = new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      principals: [new iam.AccountRootPrincipal()],
+      actions: ['execute-api:Invoke'],
+      resources: ['arn:aws:execute-api:*:*:*/*/*/*'],
+      conditions: {
+        'StringEquals': {
+          'aws:SourceAccount': process.env.CDK_DEFAULT_ACCOUNT,
+        },
+      },
+    });
+
+    // Create a private API Gateway for the backend with resource policy
     const hiclasapi = new apigateway.RestApi(this, 'hiclasapi', {
       endpointConfiguration: {
         types: [apigateway.EndpointType.PRIVATE],
       },
+      policy: apiResourcePolicy,
     });
 
     //Integrate the apifn lambda with the backend api gateway
@@ -241,8 +255,8 @@ export class LambdaWithLayer extends Stack {
       allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
       cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
     });
-    
-    // Attach resource policy to allow cloudfront to access the API gateway
+
+    // Attach resource policy to 
     hiclasapi.addToResourcePolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       principals: [new iam.ServicePrincipal('cloudfront.amazonaws.com')],
