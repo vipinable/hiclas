@@ -255,7 +255,7 @@ export class LambdaWithLayer extends Stack {
         statements: [apiResourcePolicy, cloudfrontInvokePolicy],
       }),
       deployOptions: {
-        stageName: 'prod',
+        stageName: 'api',
         loggingLevel: apigateway.MethodLoggingLevel.INFO,
         dataTraceEnabled: true,
         metricsEnabled: true,
@@ -275,8 +275,8 @@ export class LambdaWithLayer extends Stack {
       cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
     });
 
-    // Output the API URL
-    this.apiUrl = hiclasapi.url;
+    // Output the API URL domain part only
+    this.apiUrl = hiclasapi.url.split('/')[2]; // Extract the domain part from the full URL
     this.fnUrl = indexfnUrl.url;  
 
 
