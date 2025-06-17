@@ -275,11 +275,12 @@ export class LambdaWithLayer extends Stack {
       cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
     });
 
-    // Output the API URL domain part only
-    this.apiUrl = hiclasapi.url.split('/')[2]; // Extract the domain part from the full URL
-    this.fnUrl = indexfnUrl.url;  
-
-
+    //export the apiUrl as a CfnOutput
+    new CfnOutput(this, 'ApiUrl', {
+      value: hiclasapi.url.split('/')[2], // Extract the domain part from the full URL
+      description: 'The URL of the Hiclas API Gateway',
+      exportName: 'HiclasApiUrl', // Export name for cross-stack references
+    });
 
     /** 
      * Create an api gateway origin
