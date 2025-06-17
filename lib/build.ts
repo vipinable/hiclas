@@ -269,7 +269,7 @@ export class LambdaWithLayer extends Stack {
     hiclasapi.root.addMethod('GET', hiclasapiIntegration);
 
     //Add beheavior for api gateway
-    hiclasDist.addBehavior('/api/*', new origins.HttpOrigin('p6cn9edhzj.execute-api.us-east-1.amazonaws.com'), {
+    hiclasDist.addBehavior('/api/*', new origins.HttpOrigin(hiclasapi.url.split('/')[2]), {
       viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
       cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
