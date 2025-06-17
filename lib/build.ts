@@ -107,12 +107,6 @@ export class LambdaWithLayer extends Stack {
       ],
       }));
 
-    const hiclasapi = new apigateway.RestApi(this, 'hiclasapi');
-       
-    //API gateway lambda integration
-    const hiclasapiIntegration = new apigateway.LambdaIntegration(apifn);
-    hiclasapi.root.addMethod('GET', hiclasapiIntegration);
-
     /**
      * Create an s3 bucket as backend storage
      */
@@ -139,13 +133,6 @@ export class LambdaWithLayer extends Stack {
       principals: [new iam.CanonicalUserPrincipal(originAccessIdentity.cloudFrontOriginAccessIdentityS3CanonicalUserId)],
     }));
 
-    /**
-     * Create s3 origin for CloudFront
-     */
-    // const hiclastoreOrigin = new cloudfront.origin.s3Bucket(hiclastore, {
-    //   originAccessIdentity: originAccessIdentity,
-    // }) 
-    // const hiclastoreOrigin = new S3Origin(hiclastore)
 
     const s3BucketOrigin = origins.S3BucketOrigin.withOriginAccessControl(s3Bucket, {
              originAccessLevels: [cloudfront.AccessLevel.READ, cloudfront.AccessLevel.LIST],
@@ -236,6 +223,24 @@ export class LambdaWithLayer extends Stack {
      */
     classifiedsTable.grantReadWriteData(indexfn);
     indexfn.addEnvironment('TABLE_CLASSIFIEDS', classifiedsTable.tableName)
+
+    // Create a private api endpoint for backend access
+    const hiclasapi = new apigateway.RestApi(this, 'hiclasapi', {
+      endpointConfiguration: {
+        types: [apigateway.EndpointType.PRIVATE],
+      },
+    });
+
+    //Integrate the apifn lambda with the backend api gateway
+    const hiclasapiIntegration = new apigateway.LambdaIntegration(apifn);
+    hiclasapi.root.addMethod('GET', hiclasapiIntegration);
+
+    //Add beheavior for api gateway
+    hiclasDist.addBehavior('/api/*', new origins.HttpOrigin(hiclasapi.url), {
+      viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+      cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+    });
 
     /** 
      * Create an api gateway origin
