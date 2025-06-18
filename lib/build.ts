@@ -268,11 +268,13 @@ export class LambdaWithLayer extends Stack {
     const hiclasapiIntegration = new apigateway.LambdaIntegration(apifn);
     hiclasapi.root.addMethod('GET', hiclasapiIntegration);
 
-    //Add beheavior for api gateway
+    //Add beheavior for api gateway and forward requests to apigateway
     hiclasDist.addBehavior('/api/*', new origins.HttpOrigin(hiclasapi.url.split('/')[2]), {
       viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
       cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+      originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+      compress: true,
     });
 
     //export the apiUrl as a CfnOutput
