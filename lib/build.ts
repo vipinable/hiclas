@@ -152,8 +152,19 @@ export class LambdaWithLayer extends Stack {
     //   originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
     // });
 
-    // Create indexfnOrigin to use with CloudFront
-    const indexfnOrigin = origins.FunctionUrlOrigin.withOriginAccessControl(indexfnUrl)
+    // Create indexfnOrigin to use with CloudFront with out signing the URL
+    // This is the origin for the index function URL
+    // It uses the FunctionUrlOrigin with OriginAccessControl to securely access the function URL
+    // The FunctionUrlOrigin is a special origin type that allows CloudFront to access Lambda function
+
+    // Define a custom OAC
+    const oac = new cloudfront.FunctionUrlOriginAccessControl(this, 'MyOAC', {
+      signing: cloudfront.Signing.NONE,
+    });
+    
+    const indexfnOrigin = origins.FunctionUrlOrigin.withOriginAccessControl(indexfnUrl, {
+      originAccessControl: oac,
+    })
 
     // Use the OAC to create a CloudFront distribution
     const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
