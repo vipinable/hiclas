@@ -170,17 +170,17 @@ export class LambdaWithLayer extends Stack {
       defaultRootObject: 'index.html'
     });
 
-    // Update the indexfn lambda resource policy to allow CloudFront to invoke it
-    indexfn.addToRolePolicy(new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      actions: ['lambda:InvokeFunction'],
-      resources: [indexfn.functionArn],
-      conditions: {
-        'StringEquals': {
-          'AWS:SourceArn': `arn:aws:cloudfront::${process.env.CDK_DEFAULT_ACCOUNT}:distribution/*`,
-        },
-      },
-    }));  
+    // // Update the indexfn lambda resource policy to allow CloudFront to invoke it
+    // indexfn.addToRolePolicy(new iam.PolicyStatement({
+    //   effect: iam.Effect.ALLOW,
+    //   actions: ['lambda:InvokeFunction'],
+    //   resources: [indexfn.functionArn],
+    //   conditions: {
+    //     'StringEquals': {
+    //       'AWS:SourceArn': `arn:aws:cloudfront::${process.env.CDK_DEFAULT_ACCOUNT}:distribution/*`,
+    //     },
+    //   },
+    // }));  
 
     const hiclastoreOrigin = origins.S3BucketOrigin.withOriginAccessControl(hiclastore, {
              originAccessLevels: [cloudfront.AccessLevel.READ, cloudfront.AccessLevel.LIST],
