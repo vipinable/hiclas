@@ -143,31 +143,23 @@ export class LambdaWithLayer extends Stack {
 
     const domainCert = acm.Certificate.fromCertificateArn(this, 'domainCert', certificateArn);
 
-    // // Create an Origin Access Control (OAC) for CloudFront to securely access the Lambda function
-    // const indexfnOAC = new cloudfront.OriginAccessControl(this, 'indexfnOAC', {
-    //   signingBehavior: 'always',
-    //   signingProtocol: 'sigv4',
-    //   originType: cloudfront.OriginAccessControlTypes.Lambda,
+    // // Create a behavior for the index function URL
+    // const indexfnBehavior = new cloudfront.Behavior({
+    //   origin: origins.FunctionUrlOrigin.withOriginAccessControl(indexfnUrl),
+    //   allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+    //   viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+    //   cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+    //   originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
     // });
 
-    // // Create Lambda origin with Origin Access Control (OAC)
-    // const indexfnOrigin = new origins.LambdaOrigin(indexfn, {
-    //   originAccessControl: new cloudfront.OriginAccessControl(this, 'indexfnOAC', {
-    //     signingBehavior: cloudfront.OriginAccessControlSigningBehavior.ALWAYS,
-    //     signingProtocol: cloudfront.OriginAccessControlSigningProtocol.SIGV4,
-    //     originType: cloudfront.OriginAccessControlTypes.LAMBDA,
-    //   }),
-    //   connectionTimeout: Duration.seconds(10), // Set connection timeout
-    //   // readTimeout: Duration.seconds(30), // Set read timeout
-    //   // connectionAttempts: 3, // Set number of connection attempts
-    //   //  readTimeout: Duration.seconds(30), // Set read timeout
-    // });
+    // Create indexfnOrigin to use with CloudFront
+    const indexfnOrigin = origins.FunctionUrlOrigin.withOriginAccessControl(indexfnUrl)
 
     // Use the OAC to create a CloudFront distribution
     const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
       comment: 'Distribution for hiclas deployment',
-      defaultBehavior: { 
-        origin: origins.FunctionUrlOrigin.withOriginAccessControl(indexfnUrl),
+      defaultBehavior: {
+        origin: indexfnOrigin,
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
@@ -178,17 +170,6 @@ export class LambdaWithLayer extends Stack {
       defaultRootObject: 'index.html'
     });
 
-    // // Update the indexfn lambda resource policy to allow CloudFront to invoke it
-    // indexfn.addToRolePolicy(new iam.PolicyStatement({
-    //   effect: iam.Effect.ALLOW,
-    //   actions: ['lambda:InvokeFunction'],
-    //   resources: [indexfn.functionArn],
-    //   conditions: {
-    //     'StringEquals': {
-    //       'AWS:SourceArn': `arn:aws:cloudfront::${process.env.CDK_DEFAULT_ACCOUNT}:distribution/*`,
-    //     },
-    //   },
-    // }));  
 
     const hiclastoreOrigin = origins.S3BucketOrigin.withOriginAccessControl(hiclastore, {
              originAccessLevels: [cloudfront.AccessLevel.READ, cloudfront.AccessLevel.LIST],
