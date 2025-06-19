@@ -177,7 +177,7 @@ export class LambdaWithLayer extends Stack {
       resources: [indexfn.functionArn],
       conditions: {
         'StringEquals': {
-          'AWS:SourceArn': `arn:aws:cloudfront::${process.env.CDK_DEFAULT_ACCOUNT}:distribution/${hiclasDist.distributionId}`,
+          'AWS:SourceArn': `arn:aws:cloudfront::${process.env.CDK_DEFAULT_ACCOUNT}:distribution/*`,
         },
       },
     }));  
