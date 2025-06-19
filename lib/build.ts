@@ -175,7 +175,6 @@ export class LambdaWithLayer extends Stack {
       effect: iam.Effect.ALLOW,
       actions: ['lambda:InvokeFunction'],
       resources: [indexfn.functionArn],
-      principals: [new iam.ServicePrincipal('cloudfront.amazonaws.com')],
       conditions: {
         'StringEquals': {
           'AWS:SourceArn': `arn:aws:cloudfront::${process.env.CDK_DEFAULT_ACCOUNT}:distribution/${hiclasDist.distributionId}`,
