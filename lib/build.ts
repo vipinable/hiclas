@@ -276,6 +276,14 @@ export class LambdaWithLayer extends Stack {
       originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
     });
 
+    //Add beheavior for api gateway and forward requests to apigateway
+    hiclasDist.addBehavior('/api/listing', new origins.HttpOrigin(Fn.parseDomainName(hiclasapi.url.split('/')[2])), {
+      viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+      cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+      originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+    });
+
     //export the apiUrl as a CfnOutput
     new CfnOutput(this, 'ApiUrl', {
       value: hiclasapi.url.split('/')[2], // Extract the domain part from the full URL
