@@ -12,7 +12,6 @@ import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins'; 
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as path from 'path';
-import { IOriginAccessControl, IOriginAccessControlType } from 'aws-cdk-lib/aws-cloudfront';
 // import { EdgeFunction } from 'aws-cdk-lib/aws-cloudfront/lib/experimental';
 export class LambdaWithLayer extends Stack {
   public fnUrl: string
@@ -145,10 +144,10 @@ export class LambdaWithLayer extends Stack {
     const domainCert = acm.Certificate.fromCertificateArn(this, 'domainCert', certificateArn);
 
     // Create an Origin Access Control (OAC) for CloudFront to securely access the Lambda function
-    const indexfnOAC = new IOriginAccessControl(this, 'indexfnOAC', {
+    const indexfnOAC = new cloudfront.OriginAccessControl(this, 'indexfnOAC', {
       signingBehavior: 'always',
       signingProtocol: 'sigv4',
-      originType: IOriginAccessControlType.Lambda,
+      originType: cloudfront.OriginAccessControlTypes.Lambda,
     });
 
     // Use the OAC to create a CloudFront distribution
