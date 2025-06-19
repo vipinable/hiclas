@@ -12,6 +12,7 @@ import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
 import * as origins from 'aws-cdk-lib/aws-cloudfront-origins'; 
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as path from 'path';
+import { OriginAccessControl, OriginAccessControlType } from 'aws-cdk-lib/aws-cloudfront';
 // import { EdgeFunction } from 'aws-cdk-lib/aws-cloudfront/lib/experimental';
 export class LambdaWithLayer extends Stack {
   public fnUrl: string
@@ -143,16 +144,21 @@ export class LambdaWithLayer extends Stack {
 
     const domainCert = acm.Certificate.fromCertificateArn(this, 'domainCert', certificateArn);
 
-    // // Create an Origin Access Control for index lambda function
-    // const indexfnOrigin = origins.LambdaOrigin.withOriginAccessControl(indexfn, {
-    //   originAccessLevels: [cloudfront.AccessLevel.READ, cloudfront.AccessLevel.LIST],
-    // }); 
+    // Create an Origin Access Control (OAC) for CloudFront to securely access the Lambda function
+    const indexfnOAC = new OriginAccessControl(this, 'indexfnOAC', {
+      signingBehavior: 'always',
+      signingProtocol: 'sigv4',
+      originType: OriginAccessControlType.Lambda,
+    });
 
     // Use the OAC to create a CloudFront distribution
     const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
       comment: 'Distribution for hiclas deployment',
       defaultBehavior: { 
-        origin: new origins.HttpOrigin(Fn.parseDomainName(indexfnUrl.url)), 
+        origin: new origins.HttpOrigin(Fn.parseDomainName(indexfnUrl.url),{
+          originAccessControl: indexfnOAC,
+          connectionTimeout: Duration.seconds(30), // Set connection timeout
+        }), 
         // origin: s3BucketOrigin,
         // origin: origins.LambdaOrigin.withOriginAccessControl(indexfn, {
         //     originAccessLevels: [
