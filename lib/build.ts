@@ -159,7 +159,7 @@ export class LambdaWithLayer extends Stack {
 
     // Define a custom OAC
     const oac = new cloudfront.FunctionUrlOriginAccessControl(this, 'MyOAC', {
-      signing: cloudfront.signing.ALLOW_ALL,
+      signing: cloudfront.Signing.WITHOUT_SIGNING, // No signing required for Function URL
     });
 
     const indexfnOrigin = origins.FunctionUrlOrigin.withOriginAccessControl(indexfnUrl, {
