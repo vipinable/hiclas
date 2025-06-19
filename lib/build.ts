@@ -143,19 +143,25 @@ export class LambdaWithLayer extends Stack {
 
     const domainCert = acm.Certificate.fromCertificateArn(this, 'domainCert', certificateArn);
 
-    // Create an Origin Access Control (OAC) for CloudFront to securely access the Lambda function
-    const indexfnOAC = new cloudfront.OriginAccessControl(this, 'indexfnOAC', {
-      signingBehavior: 'always',
-      signingProtocol: 'sigv4',
-      originType: cloudfront.OriginAccessControlTypes.Lambda,
-    });
+    // // Create an Origin Access Control (OAC) for CloudFront to securely access the Lambda function
+    // const indexfnOAC = new cloudfront.OriginAccessControl(this, 'indexfnOAC', {
+    //   signingBehavior: 'always',
+    //   signingProtocol: 'sigv4',
+    //   originType: cloudfront.OriginAccessControlTypes.Lambda,
+    // });
+
+    // // Create Lambda origin with Origin Access Control (OAC)
+    // const indexfnOrigin = new origins.LambdaOrigin(indexfn, {
+    //   originAccessControl: indexfnOAC,
+    //   connectionTimeout: Duration.seconds(30), // Set connection timeout
+    // });
 
     // Use the OAC to create a CloudFront distribution
     const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
       comment: 'Distribution for hiclas deployment',
       defaultBehavior: { 
         origin: new origins.HttpOrigin(Fn.parseDomainName(indexfnUrl.url),{
-          originAccessControl: indexfnOAC,
+          // originAccessControl: indexfnOAC,
           connectionTimeout: Duration.seconds(30), // Set connection timeout
         }), 
         // origin: s3BucketOrigin,
