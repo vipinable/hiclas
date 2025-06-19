@@ -170,12 +170,17 @@ export class LambdaWithLayer extends Stack {
       defaultRootObject: 'index.html'
     });
 
-    // Add policy to allow CloudFront to invoke the index function
+    // Update the indexfn lambda resource policy to allow CloudFront to invoke it
     indexfn.addToRolePolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: ['lambda:InvokeFunction'],
       resources: [indexfn.functionArn],
       principals: [new iam.ServicePrincipal('cloudfront.amazonaws.com')],
+      conditions: {
+        'StringEquals': {
+          'AWS:SourceArn': `arn:aws:cloudfront::${process.env.CDK_DEFAULT_ACCOUNT}:distribution/${hiclasDist.distributionId}`,
+        },
+      },
     }));  
 
     const hiclastoreOrigin = origins.S3BucketOrigin.withOriginAccessControl(hiclastore, {
