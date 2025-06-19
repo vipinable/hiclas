@@ -150,34 +150,24 @@ export class LambdaWithLayer extends Stack {
     //   originType: cloudfront.OriginAccessControlTypes.Lambda,
     // });
 
-    // Create Lambda origin with Origin Access Control (OAC)
-    const indexfnOrigin = new origins.LambdaOrigin(indexfn, {
-      originAccessControl: new cloudfront.OriginAccessControl(this, 'indexfnOAC', {
-        signingBehavior: cloudfront.OriginAccessControlSigningBehavior.ALWAYS,
-        signingProtocol: cloudfront.OriginAccessControlSigningProtocol.SIGV4,
-        originType: cloudfront.OriginAccessControlTypes.LAMBDA,
-      }),
-      connectionTimeout: Duration.seconds(10), // Set connection timeout
-      // readTimeout: Duration.seconds(30), // Set read timeout
-      // connectionAttempts: 3, // Set number of connection attempts
-      //  readTimeout: Duration.seconds(30), // Set read timeout
-    });
+    // // Create Lambda origin with Origin Access Control (OAC)
+    // const indexfnOrigin = new origins.LambdaOrigin(indexfn, {
+    //   originAccessControl: new cloudfront.OriginAccessControl(this, 'indexfnOAC', {
+    //     signingBehavior: cloudfront.OriginAccessControlSigningBehavior.ALWAYS,
+    //     signingProtocol: cloudfront.OriginAccessControlSigningProtocol.SIGV4,
+    //     originType: cloudfront.OriginAccessControlTypes.LAMBDA,
+    //   }),
+    //   connectionTimeout: Duration.seconds(10), // Set connection timeout
+    //   // readTimeout: Duration.seconds(30), // Set read timeout
+    //   // connectionAttempts: 3, // Set number of connection attempts
+    //   //  readTimeout: Duration.seconds(30), // Set read timeout
+    // });
 
     // Use the OAC to create a CloudFront distribution
     const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
       comment: 'Distribution for hiclas deployment',
       defaultBehavior: { 
-        origin: new origins.HttpOrigin(Fn.parseDomainName(indexfnUrl.url),{
-          // originAccessControl: indexfnOAC,
-          connectionTimeout: Duration.seconds(10), // Set connection timeout
-        }), 
-        // origin: s3BucketOrigin,
-        // origin: origins.LambdaOrigin.withOriginAccessControl(indexfn, {
-        //     originAccessLevels: [
-        //       cloudfront.AccessLevel.READ, 
-        //       cloudfront.AccessLevel.LIST
-        //     ],
-        // }),
+        origin: new origins.FunctionUrlOriginWithAccessControl(indexfnUrl.url),
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
