@@ -162,7 +162,7 @@ export class LambdaWithLayer extends Stack {
       defaultBehavior: { 
         origin: new origins.HttpOrigin(Fn.parseDomainName(indexfnUrl.url),{
           // originAccessControl: indexfnOAC,
-          connectionTimeout: Duration.seconds(30), // Set connection timeout
+          connectionTimeout: Duration.seconds(10), // Set connection timeout
         }), 
         // origin: s3BucketOrigin,
         // origin: origins.LambdaOrigin.withOriginAccessControl(indexfn, {
