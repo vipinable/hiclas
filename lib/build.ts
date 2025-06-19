@@ -145,10 +145,10 @@ export class LambdaWithLayer extends Stack {
     const domainCert = acm.Certificate.fromCertificateArn(this, 'domainCert', certificateArn);
 
     // Create an Origin Access Control (OAC) for CloudFront to securely access the Lambda function
-    const indexfnOAC = new OriginAccessControl(this, 'indexfnOAC', {
+    const indexfnOAC = new IOriginAccessControl(this, 'indexfnOAC', {
       signingBehavior: 'always',
       signingProtocol: 'sigv4',
-      originType: OriginAccessControlType.Lambda,
+      originType: IOriginAccessControlType.Lambda,
     });
 
     // Use the OAC to create a CloudFront distribution
