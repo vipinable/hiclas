@@ -143,11 +143,17 @@ export class LambdaWithLayer extends Stack {
 
     const domainCert = acm.Certificate.fromCertificateArn(this, 'domainCert', certificateArn);
 
+    // Create an Origin Access Control for index lambda function
+    const indexfnOrigin = origins.LambdaOrigin.withOriginAccessControl(indexfn, {
+      originAccessLevels: [cloudfront.AccessLevel.READ, cloudfront.AccessLevel.LIST],
+    }); 
+
     const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
       comment: 'Distribution for hiclas deployment',
       defaultBehavior: { 
-        origin: new origins.HttpOrigin(Fn.parseDomainName(indexfnUrl.url)), 
+        // origin: new origins.HttpOrigin(Fn.parseDomainName(indexfnUrl.url)), 
         // origin: s3BucketOrigin,
+        origin: indexfnOrigin,
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
@@ -157,6 +163,8 @@ export class LambdaWithLayer extends Stack {
       certificate: domainCert,
       defaultRootObject: 'index.html'
     });
+
+
 
     const hiclastoreOrigin = origins.S3BucketOrigin.withOriginAccessControl(hiclastore, {
              originAccessLevels: [cloudfront.AccessLevel.READ, cloudfront.AccessLevel.LIST],
