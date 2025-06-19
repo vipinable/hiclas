@@ -20,6 +20,6 @@
   },
   "homepage": "https://github.com/vipinable/hiclas#readme",
   "dependencies": {
-    "aws-cdk-lib": "2.97"
+    "aws-cdk-lib": "^2.97"
   }
 }
