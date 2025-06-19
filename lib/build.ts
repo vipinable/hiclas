@@ -78,7 +78,7 @@ export class LambdaWithLayer extends Stack {
       }));
 
     const indexfnUrl = indexfn.addFunctionUrl({
-      authType: lambda.FunctionUrlAuthType.NONE
+      authType: lambda.FunctionUrlAuthType.AWS_IAM,
     })
 
     //Index function definition
@@ -267,10 +267,6 @@ export class LambdaWithLayer extends Stack {
     //Integrate the apifn lambda with the backend api gateway
     const hiclasapiIntegration = new apigateway.LambdaIntegration(apifn);
     hiclasapi.root.addMethod('GET', hiclasapiIntegration);
-
-    // Integrate the apifn lambda with the /api/listing endpoint
-    const listingResource = hiclasapi.root.addResource('listing');
-    listingResource.addMethod('GET', hiclasapiIntegration);
 
     //Add beheavior for api gateway and forward requests to apigateway
     hiclasDist.addBehavior('/api/*', new origins.HttpOrigin(Fn.parseDomainName(hiclasapi.url.split('/')[2])), {
