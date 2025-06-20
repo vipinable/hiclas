@@ -149,10 +149,6 @@ export class LambdaWithLayer extends Stack {
       handler: 'edgefn.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../src')),
       layers: [layer0],
-      environment: {
-        APPNAME: process.env.ApplicationName!,
-        ENVNAME: process.env.Environment!,
-      },
       memorySize: 128,
       timeout: Duration.seconds(5),
       description: 'Edge function for hiclas CloudFront distribution',
