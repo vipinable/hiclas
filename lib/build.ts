@@ -148,7 +148,6 @@ export class LambdaWithLayer extends Stack {
       runtime: lambda.Runtime.PYTHON_3_12,
       handler: 'edgefn.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../src')),
-      layers: [layer0],
       memorySize: 128,
       timeout: Duration.seconds(5),
       description: 'Edge function for hiclas CloudFront distribution',
