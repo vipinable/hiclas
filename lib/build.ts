@@ -136,26 +136,41 @@ export class LambdaWithLayer extends Stack {
 
 
     const s3BucketOrigin = origins.S3BucketOrigin.withOriginAccessControl(s3Bucket, {
-             originAccessLevels: [cloudfront.AccessLevel.READ, cloudfront.AccessLevel.LIST],
+      originAccessLevels: [cloudfront.AccessLevel.READ, cloudfront.AccessLevel.LIST],
     });
 
     const certificateArn = `arn:aws:acm:${process.env.CDK_DEFAULT_REGION}:${process.env.CDK_DEFAULT_ACCOUNT}:certificate/e2803f4f-7240-4f20-8fab-510f8a833e15`;
 
     const domainCert = acm.Certificate.fromCertificateArn(this, 'domainCert', certificateArn);
 
-    // // Create a behavior for the index function URL
-    // const indexfnBehavior = new cloudfront.Behavior({
-    //   origin: origins.FunctionUrlOrigin.withOriginAccessControl(indexfnUrl),
-    //   allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
-    //   viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-    //   cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
-    //   originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-    // });
+    // Create a Cloudfront edge@Lambda function
+    const edgeFunction = new cloudfront.experimental.EdgeFunction(this, 'EdgeFunction', {
+      runtime: lambda.Runtime.PYTHON_3_12,
+      handler: 'edgefn.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../src')),
+      layers: [layer0],
+      logGroup: hiclasLogGroup,
+      environment: {
+        APPNAME: process.env.ApplicationName!,
+        ENVNAME: process.env.Environment!,
+      },
+      memorySize: 128,
+      timeout: Duration.seconds(5),
+      description: 'Edge function for CloudFront distribution',
+    });
 
-    // Create indexfnOrigin to use with CloudFront with out signing the URL
-    // This is the origin for the index function URL
-    // It uses the FunctionUrlOrigin with OriginAccessControl to securely access the function URL
-    // The FunctionUrlOrigin is a special origin type that allows CloudFront to access Lambda function
+    edgeFunction.addToRolePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      resources: [
+        s3Bucket.arnForObjects("*"),
+        s3Bucket.bucketArn
+      ],
+      actions: [
+        's3:PutObject',
+        's3:GetObject',
+        's3:ListBucket'
+      ],
+    }));
 
     // Define a custom OAC
     const oac = new cloudfront.FunctionUrlOriginAccessControl(this, 'MyOAC', {
