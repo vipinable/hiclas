@@ -149,7 +149,7 @@ export class LambdaWithLayer extends Stack {
       handler: 'edgefn.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../src')),
       memorySize: 128,
-      timeout: Duration.seconds(5),
+      logGroup: hiclasLogGroup,
       description: 'Edge function for hiclas CloudFront distribution',
     });
 
