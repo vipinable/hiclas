@@ -183,8 +183,8 @@ export class LambdaWithLayer extends Stack {
     //   originAccessControl: oac,
     // })
 
-    const indexfnOrigin = origins.FunctionUrlOrigin(indexfnUrl)
-    
+    const indexfnOrigin = new origins.FunctionUrlOrigin(indexfnUrl)
+
     // Use the OAC to create a CloudFront distribution
     const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
       comment: 'Distribution for hiclas deployment',
