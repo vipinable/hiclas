@@ -174,25 +174,27 @@ export class LambdaWithLayer extends Stack {
       sourceAccount: process.env.CDK_DEFAULT_ACCOUNT,
     });
 
-    // Define a custom OAC
-    const oac = new cloudfront.FunctionUrlOriginAccessControl(this, 'MyOAC', {
-      signing: cloudfront.Signing.SIGV4_NO_OVERRIDE // No signing required for Function URL
-    });
+    // // Define a custom OAC
+    // const oac = new cloudfront.FunctionUrlOriginAccessControl(this, 'MyOAC', {
+    //   signing: cloudfront.Signing.SIGV4_NO_OVERRIDE // No signing required for Function URL
+    // });
 
-    const indexfnOrigin = origins.FunctionUrlOrigin.withOriginAccessControl(indexfnUrl, {
-      originAccessControl: oac,
-    })
+    // const indexfnOrigin = origins.FunctionUrlOrigin.withOriginAccessControl(indexfnUrl, {
+    //   originAccessControl: oac,
+    // })
 
+    const indexfnOrigin = origins.FunctionUrlOrigin(indexfnUrl)
+    
     // Use the OAC to create a CloudFront distribution
     const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
       comment: 'Distribution for hiclas deployment',
       defaultBehavior: {
-        //origin: indexfnOrigin,
-        origin: s3BucketOrigin,
-        edgeLambdas: [{
-          functionVersion: edgeFunction.currentVersion,
-          eventType: cloudfront.LambdaEdgeEventType.VIEWER_REQUEST, 
-        }],
+        origin: indexfnOrigin,
+        // origin: s3BucketOrigin,
+        // edgeLambdas: [{
+        //   functionVersion: edgeFunction.currentVersion,
+        //   eventType: cloudfront.LambdaEdgeEventType.VIEWER_REQUEST, 
+        // }],
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
