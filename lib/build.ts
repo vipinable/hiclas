@@ -78,7 +78,12 @@ export class LambdaWithLayer extends Stack {
       }));
 
     const indexfnUrl = indexfn.addFunctionUrl({
-      authType: lambda.FunctionUrlAuthType.AWS_IAM,
+      authType: lambda.FunctionUrlAuthType.NONE, // No authentication for the function URL
+      cors: {
+        allowOrigins: ['*'], // Allow all origins, adjust as needed
+        allowMethods: [lambda.HttpMethod.GET, lambda.HttpMethod.POST], // Allow GET and POST methods
+        allowHeaders: ['*'], // Allow all headers, adjust as needed
+      }
     })
 
     //Index function definition
