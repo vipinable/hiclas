@@ -185,7 +185,12 @@ export class LambdaWithLayer extends Stack {
     const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
       comment: 'Distribution for hiclas deployment',
       defaultBehavior: {
-        origin: indexfnOrigin,
+        //origin: indexfnOrigin,
+        origin: s3BucketOrigin,
+        edgeLambdas: [{
+          functionVersion: edgeFunction.currentVersion,
+          eventType: cloudfront.LambdaEdgeEventType.VIEWER_REQUEST,
+        }],
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
