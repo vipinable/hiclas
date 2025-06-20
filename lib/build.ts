@@ -166,6 +166,14 @@ export class LambdaWithLayer extends Stack {
       ],
     }));
 
+    // Add permission to invoke the edge function from CloudFront
+    edgeFunction.addPermission('AllowCloudFrontInvoke', {
+      principal: new iam.ServicePrincipal('edgelambda.amazonaws.com'),
+      action: 'lambda:InvokeFunction',
+      sourceArn: `arn:aws:cloudfront::${process.env.CDK_DEFAULT_ACCOUNT}:distribution/*`, // Replace with your CloudFront distribution ARN
+      sourceAccount: process.env.CDK_DEFAULT_ACCOUNT,
+    });
+
     // Define a custom OAC
     const oac = new cloudfront.FunctionUrlOriginAccessControl(this, 'MyOAC', {
       signing: cloudfront.Signing.SIGV4_NO_OVERRIDE // No signing required for Function URL
