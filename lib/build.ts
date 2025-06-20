@@ -82,7 +82,7 @@ export class LambdaWithLayer extends Stack {
       cors: {
         allowedOrigins: ['*'], // Allow all origins, adjust as needed
         allowedMethods: [lambda.HttpMethod.GET, lambda.HttpMethod.POST], // Allow GET and POST methods
-        allowHeaders: ['*'], // Allow all headers, adjust as needed
+        allowedHeaders: ['*'], // Allow all headers, adjust as needed
       }
     })
 
