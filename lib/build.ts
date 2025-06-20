@@ -149,14 +149,13 @@ export class LambdaWithLayer extends Stack {
       handler: 'edgefn.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../src')),
       layers: [layer0],
-      logGroup: hiclasLogGroup,
       environment: {
         APPNAME: process.env.ApplicationName!,
         ENVNAME: process.env.Environment!,
       },
       memorySize: 128,
       timeout: Duration.seconds(5),
-      description: 'Edge function for CloudFront distribution',
+      description: 'Edge function for hiclas CloudFront distribution',
     });
 
     edgeFunction.addToRolePolicy(new iam.PolicyStatement({
@@ -189,7 +188,7 @@ export class LambdaWithLayer extends Stack {
         origin: s3BucketOrigin,
         edgeLambdas: [{
           functionVersion: edgeFunction.currentVersion,
-          eventType: cloudfront.LambdaEdgeEventType.VIEWER_REQUEST,
+          eventType: cloudfront.LambdaEdgeEventType.VIEWER_REQUEST, 
         }],
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -201,12 +200,12 @@ export class LambdaWithLayer extends Stack {
       defaultRootObject: 'index.html'
     });
 
-    hiclasDist.addBehavior('/post/*', indexfnOrigin, {
-      allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
-      viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-      cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
-      originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-    });
+    // hiclasDist.addBehavior('/post/*', indexfnOrigin, {
+    //   allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+    //   viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+    //   cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+    //   originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+    // });
 
     // Create an S3 bucket origin for the CloudFront distribution
     const hiclastoreOrigin = origins.S3BucketOrigin.withOriginAccessControl(hiclastore, {
