@@ -325,10 +325,7 @@ export class LambdaWithLayer extends Stack {
     });
 
     //Integrate the apifn lambda with the backend api gateway
-    const hiclasapiIntegration = new apigateway.LambdaRestApiIntegration('HiclasApiIntegration', {
-      handler: apifn,
-      proxy: true
-    });
+    const hiclasapiIntegration = new apigateway.LambdaIntegration(apifn)
 
     hiclasDist.addBehavior('/api/*', new origins.RestApiOrigin(hiclasapiIntegration)
 
