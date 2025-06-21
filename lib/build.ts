@@ -326,6 +326,40 @@ export class LambdaWithLayer extends Stack {
 
     //Integrate the apifn lambda with the backend api gateway
     const hiclasapiIntegration = new apigateway.LambdaIntegration(apifn)
+    //Add a resource to the API Gateway for the root path
+    const rootResource = hiclasapi.root.addResource('api');
+    //Add a method to the root resource that integrates with the apifn lambda
+    rootResource.addMethod('ANY', hiclasapiIntegration, {
+      methodResponses: [
+        {
+          statusCode: '200',
+          responseModels: {
+            'application/json': apigateway.Model.EMPTY_MODEL, // Use an empty model for simplicity
+          },
+        },
+        {
+          statusCode: '400',
+          responseModels: {
+            'application/json': apigateway.Model.EMPTY_MODEL, // Use an empty model for simplicity
+          },
+        },
+        {
+          statusCode: '500',
+          responseModels: {
+            'application/json': apigateway.Model.EMPTY_MODEL, // Use an empty model for simplicity
+          },
+        },
+      ],
+      requestParameters: {
+        'method.request.header.Content-Type': true, // Allow Content-Type header
+        'method.request.header.Accept': true, // Allow Accept header
+        'method.request.header.Authorization': true, // Allow Authorization header
+      },
+      requestModels: {
+        'application/json': apigateway.Model.EMPTY_MODEL, // Use an empty model for simplicity
+      },
+    });
+
 
     //Add beheavior for api gateway and forward requests to apigateway
     hiclasDist.addBehavior('/api/*', new origins.HttpOrigin(hiclasapi.url.split('/')[2]), {
