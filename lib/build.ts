@@ -78,7 +78,7 @@ export class LambdaWithLayer extends Stack {
       }));
 
     const indexfnUrl = indexfn.addFunctionUrl({
-      authType: lambda.FunctionUrlAuthType.AWS_IAM, // No authentication for the function URL
+      authType: lambda.FunctionUrlAuthType.NONE, // No authentication for the function URL
       cors: {
         allowedOrigins: ['*'], // Allow all origins, adjust as needed
         allowedMethods: [lambda.HttpMethod.GET, lambda.HttpMethod.POST], // Allow GET and POST methods
@@ -179,27 +179,22 @@ export class LambdaWithLayer extends Stack {
       sourceAccount: process.env.CDK_DEFAULT_ACCOUNT,
     });
 
-    // Define a custom OAC
-    const oac = new cloudfront.FunctionUrlOriginAccessControl(this, 'MyOAC', {
-      signing: cloudfront.Signing.SIGV4_ALWAYS // No signing required for Function URL
-    });
+    // // Define a custom OAC
+    // const oac = new cloudfront.FunctionUrlOriginAccessControl(this, 'MyOAC', {
+    //   signing: cloudfront.Signing.SIGV4_ALWAYS // No signing required for Function URL
+    // });
 
-    const indexfnOrigin = origins.FunctionUrlOrigin.withOriginAccessControl(indexfnUrl, {
-      originAccessControl: oac,
-    })
+    // const indexfnOrigin = origins.FunctionUrlOrigin.withOriginAccessControl(indexfnUrl, {
+    //   originAccessControl: oac,
+    // })
 
-    // const indexfnOrigin = new origins.FunctionUrlOrigin(indexfnUrl)
+    const indexfnOrigin = new origins.FunctionUrlOrigin(indexfnUrl)
 
     // Use the OAC to create a CloudFront distribution
     const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
       comment: 'Distribution for hiclas deployment',
       defaultBehavior: {
         origin: indexfnOrigin,
-        // origin: s3BucketOrigin,
-        // edgeLambdas: [{
-        //   functionVersion: edgeFunction.currentVersion,
-        //   eventType: cloudfront.LambdaEdgeEventType.VIEWER_REQUEST, 
-        // }],
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
@@ -210,12 +205,6 @@ export class LambdaWithLayer extends Stack {
       defaultRootObject: 'index.html'
     });
 
-    // hiclasDist.addBehavior('/post/*', indexfnOrigin, {
-    //   allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
-    //   viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-    //   cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
-    //   originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-    // });
 
     // Create an S3 bucket origin for the CloudFront distribution
     const hiclastoreOrigin = origins.S3BucketOrigin.withOriginAccessControl(hiclastore, {
