@@ -44,9 +44,22 @@ def handler(event, context):
     if event['rawPath'] == '/post':
         return({
             'statusCode': '200',
-            'body': 'Successfully added item',
-            'headers': {'Content-Type': 'text/html',
-            }
+            'body': {
+                    "success": true,
+                    "message": "Listing created successfully",
+                    "data": {
+                        "id": "cdf492d3-61af-4be7-83c0-be7173744224",
+                        "category": "vehicles",
+                        "title": "Accent Executive 2010",
+                        "description": "Accent Executive 2010",
+                        "price": 2000,
+                        "location": "Calicut",
+                        "condition": "fair",
+                        "createdAt": "2025-06-22T20:24:40.968Z",
+                        "status": "active"
+                    }
+                    },
+            'headers': {'Content-Type': 'application/json'}
             })
 
     return({
