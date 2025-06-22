@@ -34,14 +34,26 @@ def handler(event, context):
             }
             })
     if event['rawPath'] == '/addItem':
-        body = json.loads(event['body'])
-        write_data(body)
+        return({
+            'statusCode': '200',
+            'body': 'Successfully added item',
+            'headers': {'Content-Type': 'text/html',
+            }
+            })
+
+    if event['rawPath'] == '/post':
+        return({
+            'statusCode': '200',
+            'body': 'Successfully added item',
+            'headers': {'Content-Type': 'text/html',
+            }
+            })
 
     return({
         'statusCode': '200',
         'body': render_template(templatepath="templates/index.j2", items=query_data(TABLE_CLASSIFIEDS)),
         'headers': {'Content-Type': 'text/html',
-        }
+         }
         })
     
     logger.info("QueryString Parameters %s" % (event['queryStringParameters']))
