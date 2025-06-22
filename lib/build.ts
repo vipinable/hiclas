@@ -360,6 +360,10 @@ export class LambdaWithLayer extends Stack {
       },
     });
 
+    // Add proxy resource for /api/*
+    const proxyResource = rootResource.addResource('{proxy+}');
+    proxyResource.addMethod('ANY', hiclasapiIntegration);
+
 
     //Add beheavior for api gateway and forward requests to apigateway
     // hiclasDist.addBehavior('/api/*', new origins.HttpOrigin(hiclasapiIntegration.url.split('/')[2]), {
