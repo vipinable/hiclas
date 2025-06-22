@@ -45,7 +45,7 @@ def handler(event, context):
         return({
             'statusCode': '200',
             'body': {
-                    "success": true,
+                    "success": True,
                     "message": "Listing created successfully",
                     "data": {
                         "id": "cdf492d3-61af-4be7-83c0-be7173744224",
