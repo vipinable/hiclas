@@ -33,34 +33,27 @@ def handler(event, context):
                 'headers': {'Content-Type': 'text/html',
             }
             })
-    if event['rawPath'] == '/addItem':
+    if event['rawPath'] == '/items':
         return({
             'statusCode': '200',
-            'body': 'Successfully added item',
-            'headers': {'Content-Type': 'text/html',
+            'body': query_data(TABLE_CLASSIFIEDS),
+            'headers': {'Content-Type': 'application/json',
             }
             })
 
     if event['rawPath'] == '/post':
+        # Write the data to the dynamodb table. The body is expected to be a JSON  object like: '{"category":"vehicles","title":"Accent Executive 2010","description":"Accent Executive 2010","price":2000,"location":"Calicut","condition":"fair","createdAt":"2025-06-23T19:06:47.953Z","id":"c00d27fb-5cbb-4af9-805e-367eb797e7f8"}'
+        body = json.loads(event['body'])
+       
         return({
             'statusCode': '200',
             'body': {
                     "success": True,
                     "message": "Listing created successfully",
-                    "data": {
-                        "id": "cdf492d3-61af-4be7-83c0-be7173744224",
-                        "category": "vehicles",
-                        "title": "Accent Executive 2010",
-                        "description": "Accent Executive 2010",
-                        "price": 2000,
-                        "location": "Calicut",
-                        "condition": "fair",
-                        "createdAt": "2025-06-22T20:24:40.968Z",
-                        "status": "active"
-                    }
+                    "data": write_data(body)
                     },
             'headers': {'Content-Type': 'application/json'}
-            })
+        })
 
     return({
         'statusCode': '200',
@@ -317,22 +310,30 @@ def joblist(AccountID):
 # function to write data to dynamodb table
 def write_data(body):
     table = dynamodb.Table(TABLE_CLASSIFIEDS)
+    timestamp_str = body['createdAt']  # Example: '2025-06-23T19:06:47.953Z'
+    dt = datetime.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S.%fZ")
+    dt = dt.replace(tzinfo=timezone.utc)
+
     response = table.put_item(Item={
-        'id': str(uuid.uuid4()),
-        'ts': str(body['id']),
-        'name': body['name'],
+        'id': str(body['id']),
+        'createdAt': body['createdAt'],
+        'status': 'active',
+        'updatedAt': body['createdAt'],
+        'title': body['title'],
         'description': body['description'],
         'category': body['category'],
-        'price': body['price']
+        'price': body['price'],
+        'location': body['location'],
+        'condition': body['condition'],
     })
-    print(response)
+    return(response)
 
 # function to write data to dynamodb table
 def query_data(TABLE_NAME):
     table = dynamodb.Table(TABLE_NAME)
     response = table.scan()
-    print(response)
     return response['Items']
+
 
 
 
