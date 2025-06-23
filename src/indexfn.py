@@ -318,6 +318,7 @@ def write_data(body):
     response = table.put_item(Item={
         'id': str(body['id']),
         'createdAt': body['createdAt'],
+        'ts': int(dt.timestamp() * 1000),  # Convert to milliseconds
         'status': 'active',
         'updatedAt': body['createdAt'],
         'title': body['title'],
