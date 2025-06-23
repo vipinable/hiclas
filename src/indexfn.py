@@ -27,13 +27,13 @@ def handler(event, context):
     logger.info("An event received %s" % (event))
     
     if 'cloudfront' not in json.dumps(event):
-        ''' Deny access if using lambda url'''
+        ''' Deny access if using lambda url directly'''
         return({
                 'statusCode': '403',
-                'body': render_template(templatepath="templates/page404.j2"),
-                'headers': {'Content-Type': 'text/html',
+                'body': { 'message': 'Forbidden' },
+                'headers': {'Content-Type': 'application/json',
             }
-            })
+        })
     if event['rawPath'] == '/items':
         return({
             'statusCode': '200',
