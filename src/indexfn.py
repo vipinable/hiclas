@@ -25,8 +25,10 @@ TABLE_CLASSIFIEDS = os.getenv('TABLE_CLASSIFIEDS')
 def handler(event, context):
     
     logger.info("An event received %s" % (event))
-    
-    if 'cloudfront' not in json.dumps(event):
+
+    allowed_ips = ['143.178.81.116']
+
+    if event['headers']['via'] and 'cloudfront.net' not in event['headers']['via'] and event['headers']['cloudfront-viewer-address'].split(':')[0] not in allowed_ips:
         ''' Deny access if using lambda url directly'''
         return({
                 'statusCode': '403',
