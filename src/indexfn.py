@@ -26,8 +26,8 @@ def handler(event, context):
     
     logger.info("An event received %s" % (event))
 
+    # Check if the request is coming from an allowed IP address if not deny access
     allowed_ips = ['143.178.81.116','147.161.173.114']
-
     if 'via' not in event['headers'] or 'cloudfront.net' not in event['headers']['via'] or event['headers']['cloudfront-viewer-address'].split(':')[0] not in allowed_ips:
         ''' Deny access if using lambda url directly'''
         return({
@@ -36,7 +36,12 @@ def handler(event, context):
                 'headers': {'Content-Type': 'application/json',
             }
         })
-    if event['rawPath'] == '/items':
+    
+    # Retrive the rawPath from the request event and convert to a list for validation and routing
+    raw_path = event['rawPath'].strip('/').split('/')
+    logger.info("Raw Path: %s" % (raw_path))
+
+    if len(raw_path) == 1 and raw_path[0] == 'items':
         return({
             'statusCode': '200',
             'body': query_data(TABLE_CLASSIFIEDS),
@@ -44,10 +49,9 @@ def handler(event, context):
             }
             })
 
-    if event['rawPath'] == '/post':
-        # Write the data to the dynamodb table. The body is expected to be a JSON  object like: '{"category":"vehicles","title":"Accent Executive 2010","description":"Accent Executive 2010","price":2000,"location":"Calicut","condition":"fair","createdAt":"2025-06-23T19:06:47.953Z","id":"c00d27fb-5cbb-4af9-805e-367eb797e7f8"}'
-        body = json.loads(event['body'])
-       
+    if len(raw_path) == 1 and raw_path[0] == 'post':
+        # Write the data to the dynamodb table. The body is expected to be a JSON  object.
+        body = json.loads(event['body'])     
         return({
             'statusCode': '200',
             'body': {
@@ -57,6 +61,25 @@ def handler(event, context):
                     },
             'headers': {'Content-Type': 'application/json'}
         })
+
+    if len(raw_path) == 2 and raw_path[0] == 'listing':
+        # Retrieve the details of listing by id from the dynamodb table
+        listing_id = raw_path[1]
+        table = dynamodb.Table(TABLE_CLASSIFIEDS)
+        response = table.get_item(Key={'id': listing_id})
+        
+        if 'Item' in response:
+            return({
+                'statusCode': '200',
+                'body': response['Item'],
+                'headers': {'Content-Type': 'application/json'}
+            })
+        else:
+            return({
+                'statusCode': '404',
+                'body': { 'message': 'Listing not found' },
+                'headers': {'Content-Type': 'application/json'}
+            })
 
     return({
         'statusCode': '200',
