@@ -41,15 +41,15 @@ jobs:
               --jq '.workflow_runs[] | select(.conclusion=="success") | .id' | head -1)
 
             # Get artifact ID
-            artifact_id=$(gh api repos/$SOURCE_REPO/actions/runs/$run_id/artifacts \
-              --jq ".artifacts[] | select(.name==\"$ARTIFACT_NAME\") | .id")
+            #artifact_id=$(gh api repos/$SOURCE_REPO/actions/runs/$run_id/artifacts \
+            #  --jq ".artifacts[] | select(.name==\"$ARTIFACT_NAME\") | .id")
 
             # Download artifact
-            gh api -H "Accept: application/vnd.github+json" \
-              repos/$SOURCE_REPO/actions/artifacts/$artifact_id/zip > artifact.zip
+            #gh api -H "Accept: application/vnd.github+json" \
+            #  repos/$SOURCE_REPO/actions/artifacts/$artifact_id/zip > artifact.zip
 
-            unzip -o artifact.zip -d dist && \
-            mv dist/index.html src/templates/index.j2
+            #unzip -o artifact.zip -d dist && \
+            #mv dist/index.html src/templates/index.j2
 
       - name: update npm package
         run: sudo npm install -g npm
