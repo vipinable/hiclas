@@ -26,7 +26,7 @@ def handler(event, context):
     
     logger.info("An event received %s" % (event))
 
-    allowed_ips = ['143.178.81.116']
+    allowed_ips = ['143.178.81.116','147.161.173.114']
 
     if 'via' not in event['headers'] or 'cloudfront.net' not in event['headers']['via'] or event['headers']['cloudfront-viewer-address'].split(':')[0] not in allowed_ips:
         ''' Deny access if using lambda url directly'''
