@@ -63,4 +63,5 @@ jobs:
             #cd build && \
             #cdk init --language=typescript && \
             #rm -rf bin lib && cp -r ../iac/bin .;cp -r ../iac/lib .;cp -r ../iac/src . && \
+            npm install --save-dev ts-node
             cd iac && npm i && cdk synth && cdk deploy --require-approval never
