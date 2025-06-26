@@ -59,7 +59,10 @@ jobs:
         run: echo "node:$(node --version), cdk:$(cdk --version), typescript:$(tsc --version)"
       - name: Create temp directories
         run: mkdir build 
-      - name: cd build
-        run: cd build && cdk init --language=typescript && rm -rf bin lib && cp -r ../iac/bin .;cp -r ../iac/lib .;cp -r ../iac/src .
-      - name: deploy cdk stack
-        run: cdk synth && cdk deploy --require-approval never
+      - name: Deploy stack
+        run: |
+            mkdir build && \
+            cd build && \
+            cdk init --language=typescript && \
+            rm -rf bin lib && cp -r ../iac/bin .;cp -r ../iac/lib .;cp -r ../iac/src . && \
+            cdk synth && cdk deploy --require-approval never
