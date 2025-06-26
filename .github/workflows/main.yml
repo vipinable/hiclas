@@ -57,9 +57,9 @@ jobs:
         run: npm install -g aws-cdk && cdk --version
       - name: Check running versions
         run: echo "node:$(node --version), cdk:$(cdk --version), typescript:$(tsc --version)"
-      #- name: Create temp directories
-      #  run: mkdir build
-      #- name: cdk init
-      #  run: cd build && cdk init --language=typescript && rm -rf bin lib && cp -r ../bin .;cp -r ../lib .;cp -r ../src .
+      - name: Create temp directories
+        run: mkdir build 
+      - name: cd build
+        run: cd build && cdk init --language=typescript #&& rm -rf bin lib && cp -r ../bin .;cp -r ../lib .;cp -r ../src .
       - name: deploy cdk stack
-        run:  cdk synth && cdk deploy --all --require-approval never
+        run:  cat cdk.json && cp cdk.json ../ && cd - && cdk synth && cdk deploy --all --require-approval never
