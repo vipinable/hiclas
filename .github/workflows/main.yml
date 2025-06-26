@@ -33,7 +33,7 @@ jobs:
       - name: Check aws cli
         run: aws --version && aws sts get-caller-identity --query Account --output text
       - name: Prepare lambda layer
-        run: mkdir -p layer/bin/python && pip install -r src/requirements.txt -t layer/bin/python
+        run: mkdir -p layer/bin/python && pip install -r iac/src/requirements.txt -t layer/bin/python
       - name: Download artifact from source repo
         run: |
             # Get the latest successful workflow run ID
