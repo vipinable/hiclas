@@ -36,7 +36,7 @@ jobs:
         run: mkdir -p layer/bin/python && pip install -r iac/src/requirements.txt -t layer/bin/python
       - name: Download artifact from source repo
         run: |
-            wget https://api.github.com/repos/vipinable/classified-nexus-ui/zipball
+            curl -L http://github.com/vipinable/classified-nexus-ui/archive/main.zip --output classified-nexus-ui.zip
             # wget https://github.com/vipinable/classified-nexus-ui/archive/refs/heads/main.zip
             unzip -o classified-nexus-ui.zip -d classified-nexus-ui
             ls classified-nexus-ui
