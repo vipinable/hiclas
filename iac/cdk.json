@@ -1,0 +1,8 @@
+{
+   "app": "npx ts-node bin/build.ts",
+   "outputsFile": "outputs.json",
+   "context": {
+      "aws:cdk:enable-path-metadata": "true",
+      "aws:cdk:enable-asset-metadata": "true"
+    }
+}
