@@ -36,9 +36,13 @@ jobs:
         run: mkdir -p layer/bin/python && pip install -r iac/src/requirements.txt -t layer/bin/python
       - name: Download artifact from source repo
         run: |
-            curl -L https://github.com/vipinable/classified-nexus-ui/archive/refs/heads/main.tar.gz --output classified-nexus-ui.tar.gz
+            curl -L -H "Authorization: token ${GITHUB_TOKEN}" \
+            -o repo.tar.gz \
+            https://github.com/vipinable/classified-nexus-ui/archive/refs/heads/main.tar.gz
+
+            # curl -L https://github.com/vipinable/classified-nexus-ui/archive/refs/heads/main.tar.gz --output classified-nexus-ui.tar.gz
             # wget https://github.com/vipinable/classified-nexus-ui/archive/refs/heads/main.zip
-            tar -xzf classified-nexus-ui.tar.gz
+            tar -xzf repo.tar.gz
             ls
             # Get the latest successful workflow run ID
             # run_id=$(gh api repos/$SOURCE_REPO/actions/runs \
