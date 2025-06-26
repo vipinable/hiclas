@@ -240,7 +240,7 @@ export class LambdaWithLayer extends Stack {
      * Deploy CSS files to the S3 bucket.
      */
     new s3deploy.BucketDeployment(this, 'DeployCSS', {
-      sources: [s3deploy.Source.asset('../src/css')], 
+      sources: [s3deploy.Source.asset('../iac/src/css')], 
       destinationBucket: hiclastore,
       destinationKeyPrefix: 'css/',
       prune: false, // Set to true to remove files not in the source
