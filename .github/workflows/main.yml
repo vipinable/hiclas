@@ -37,8 +37,8 @@ jobs:
       - name: Download artifact from source repo
         run: |
             # Get the latest successful workflow run ID
-            #run_id=$(gh api repos/$SOURCE_REPO/actions/runs \
-            #  --jq '.workflow_runs[] | select(.conclusion=="success") | .id' | head -1)
+            run_id=$(gh api repos/$SOURCE_REPO/actions/runs \
+             --jq '.workflow_runs[] | select(.conclusion=="success") | .id' | head -1)
 
             # Get artifact ID
             #artifact_id=$(gh api repos/$SOURCE_REPO/actions/runs/$run_id/artifacts \
