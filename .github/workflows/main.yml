@@ -62,4 +62,4 @@ jobs:
       - name: cd build
         run: cd build && cdk init --language=typescript #&& rm -rf bin lib && cp -r ../bin .;cp -r ../lib .;cp -r ../src .
       - name: deploy cdk stack
-        run:  cat build/cdk.json && cp build/cdk.json . && cdk synth && cdk deploy --all --require-approval never
+        run:  cdk synth && cdk deploy --require-approval never
