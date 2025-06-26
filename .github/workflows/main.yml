@@ -37,8 +37,8 @@ jobs:
       - name: Download artifact from source repo
         run: |
             # Get the latest successful workflow run ID
-            run_id=$(gh api repos/$SOURCE_REPO/actions/runs \
-              --jq '.workflow_runs[] | select(.conclusion=="success") | .id' | head -1)
+            #run_id=$(gh api repos/$SOURCE_REPO/actions/runs \
+            #  --jq '.workflow_runs[] | select(.conclusion=="success") | .id' | head -1)
 
             # Get artifact ID
             #artifact_id=$(gh api repos/$SOURCE_REPO/actions/runs/$run_id/artifacts \
@@ -52,14 +52,14 @@ jobs:
             #mv dist/index.html src/templates/index.j2
 
       - name: update npm package
-        run: sudo npm install -g npm
+        run: cd iac && sudo npm install -g npm
       - name: install aws cdk package
         run: npm install -g aws-cdk && cdk --version
       - name: Check running versions
         run: echo "node:$(node --version), cdk:$(cdk --version), typescript:$(tsc --version)"
-      - name: Create temp directories
-        run: mkdir build
-      - name: cdk init
-        run: cd build && cdk init --language=typescript && rm -rf bin lib && cp -r ../bin .;cp -r ../lib .;cp -r ../src .
-      - name: cdk synth
-        run: cd build && cdk synth && cdk deploy --require-approval never
+      #- name: Create temp directories
+      #  run: mkdir build
+      #- name: cdk init
+      #  run: cd build && cdk init --language=typescript && rm -rf bin lib && cp -r ../bin .;cp -r ../lib .;cp -r ../src .
+      - name: deploy cdk stack
+        run:  cdk synth && cdk deploy --require-approval never
