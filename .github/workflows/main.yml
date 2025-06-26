@@ -33,7 +33,7 @@ jobs:
       - name: Check aws cli
         run: aws --version && aws sts get-caller-identity --query Account --output text
       - name: Prepare lambda layer
-        run: mkdir -p layer/bin/python && pip install -r src/requirements.txt -t layer/bin/python
+        run: cd iac && mkdir -p layer/bin/python && pip install -r src/requirements.txt -t layer/bin/python
       - name: Download artifact from source repo
         run: |
             # Get the latest successful workflow run ID
@@ -52,7 +52,7 @@ jobs:
             #mv dist/index.html src/templates/index.j2
 
       - name: update npm package
-        run: cd iac && sudo npm install -g npm
+        run: sudo npm install -g npm
       - name: install aws cdk package
         run: npm install -g aws-cdk && cdk --version
       - name: Check running versions
