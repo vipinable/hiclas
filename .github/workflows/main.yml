@@ -60,6 +60,6 @@ jobs:
       - name: Create temp directories
         run: mkdir build 
       - name: cd build
-        run: cd build && cdk init --language=typescript #&& rm -rf bin lib && cp -r ../bin .;cp -r ../lib .;cp -r ../src .
+        run: cd build && cdk init --language=typescript && rm -rf bin lib && cp -r ../iac/bin .;cp -r ../iac/lib .;cp -r ../iac/src .
       - name: deploy cdk stack
-        run:  cd iac && npm i && cdk synth && cdk deploy --require-approval never
+        run: cdk synth && cdk deploy --require-approval never
