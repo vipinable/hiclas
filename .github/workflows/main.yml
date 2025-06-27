@@ -45,9 +45,7 @@ jobs:
             npm run build && \
             cp dist/index.html ../iac/src/templates/index.j2
             mv dist ../
-            
-      #- name: update npm package
-      # run: sudo npm install -g npm
+
       - name: install aws cdk package
         run: npm install -g aws-cdk && cdk --version
       - name: Check running versions
