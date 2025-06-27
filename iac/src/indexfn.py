@@ -75,7 +75,7 @@ def handler(event, context):
             return({
                 'statusCode': '200',
                 'body': render_template(templatepath="templates/index.j2", items=response['Items']),
-                'headers': {'Content-Type': 'application/json'}
+                'headers': {'Content-Type': 'text/html'}
             })
         else:
             return({
