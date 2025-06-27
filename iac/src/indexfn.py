@@ -69,8 +69,9 @@ def handler(event, context):
         response = table.query(
             KeyConditionExpression=boto3.dynamodb.conditions.Key('id').eq(listing_id)
         )
+        print(response)
         
-        if 'Item' in response:
+        if 'item' in response:
             return({
                 'statusCode': '200',
                 'body': response['Item'],
