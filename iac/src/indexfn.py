@@ -71,10 +71,10 @@ def handler(event, context):
         )
         print(response)
         
-        if 'item' in response:
+        if 'Items' in response:
             return({
                 'statusCode': '200',
-                'body': response['Item'],
+                'body': response['Items'],
                 'headers': {'Content-Type': 'application/json'}
             })
         else:
