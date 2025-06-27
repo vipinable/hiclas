@@ -66,7 +66,9 @@ def handler(event, context):
         # Retrieve the details of listing by id from the dynamodb table
         listing_id = raw_path[1]
         table = dynamodb.Table(TABLE_CLASSIFIEDS)
-        response = table.get_item(Key={'id': listing_id})
+        response = table.query(
+            KeyConditionExpression=boto3.dynamodb.conditions.Key('id').eq(listing_id)
+        )
         
         if 'Item' in response:
             return({
