@@ -49,6 +49,20 @@ def handler(event, context):
             }
             })
 
+    if len(raw_path) == 2 and raw_path[0] == 'items':
+        listing_id = raw_path[1]
+        table = dynamodb.Table(TABLE_CLASSIFIEDS)
+        response = table.query(
+            KeyConditionExpression=boto3.dynamodb.conditions.Key('id').eq(listing_id)
+        )
+        print(response)
+        return({
+            'statusCode': '200',
+            'body': response['Items'][0],
+            'headers': {'Content-Type': 'application/json',
+            }
+            })
+
     if len(raw_path) == 1 and raw_path[0] == 'post':
         # Write the data to the dynamodb table. The body is expected to be a JSON  object.
         body = json.loads(event['body'])     
@@ -63,26 +77,11 @@ def handler(event, context):
         })
 
     if len(raw_path) == 2 and raw_path[0] == 'listing':
-        # Retrieve the details of listing by id from the dynamodb table
-        listing_id = raw_path[1]
-        table = dynamodb.Table(TABLE_CLASSIFIEDS)
-        response = table.query(
-            KeyConditionExpression=boto3.dynamodb.conditions.Key('id').eq(listing_id)
-        )
-        print(response)
-        
-        if 'Items' in response:
-            return({
-                'statusCode': '200',
-                'body': render_template(templatepath="templates/index.j2", items=response['Items'][0]),
-                'headers': {'Content-Type': 'text/html'}
-            })
-        else:
-            return({
-                'statusCode': '404',
-                'body': { 'message': 'Listing not found' },
-                'headers': {'Content-Type': 'application/json'}
-            })
+        return({
+            'statusCode': '200',
+            'body': render_template(templatepath="templates/index.j2", items=response['Items'][0]),
+            'headers': {'Content-Type': 'text/html'}
+        })
 
     return({
         'statusCode': '200',
