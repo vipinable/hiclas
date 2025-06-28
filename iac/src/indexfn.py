@@ -86,7 +86,7 @@ def handler(event, context):
 
     return({
         'statusCode': '200',
-        'body': render_template(templatepath="templates/index.j2", items=query_data(TABLE_CLASSIFIEDS)),
+        'body': render_template(templatepath="templates/index.j2"),
         'headers': {'Content-Type': 'text/html'}
         })
     
