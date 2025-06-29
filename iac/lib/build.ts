@@ -80,8 +80,8 @@ export class LambdaWithLayer extends Stack {
       indexfn.addToRolePolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       resources: [
-        s3Bucket.arnForObjects("*"),
-        s3Bucket.bucketArn
+        hiclastore.arnForObjects("*"),
+        hiclastore.bucketArn
       ],
       actions: [
         's3:PutObject',
