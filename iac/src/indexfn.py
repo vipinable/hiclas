@@ -21,6 +21,7 @@ dynamodb = session.resource('dynamodb')
 
 #Load environment variable values
 TABLE_CLASSIFIEDS = os.getenv('TABLE_CLASSIFIEDS')
+BUCKET_STORE = os.getenv('BUCKET_STORE')
 
 def handler(event, context):
     
@@ -84,7 +85,7 @@ def handler(event, context):
 
     return({
         'statusCode': '200',
-        'body': render_template(templatepath="templates/index.j2", items=query_data(TABLE_CLASSIFIEDS)),
+        'body': get_index(BUCKET_STORE),
         'headers': {'Content-Type': 'text/html'}
         })
     
@@ -360,6 +361,15 @@ def query_data(TABLE_NAME):
     table = dynamodb.Table(TABLE_NAME)
     response = table.scan()
     return response['Items']
+
+def get_index(bucket):
+    response = s3.get_object(
+        Bucket=bucket,
+        Key='index.html',
+    )
+    print(response)
+    return response
+
 
 
 

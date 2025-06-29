@@ -49,6 +49,18 @@ export class LambdaWithLayer extends Stack {
 
     s3Bucket.grantRead(new iam.AccountRootPrincipal());
     s3Bucket.grantPut(new iam.AccountRootPrincipal());
+
+    /**
+     * Create an s3 bucket as backend storage
+     */
+    const hiclastore = new s3.Bucket(this, 'hiclastore', {
+      objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,
+      publicReadAccess: false,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      enforceSSL: true,
+      versioned: true,
+    });
           
     //Index function definition
     const indexfn = new lambda.Function(this, 'indexfn', {
@@ -61,6 +73,7 @@ export class LambdaWithLayer extends Stack {
       environment: {
         APPNAME: process.env.ApplicationName!,
         ENVNAME: process.env.Environment!, 
+        BUCKET_STORE: hiclastore.bucketName,
         },
       });
     
@@ -112,18 +125,6 @@ export class LambdaWithLayer extends Stack {
         's3:ListBucket'
       ],
       }));
-
-    /**
-     * Create an s3 bucket as backend storage
-     */
-    const hiclastore = new s3.Bucket(this, 'hiclastore', {
-      objectOwnership: s3.ObjectOwnership.BUCKET_OWNER_ENFORCED,
-      publicReadAccess: false,
-      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-      encryption: s3.BucketEncryption.S3_MANAGED,
-      enforceSSL: true,
-      versioned: true,
-    });
 
     /**
      * Create an Origin Access Identity (OAI) for CloudFront to securely access the S3 bucket
