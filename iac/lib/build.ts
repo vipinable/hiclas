@@ -139,6 +139,11 @@ export class LambdaWithLayer extends Stack {
       principals: [new iam.CanonicalUserPrincipal(originAccessIdentity.cloudFrontOriginAccessIdentityS3CanonicalUserId)],
     }));
 
+    const HiClasStoreOrigin = origins.S3BucketOrigin.withOriginAccessControl(hiclastore, {
+      originAccessIdentity: originAccessIdentity,
+      originAccessLevels: [cloudfront.AccessLevel.READ, cloudfront.AccessLevel.LIST],
+    });
+
 
     const s3BucketOrigin = origins.S3BucketOrigin.withOriginAccessControl(s3Bucket, {
       originAccessLevels: [cloudfront.AccessLevel.READ, cloudfront.AccessLevel.LIST],
@@ -194,7 +199,8 @@ export class LambdaWithLayer extends Stack {
     const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
       comment: 'Distribution for hiclas deployment',
       defaultBehavior: {
-        origin: indexfnOrigin,
+        // origin: indexfnOrigin,
+        origin: HiClasStoreOrigin,
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
