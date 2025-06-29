@@ -208,7 +208,15 @@ export class LambdaWithLayer extends Stack {
       },
       domainNames: ['fn.theworkingmethods.com'],
       certificate: domainCert,
-      defaultRootObject: 'index.html'
+      defaultRootObject: 'index.html',
+      errorResponses: [
+        {
+          httpStatus: 404,
+          responseHttpStatus: 200,
+          responsePagePath: '/',
+          ttl: Duration.minutes(5),
+        },
+      ],
     });
 
     /**
