@@ -360,15 +360,15 @@ def write_data(body):
 def query_data(TABLE_NAME):
     table = dynamodb.Table(TABLE_NAME)
     response = table.scan()
-    return response['Items']
+    return(response['Items'])
 
 def get_index(bucket):
     response = s3.get_object(
         Bucket=bucket,
         Key='index.html',
     )
-    print(response)
-    return response
+    print(response['Body'].read().decode('utf-8'))
+    return(response['Body'].read().decode('utf-8'))
 
 
 
