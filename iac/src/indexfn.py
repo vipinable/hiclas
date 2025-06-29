@@ -82,40 +82,6 @@ def handler(event, context):
             }
             })
 
-    if len(raw_path) == 2 and raw_path[0] == 'items':
-        listing_id = raw_path[1]
-        table = dynamodb.Table(TABLE_CLASSIFIEDS)
-        response = table.query(
-            KeyConditionExpression=boto3.dynamodb.conditions.Key('id').eq(listing_id)
-        )
-        print(response)
-        return({
-            'statusCode': '200',
-            'body': response['Items'][0],
-            'headers': {'Content-Type': 'application/json',
-            }
-            })
-
-    if len(raw_path) == 1 and raw_path[0] == 'post':
-        # Write the data to the dynamodb table. The body is expected to be a JSON  object.
-        body = json.loads(event['body'])     
-        return({
-            'statusCode': '200',
-            'body': {
-                    "success": True,
-                    "message": "Listing created successfully",
-                    "data": write_data(body)
-                    },
-            'headers': {'Content-Type': 'application/json'}
-        })
-
-    if len(raw_path) == 2 and raw_path[0] == '/api/listing':
-        return({
-            'statusCode': '200',
-            'body': render_template(templatepath="templates/index.j2", items=response['Items'][0]),
-            'headers': {'Content-Type': 'text/html'}
-        })
-
     return({
         'statusCode': '200',
         'body': render_template(templatepath="templates/index.j2", items=query_data(TABLE_CLASSIFIEDS)),
