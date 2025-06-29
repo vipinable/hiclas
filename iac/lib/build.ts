@@ -139,10 +139,6 @@ export class LambdaWithLayer extends Stack {
       principals: [new iam.CanonicalUserPrincipal(originAccessIdentity.cloudFrontOriginAccessIdentityS3CanonicalUserId)],
     }));
 
-    const HiClasStoreOrigin = origins.S3BucketOrigin.withOriginAccessControl(hiclastore, {
-      originAccessLevels: [cloudfront.AccessLevel.READ, cloudfront.AccessLevel.LIST],
-    });
-
 
     const s3BucketOrigin = origins.S3BucketOrigin.withOriginAccessControl(s3Bucket, {
       originAccessLevels: [cloudfront.AccessLevel.READ, cloudfront.AccessLevel.LIST],
@@ -192,6 +188,11 @@ export class LambdaWithLayer extends Stack {
     //   originAccessControl: oac,
     // })
 
+    // Create an S3 bucket origin for the CloudFront distribution
+    const hiclastoreOrigin = origins.S3BucketOrigin.withOriginAccessControl(hiclastore, {
+      originAccessLevels: [cloudfront.AccessLevel.READ, cloudfront.AccessLevel.LIST],
+    });
+
     const indexfnOrigin = new origins.FunctionUrlOrigin(indexfnUrl)
 
     // Use the OAC to create a CloudFront distribution
@@ -199,7 +200,7 @@ export class LambdaWithLayer extends Stack {
       comment: 'Distribution for hiclas deployment',
       defaultBehavior: {
         // origin: indexfnOrigin,
-        origin: HiClasStoreOrigin,
+        origin: hiclastoreOrigin,
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
@@ -208,12 +209,6 @@ export class LambdaWithLayer extends Stack {
       domainNames: ['fn.theworkingmethods.com'],
       certificate: domainCert,
       defaultRootObject: 'index.html'
-    });
-
-
-    // Create an S3 bucket origin for the CloudFront distribution
-    const hiclastoreOrigin = origins.S3BucketOrigin.withOriginAccessControl(hiclastore, {
-      originAccessLevels: [cloudfront.AccessLevel.READ, cloudfront.AccessLevel.LIST],
     });
 
     /**
@@ -256,9 +251,9 @@ export class LambdaWithLayer extends Stack {
      * Deploy assets files to the S3 bucket.
      */
     new s3deploy.BucketDeployment(this, 'DeployAssets', {
-      sources: [s3deploy.Source.asset('../dist/assets')], 
+      sources: [s3deploy.Source.asset('../dist/')]
       destinationBucket: hiclastore,
-      destinationKeyPrefix: 'assets/',
+      // destinationKeyPrefix: 'assets/',
       prune: false, // Set to true to remove files not in the source
       retainOnDelete: false, // Set to true to retain files on stack deletion
     });
