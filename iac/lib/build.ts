@@ -140,7 +140,6 @@ export class LambdaWithLayer extends Stack {
     }));
 
     const HiClasStoreOrigin = origins.S3BucketOrigin.withOriginAccessControl(hiclastore, {
-      originAccessIdentity: originAccessIdentity,
       originAccessLevels: [cloudfront.AccessLevel.READ, cloudfront.AccessLevel.LIST],
     });
 
