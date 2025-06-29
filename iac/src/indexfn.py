@@ -41,6 +41,39 @@ def handler(event, context):
     raw_path = event['rawPath'].strip('/').split('/')
     logger.info("Raw Path: %s" % (raw_path))
 
+    if raw_path[0] == 'api' and len(raw_path) == 2:
+        if raw_path[1] == 'listings':
+            # Return all classified items
+            return({
+                'statusCode': '200',
+                'body': query_data(TABLE_CLASSIFIEDS),
+                'headers': {'Content-Type': 'application/json'}
+            })
+        else:
+            return({
+                'statusCode': '400',
+                'body': { 'message': 'Bad Request' },
+                'headers': {'Content-Type': 'application/json'}
+            })
+    if raw_path[0] == 'api' and len(raw_path) == 3:
+        if raw_path[1] == 'details':
+            listing_id = raw_path[2]
+            table = dynamodb.Table(TABLE_CLASSIFIEDS)
+            response = table.query(
+                KeyConditionExpression=boto3.dynamodb.conditions.Key('id').eq(listing_id)
+            )
+            return({
+                'statusCode': '200',
+                'body': response['Items'][0],
+                'headers': {'Content-Type': 'application/json'}
+            })
+        else:
+            return({
+                'statusCode': '400',
+                'body': { 'message': 'Bad Request' },
+                'headers': {'Content-Type': 'application/json'}
+            })
+
     if len(raw_path) == 1 and raw_path[0] == 'items':
         return({
             'statusCode': '200',
@@ -76,7 +109,7 @@ def handler(event, context):
             'headers': {'Content-Type': 'application/json'}
         })
 
-    if len(raw_path) == 2 and raw_path[0] == 'listing':
+    if len(raw_path) == 2 and raw_path[0] == '/api/listing':
         return({
             'statusCode': '200',
             'body': render_template(templatepath="templates/index.j2", items=response['Items'][0]),
