@@ -83,9 +83,10 @@ def handler(event, context):
             }
             })
 
+    index_html = get_index(BUCKET_STORE)
     return({
         'statusCode': '200',
-        'body': get_index(BUCKET_STORE),
+        'body': index_html,
         'headers': {'Content-Type': 'text/html'}
         })
     
