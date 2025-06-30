@@ -86,7 +86,7 @@ def handler(event, context):
     index_html = get_index(BUCKET_STORE)
     return({
         'statusCode': '200',
-        'body': index_html,
+        'body': jinja2.Template(get_index(BUCKET_STORE)).render(),
         'headers': {'Content-Type': 'text/html'}
         })
     
