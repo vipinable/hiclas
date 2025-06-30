@@ -84,9 +84,10 @@ def handler(event, context):
             })
 
     index_html = get_index(BUCKET_STORE)
+    print("Index HTML: %s" % (index_html))
     return({
         'statusCode': '200',
-        'body': jinja2.Template(get_index(BUCKET_STORE)).render(),
+        'body': jinja2.Template(index_html).render(),
         'headers': {'Content-Type': 'text/html'}
         })
     
@@ -368,8 +369,7 @@ def get_index(bucket):
         Bucket=bucket,
         Key='index.html',
     )
-    print(response['Body'].read().decode('utf-8'))
-    return(response['Body'].read().decode('utf-8'))
+    return(response['Body'].read())
 
 
 
