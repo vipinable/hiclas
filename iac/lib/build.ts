@@ -61,6 +61,28 @@ export class LambdaWithLayer extends Stack {
       enforceSSL: true,
       versioned: true,
     });
+
+    // Create a role to upload files to s3 using presigned URLs
+    const s3UploadRole = new iam.Role(this, 'S3UploadRole', {
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+      description: 'Role to allow Lambda function to upload files to S3',
+      policies: [
+        new iam.Policy(this, 'S3UploadPolicy', {
+          statements: [
+            new iam.PolicyStatement({
+              effect: iam.Effect.ALLOW,
+              actions: [
+                's3:PutObject'
+              ],
+              resources: [
+                hiclastore.arnForObjects('*'),
+                hiclastore.bucketArn,
+              ],
+            }),
+          ],
+        }),
+      ],  
+    });
           
     //Index function definition
     const indexfn = new lambda.Function(this, 'indexfn', {
@@ -74,6 +96,7 @@ export class LambdaWithLayer extends Stack {
         APPNAME: process.env.ApplicationName!,
         ENVNAME: process.env.Environment!, 
         BUCKET_STORE: hiclastore.bucketName,
+        S3_UPLOAD_ROLE: s3UploadRole.roleArn,
         },
       });
     

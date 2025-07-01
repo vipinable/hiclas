@@ -42,20 +42,6 @@ def handler(event, context):
     raw_path = event['rawPath'].strip('/').split('/')
     logger.info("Raw Path: %s" % (raw_path))
 
-    if raw_path[0] == 'api' and len(raw_path) == 2:
-        if raw_path[1] == 'listings':
-            # Return all classified items
-            return({
-                'statusCode': '200',
-                'body': query_data(TABLE_CLASSIFIEDS),
-                'headers': {'Content-Type': 'application/json'}
-            })
-        else:
-            return({
-                'statusCode': '400',
-                'body': { 'message': 'Bad Request' },
-                'headers': {'Content-Type': 'application/json'}
-            })
     if raw_path[0] == 'api' and len(raw_path) == 3:
         if raw_path[1] == 'details':
             listing_id = raw_path[2]
@@ -75,19 +61,42 @@ def handler(event, context):
                 'headers': {'Content-Type': 'application/json'}
             })
 
-    if len(raw_path) == 1 and raw_path[0] == 'items':
+    elif raw_path[0] == 'api' and len(raw_path) == 2:
+        if raw_path[1] == 'listings':
+            # Return all classified items
+            return({
+                'statusCode': '200',
+                'body': query_data(TABLE_CLASSIFIEDS),
+                'headers': {'Content-Type': 'application/json'}
+            })
+        elif raw_path[1] == 'presign':
+            # Generate a presigned URL for S3 object upload
+            object-key = uploads/image/0.jpg  # Example object key, replace with actual logic
+            presigned_url = create_presigned_url(BUCKET_STORE, 'object-key', 60)
+            return({
+                'statusCode': '200',
+                'body': { 'url': presigned_url },
+                'headers': {'Content-Type': 'application/json'}
+            })
+        else:
+            return({
+                'statusCode': '400',
+                'body': { 'message': 'Bad Request' },
+                'headers': {'Content-Type': 'application/json'}
+            })
+    elif len(raw_path) == 1 and raw_path[0] == 'items':
         return({
             'statusCode': '200',
             'body': query_data(TABLE_CLASSIFIEDS),
             'headers': {'Content-Type': 'application/json',
             }
             })
-
-    return({
-        'statusCode': '200',
-        'body': get_index(BUCKET_STORE),
-        'headers': {'Content-Type': 'text/html'}
-        })
+    else:
+        return({
+            'statusCode': '200',
+            'body': get_index(BUCKET_STORE),
+            'headers': {'Content-Type': 'text/html'}
+            })
     
     logger.info("QueryString Parameters %s" % (event['queryStringParameters']))
     
@@ -198,7 +207,7 @@ def create_presigned_post(bucket_name, object_name, expiration,
     """
     # Generate a presigned S3 POST URL
     client = boto3.client('sts')
-    assumed_role_object  = client.assume_role(DurationSeconds=900,RoleArn=s3role,RoleSessionName='PreSign',)
+    assumed_role_object  = client.assume_role(DurationSeconds=60,RoleArn=s3role,RoleSessionName='PreSign',)
     temp_credentials = assumed_role_object['Credentials']
     PreSign = boto3.session.Session(aws_access_key_id=temp_credentials['AccessKeyId'],
                                     aws_secret_access_key=temp_credentials['SecretAccessKey'],
