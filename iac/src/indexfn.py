@@ -212,10 +212,10 @@ def create_presigned_post(bucket_name, object_name, expiration,
         fields: Dictionary of form fields and values to submit with the POST
     :return: None if error.
     """
-    # Generate a presigned S3 POST URL
+    # Generate a presigned S3 POST URL 
     client = boto3.client('sts')
     s3role = os.environ.get('S3_UPLOAD_ROLE')
-    assumed_role_object  = client.assume_role(DurationSeconds=60,RoleArn=s3role,RoleSessionName='PreSign',)
+    assumed_role_object  = client.assume_role(DurationSeconds=900,RoleArn=s3role,RoleSessionName='PreSign',)
     temp_credentials = assumed_role_object['Credentials']
     PreSign = boto3.session.Session(aws_access_key_id=temp_credentials['AccessKeyId'],
                                     aws_secret_access_key=temp_credentials['SecretAccessKey'],
