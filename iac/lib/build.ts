@@ -88,7 +88,7 @@ export class LambdaWithLayer extends Stack {
       assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
       description: 'Role for S3 upload policy',
       inlinePolicies: {
-        S3UploadPolicy: s3UploadPolicy,
+        S3UploadPolicy: s3UploadPolicy.document,
       },
     });
           
