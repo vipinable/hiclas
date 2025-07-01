@@ -121,6 +121,13 @@ export class LambdaWithLayer extends Stack {
       ],
       }));
 
+      // Add assume role permission to indexfn for the S3 upload role
+      indexfn.addToRolePolicy(new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ['sts:AssumeRole'],
+        resources: [s3UploadRole.roleArn],
+      }));
+
     const indexfnUrl = indexfn.addFunctionUrl({
       authType: lambda.FunctionUrlAuthType.NONE, // No authentication for the function URL
       cors: {
