@@ -62,27 +62,35 @@ export class LambdaWithLayer extends Stack {
       versioned: true,
     });
 
-    // // Create a role to upload files to s3 using presigned URLs
-    // const s3UploadRole = new iam.Role(this, 'S3UploadRole', {
-    //   assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
-    //   description: 'Role to allow Lambda function to upload files to S3',
-    //   policies: [
-    //     new iam.Policy(this, 'S3UploadPolicy', {
-    //       statements: [
-    //         new iam.PolicyStatement({
-    //           effect: iam.Effect.ALLOW,
-    //           actions: [
-    //             's3:PutObject'
-    //           ],
-    //           resources: [
-    //             hiclastore.arnForObjects('*'),
-    //             hiclastore.bucketArn,
-    //           ],
-    //         }),
-    //       ],
-    //     }),
-    //   ],  
-    // });
+    /**
+     * Create an s3 policy to allow uploads to the bucket
+     * This policy will be used for presigned url to upload files to the bucket
+     */
+    const s3UploadPolicy = new iam.Policy(this, `${id}S3UploadPolicy`, {
+      statements: [
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: [
+            's3:PutObject'
+          ],
+          resources: [
+            hiclastore.arnForObjects('*'),
+            hiclastore.bucketArn
+          ],
+        }),
+      ],
+    });
+
+    /**
+     * Create an IAM role for the S3 upload policy
+     */
+    const s3UploadRole = new iam.Role(this, `${id}S3UploadRole`, {
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+      description: 'Role for S3 upload policy',
+      inlinePolicies: {
+        S3UploadPolicy: s3UploadPolicy,
+      },
+    });
           
     //Index function definition
     const indexfn = new lambda.Function(this, 'indexfn', {
@@ -96,7 +104,7 @@ export class LambdaWithLayer extends Stack {
         APPNAME: process.env.ApplicationName!,
         ENVNAME: process.env.Environment!, 
         BUCKET_STORE: hiclastore.bucketName,
-        // S3_UPLOAD_ROLE: s3UploadRole.roleArn,
+        S3_UPLOAD_ROLE: s3UploadRole.roleArn,
         },
       });
     

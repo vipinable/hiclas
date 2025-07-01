@@ -72,10 +72,17 @@ def handler(event, context):
         elif raw_path[1] == 'presign':
             # Generate a presigned URL for S3 object upload
             object_key = 'uploads/image/0.jpg'  # Example object key, replace with actual logic
-            presigned_url = create_presigned_url(BUCKET_STORE, object_key, 60)
+            response = create_presigned_post(
+                bucket_name=BUCKET_STORE,
+                object_name=object_key,
+                expiration=60,  # URL valid for 1 minute
+                fields=None,
+                conditions=None
+            )
+            print("Presigned URL Response: %s" % (response))
             return({
                 'statusCode': '200',
-                'body': { 'url': presigned_url },
+                'body': { 'url': response['url'] },
                 'headers': {'Content-Type': 'application/json'}
             })
         else:
