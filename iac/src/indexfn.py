@@ -71,12 +71,18 @@ def handler(event, context):
             })
         elif raw_path[1] == 'presign':
             # Generate a presigned URL for S3 object upload
-            object_key = 'uploads/image/0.jpg'  # Example object key, replace with actual logic
-            response = create_uploadurl(BUCKET_STORE, object_key, 60)
+            temp_id = str(uuid.uuid4())
+            # Generate 10 presigned URL  to upload 10 images
+            response = { 'uuid': temp_id, 'urls': [] }
+            for index in range(10):
+                # Create a unique object key for each image
+                # This is just an example, you can modify the logic as needed
+                object_key = f'uploads/{temp_id}/{index}.jpg'  # Example object key, replace with actual logic
+                response['urls'].append(json.dumps(create_uploadurl(BUCKET_STORE, object_key, 60)))
             print("Presigned URL Response: %s" % (response))
             return({
                 'statusCode': '200',
-                'body': json.dumps(response),
+                'body': response,
                 'headers': {'Content-Type': 'application/json'}
             })
         else:
