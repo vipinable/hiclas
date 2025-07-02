@@ -76,7 +76,7 @@ def handler(event, context):
             print("Presigned URL Response: %s" % (response))
             return({
                 'statusCode': '200',
-                'body': { 'url': response },
+                'body': json.dumps(response),
                 'headers': {'Content-Type': 'application/json'}
             })
         else:
