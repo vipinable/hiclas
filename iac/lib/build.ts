@@ -249,21 +249,13 @@ export class LambdaWithLayer extends Stack {
       domainNames: ['fn.theworkingmethods.com'],
       certificate: domainCert,
       defaultRootObject: 'index.html',
-      errorResponses: [
-        {
-          httpStatus: 404,
-          responseHttpStatus: 200,
-          responsePagePath: '/',
-          ttl: Duration.minutes(5),
-        },
-      ],
     });
 
     /**
      * Behavior for API calls
      */
     hiclasDist.addBehavior('/api/*', indexfnOrigin, {
-      cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+      cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
       viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
     });
 
@@ -288,7 +280,7 @@ export class LambdaWithLayer extends Stack {
      * Behavior for Assets files
      */
     hiclasDist.addBehavior('/assets/*', hiclastoreOrigin, {
-      cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+      cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
       viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
     });
 
