@@ -72,17 +72,11 @@ def handler(event, context):
         elif raw_path[1] == 'presign':
             # Generate a presigned URL for S3 object upload
             object_key = 'uploads/image/0.jpg'  # Example object key, replace with actual logic
-            response = create_presigned_post(
-                bucket_name=BUCKET_STORE,
-                object_name=object_key,
-                expiration=60,  # URL valid for 1 minute
-                fields=None,
-                conditions=None
-            )
+            response = create_uploadurl(BUCKET_STORE, object_key, 60)
             print("Presigned URL Response: %s" % (response))
             return({
                 'statusCode': '200',
-                'body': { 'url': response['url'] },
+                'body': { 'url': response },
                 'headers': {'Content-Type': 'application/json'}
             })
         else:
@@ -250,6 +244,30 @@ def create_downloadurl(bucket ,key, expiration):
     s3 = session.client('s3')
     url = s3.generate_presigned_url('get_object', Params=params, ExpiresIn=expiration)
     return (url)
+
+def create_uploadurl(bucket, key, expiration):
+    """Generate a presigned URL for uploading an object to S3
+
+    :param bucket: string
+        The name of the S3 bucket
+    :param key: string
+        The object key to upload to
+    :param expiration: int
+        Time in seconds for the presigned URL to remain valid
+    :return: string
+        Presigned URL for uploading the object
+    """
+    #s3 = boto3.client('s3')
+    try:
+        response = s3.generate_presigned_url('put_object',
+                                              Params={'Bucket': bucket, 'Key': key},
+                                              ExpiresIn=expiration,
+                                              HttpMethod='PUT')
+    except ClientError as e:
+        logging.error(e)
+        return None
+
+    return response 
     
 def render_template(templatepath, items, *args, **kargs):
     """Generates the html body for upload form on the jinja template.
