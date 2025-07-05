@@ -78,11 +78,11 @@ def handler(event, context):
                 # Create a unique object key for each image
                 # This is just an example, you can modify the logic as needed
                 object_key = f'uploads/{temp_id}/{index}.jpg'  # Example object key, replace with actual logic
-                response['urls'].append(json.dumps(create_uploadurl(BUCKET_STORE, object_key, 60)))
+                response['urls'].append(create_uploadurl(BUCKET_STORE, object_key, 60))
             print("Presigned URL Response: %s" % (response))
             return({
                 'statusCode': '200',
-                'body': json.dump(response),
+                'body': response,
                 'headers': {'Content-Type': 'application/json'}
             })
         else:
