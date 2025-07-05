@@ -8,6 +8,7 @@ from botocore.config import Config
 from datetime import datetime, timezone
 import uuid
 import jinja2
+import urllib
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -74,11 +75,11 @@ def handler(event, context):
             temp_id = str(uuid.uuid4())
             # Generate 10 presigned URL  to upload 10 images
             response = { 'uuid': temp_id, 'urls': [] }
-            for index in range(10):
+            for index in range(1):
                 # Create a unique object key for each image
                 # This is just an example, you can modify the logic as needed
                 object_key = f'uploads/{temp_id}/{index}.jpg'  # Example object key, replace with actual logic
-                response['urls'].append(create_uploadurl(BUCKET_STORE, object_key, 60))
+                response['urls'].append(urllib.parse.quote(create_uploadurl(BUCKET_STORE, object_key, 60)))
             print("Presigned URL Response: %s" % (response))
             return({
                 'statusCode': '200',
