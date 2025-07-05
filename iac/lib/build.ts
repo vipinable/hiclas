@@ -255,6 +255,7 @@ export class LambdaWithLayer extends Stack {
      * Behavior for API calls
      */
     hiclasDist.addBehavior('/api/*', indexfnOrigin, {
+      allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
       cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
       viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
     });
@@ -264,6 +265,7 @@ export class LambdaWithLayer extends Stack {
      * Behavior for /listing/*
      */
     hiclasDist.addBehavior('/listing/*', indexfnOrigin, {
+      allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
       cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
       viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
     });
