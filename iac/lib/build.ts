@@ -235,6 +235,11 @@ export class LambdaWithLayer extends Stack {
 
     const indexfnOrigin = new origins.FunctionUrlOrigin(indexfnUrl)
 
+    //Import the certificate from ARN
+    const hiclasCertArn = `arn:aws:acm:${process.env.CDK_DEFAULT_REGION}:${process.env.CDK_DEFAULT_ACCOUNT}:certificate/a37cb872-61aa-4027-9227-2099c27ec7ec`;
+    const hiclasCert = acm.Certificate.fromCertificateArn(this, 'hiclasCert', hiclasCertArn);
+
+
     // Use the OAC to create a CloudFront distribution
     const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
       comment: 'Distribution for hiclas deployment',
@@ -246,8 +251,8 @@ export class LambdaWithLayer extends Stack {
         cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
         originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
       },
-      domainNames: ['fn.theworkingmethods.com'],
-      certificate: domainCert,
+      domainNames: ['fn.theworkingmethods.com','dev.highlyclassifieds.com'],
+      certificate: hiclasCert,
       defaultRootObject: 'index.html',
     });
 
