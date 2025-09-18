@@ -79,7 +79,7 @@ def handler(event, context):
                 # Create a unique object key for each image
                 # This is just an example, you can modify the logic as needed
                 object_key = f'uploads/{temp_id}/{index}.jpg'  # Example object key, replace with actual logic
-                response['urls'].append(urllib.parse.quote(create_uploadurl(BUCKET_STORE, object_key, 60)))
+                response['urls'].append(urllib.parse.quote(create_presigned_post(BUCKET_STORE, object_key, 60)))
             print("Presigned URL Response: %s" % (response))
             return({
                 'statusCode': '200',
@@ -274,7 +274,7 @@ def create_uploadurl(bucket, key, expiration):
         response = s3.generate_presigned_url('put_object',
                                               Params={'Bucket': bucket, 'Key': key},
                                               ExpiresIn=expiration,
-                                              HttpMethod='PUT')
+                                              HttpMethod='POST')
     except ClientError as e:
         logging.error(e)
         return None
