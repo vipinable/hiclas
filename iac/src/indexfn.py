@@ -80,7 +80,7 @@ def handler(event, context):
                 presigned_post = create_presigned_post(BUCKET_STORE, object_key, 60)
                 # Only encode the URL string, not the whole dictionary
                 if presigned_post and 'url' in presigned_post:
-                    presigned_post['url'] = urllib.parse.quote(presigned_post['url'])
+                    #presigned_post['url'] = urllib.parse.quote(presigned_post['url'])
                     response['urls'].append(presigned_post)
                 else:
                     response['urls'].append(None)
@@ -225,6 +225,10 @@ def create_presigned_post(bucket_name, object_name, expiration,
     # Generate a presigned S3 POST URL 
     client = boto3.client('sts')
     s3role = os.environ.get('S3_UPLOAD_ROLE')
+    if not s3role:
+        logging.error("S3_UPLOAD_ROLE environment variable is not set.")
+        return None
+    logging.info(f"Assuming role for presign: {s3role}")
     assumed_role_object  = client.assume_role(DurationSeconds=900,RoleArn=s3role,RoleSessionName='PreSign',)
     temp_credentials = assumed_role_object['Credentials']
     PreSign = boto3.session.Session(aws_access_key_id=temp_credentials['AccessKeyId'],
@@ -237,6 +241,7 @@ def create_presigned_post(bucket_name, object_name, expiration,
                                                      Fields=fields,
                                                      Conditions=conditions,
                                                      ExpiresIn=expiration)
+        logging.info(f"Presigned POST response: {response}")
     except ClientError as e:
         logging.error(e)
         return None
