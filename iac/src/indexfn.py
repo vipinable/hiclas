@@ -76,10 +76,14 @@ def handler(event, context):
             # Generate 10 presigned URL  to upload 10 images
             response = { 'uuid': temp_id, 'urls': [] }
             for index in range(1):
-                # Create a unique object key for each image
-                # This is just an example, you can modify the logic as needed
-                object_key = f'uploads/{temp_id}/{index}.jpg'  # Example object key, replace with actual logic
-                response['urls'].append(urllib.parse.quote(create_presigned_post(BUCKET_STORE, object_key, 60)))
+                object_key = f'uploads/{temp_id}/{index}.jpg'
+                presigned_post = create_presigned_post(BUCKET_STORE, object_key, 60)
+                # Only encode the URL string, not the whole dictionary
+                if presigned_post and 'url' in presigned_post:
+                    presigned_post['url'] = urllib.parse.quote(presigned_post['url'])
+                    response['urls'].append(presigned_post)
+                else:
+                    response['urls'].append(None)
             print("Presigned URL Response: %s" % (response))
             return({
                 'statusCode': '200',
