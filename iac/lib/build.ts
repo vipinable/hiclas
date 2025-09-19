@@ -265,6 +265,15 @@ export class LambdaWithLayer extends Stack {
       viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
     });
 
+    /**
+     * Behavior for POST calls
+     */
+    hiclasDist.addBehavior('/post', indexfnOrigin, {
+      allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+      cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+      viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+    });
+
 
     /**
      * Behavior for /listing/*
