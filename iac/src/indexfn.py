@@ -109,21 +109,15 @@ def handler(event, context):
             }
             })
     elif len(raw_path) == 1 and raw_path[0] == 'post':
-        if event['httpMethod'] == 'POST':
-            body = json.loads(event['body'])
-            response = write_data(body)
-            return({
-                'statusCode': '200',
-                'body': response,
-                'headers': {'Content-Type': 'application/json',
-                }
-                })
-        else:
-            return({
-                'statusCode': '400',
-                'body': { 'message': 'Bad Request' },
-                'headers': {'Content-Type': 'application/json'}
+        body = json.loads(event['body'])
+        response = write_data(body)
+        return({
+            'statusCode': '200',
+            'body': response,
+            'headers': {'Content-Type': 'application/json',
+            }
             })
+
     else:
         return({
             'statusCode': '200',
