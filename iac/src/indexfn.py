@@ -71,30 +71,39 @@ def handler(event, context):
                 'headers': {'Content-Type': 'application/json'}
             })
         elif raw_path[1] == 'presign':
-            # Generate a presigned URL for S3 object upload
-            temp_id = str(uuid.uuid4())
-            # Generate 10 presigned URL  to upload 10 images
-            response = { 'uuid': temp_id, 'urls': [] }
-            for index in range(1):
-                object_key = f'uploads/{temp_id}/{index}.jpg'
-                presigned_post = create_presigned_post(BUCKET_STORE, object_key, 60)
-                # Only encode the URL string, not the whole dictionary
-                if presigned_post and 'url' in presigned_post:
-                    #presigned_post['url'] = urllib.parse.quote(presigned_post['url'])
-                    response['urls'].append(presigned_post)
-                else:
-                    response['urls'].append(None)
-            print("Presigned URL Response: %s" % (response))
-            return({
-                'statusCode': '200',
-                'body': response,
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Methods': 'GET,POST,PUT,OPTIONS',
-                    'Access-Control-Allow-Headers': 'Content-Type,Authorization'
-                    }
-            })
+            if event['requestContext']['http']['method'] == 'POST' and event['requestContext']['http']['userAgent'] == 'Amazon CloudFront':
+                # Get the number of presigned URLs to generate from the request body
+                reqCount = json.loads(event['body'])['count']
+                # Generate a presigned URL for S3 object upload
+                item_id = str(uuid.uuid4())
+                # Generate required number of presigned URLs
+                response = { 'uuid': item_id, 'urls': [] }
+                for index in range(reqCount):
+                    object_key = f'uploads/{item_id}/{index}.jpg'
+                    presigned_post = create_presigned_post(BUCKET_STORE, object_key, 60)
+                    # Only encode the URL string, not the whole dictionary
+                    if presigned_post and 'url' in presigned_post:
+                        #presigned_post['url'] = urllib.parse.quote(presigned_post['url'])
+                        response['urls'].append(presigned_post)
+                    else:
+                        response['urls'].append(None)
+                print("Presigned URL Response: %s" % (response))
+                return({
+                    'statusCode': '200',
+                    'body': response,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*',
+                        'Access-Control-Allow-Methods': 'GET,POST,PUT,OPTIONS',
+                        'Access-Control-Allow-Headers': 'Content-Type,Authorization'
+                        }
+                })
+            else:
+                return({
+                    'statusCode': '400',
+                    'body': { 'message': 'Bad Request' },
+                    'headers': {'Content-Type': 'application/json'}
+                })
         else:
             return({
                 'statusCode': '400',
