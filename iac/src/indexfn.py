@@ -109,13 +109,21 @@ def handler(event, context):
             }
             })
     elif len(raw_path) == 1 and raw_path[0] == 'post':
-        body = json.loads(event['body'])
-        response = write_data(body)
-        return({
-            'statusCode': '200',
-            'body': response,
-            'headers': {'Content-Type': 'application/json',
-            }
+        if event['requestContext']['http']['method'] == 'POST' and event['requestContext']['http']['userAgent'] == 'Amazon CloudFront':
+            body = json.loads(event['body'])
+            origin = event['headers']['origin'] if 'origin' in event['headers'] else event['headers']['referer']
+            response = write_data(body,origin)
+            return({
+                'statusCode': '200',
+                'body': response,
+                'headers': {'Content-Type': 'application/json',
+                }
+                })
+        else:
+            return({
+                'statusCode': '400',
+                'body': { 'message': 'Bad Request' },
+                'headers': {'Content-Type': 'application/json'}
             })
 
     else:
@@ -377,14 +385,19 @@ def joblist(AccountID):
     return(response)
 
 # function to write data to dynamodb table
-def write_data(body):
+def write_data(body,origin):
     table = dynamodb.Table(TABLE_CLASSIFIEDS)
     timestamp_str = body['createdAt']  # Example: '2025-06-23T19:06:47.953Z'
     dt = datetime.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S.%fZ")
     dt = dt.replace(tzinfo=timezone.utc)
 
+    imgurls = []
+    for url in body['images']:
+        UiD = url.split('/')[-2]
+        imgurls.append(f'{origin}/uploads/{uuid}/{url.split('/')[-1]}')
+
     response = table.put_item(Item={
-        'id': str(body['id']),
+        'id': str(UiD),
         'createdAt': body['createdAt'],
         'ts': int(dt.timestamp() * 1000),  # Convert to milliseconds
         'status': 'active',
@@ -395,6 +408,7 @@ def write_data(body):
         'price': body['price'],
         'location': body['location'],
         'condition': body['condition'],
+        'images': imgurls
     })
     return(response)
 
