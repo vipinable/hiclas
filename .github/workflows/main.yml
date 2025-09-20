@@ -44,7 +44,9 @@ jobs:
             npm ci && \
             npm run build && \
             cp dist/index.html ../iac/src/templates/index.j2
+            cp ../iac/src/images/favicon.ico dist/favicon.ico
             mv dist ../
+            
 
       - name: install aws cdk package
         run: npm install -g aws-cdk && cdk --version
