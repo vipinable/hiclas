@@ -1,16 +1,18 @@
-import { Stack, StackProps, Duration, RemovalPolicy, CfnOutput, Token, Lazy, EncodingOptions, Fn } from 'aws-cdk-lib';
+import { 
+  Stack, StackProps, Duration, RemovalPolicy, CfnOutput, Token, Lazy, EncodingOptions, Fn,
+  aws_lambda as lambda,
+  aws_iam as iam,
+  aws_certificatemanager as acm,
+  aws_s3 as s3,
+  aws_s3_deployment as s3deploy,
+  aws_dynamodb as dynamodb,
+  aws_ssm as ssm,
+  aws_logs as logs,
+  aws_cloudfront as cloudfront,
+  aws_cloudfront_origins as origins, 
+  aws_apigateway as apigateway
+} from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-import * as lambda from 'aws-cdk-lib/aws-lambda';
-import * as iam from 'aws-cdk-lib/aws-iam';
-import * as acm from 'aws-cdk-lib/aws-certificatemanager';
-import * as s3 from 'aws-cdk-lib/aws-s3';
-import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
-import * as dynamodb from 'aws-cdk-lib/aws-dynamodb'
-import * as ssm from 'aws-cdk-lib/aws-ssm';
-import * as logs from 'aws-cdk-lib/aws-logs';
-import * as cloudfront from 'aws-cdk-lib/aws-cloudfront';
-import * as origins from 'aws-cdk-lib/aws-cloudfront-origins'; 
-import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import * as path from 'path';
 // import { EdgeFunction } from 'aws-cdk-lib/aws-cloudfront/lib/experimental';
 export class LambdaWithLayer extends Stack {
@@ -96,6 +98,7 @@ export class LambdaWithLayer extends Stack {
     const indexfn = new lambda.Function(this, 'indexfn', {
       description: 'hiclas index function',
       runtime: lambda.Runtime.PYTHON_3_12,
+      timeout: Duration.seconds(30),
       handler: 'indexfn.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, '../src')),
       layers: [layer0],
