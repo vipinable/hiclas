@@ -332,6 +332,17 @@ export class LambdaWithLayer extends Stack {
     });
 
     /**
+     * Deploy images files to the S3 bucket.
+     */
+    new s3deploy.BucketDeployment(this, 'DeployImages', {
+      sources: [s3deploy.Source.asset('../iac/src/images/')],
+      destinationBucket: hiclastore,
+      destinationKeyPrefix: 'images/',
+      prune: false, // Set to true to remove files not in the source
+      retainOnDelete: false, // Set to true to retain files on stack deletion
+    });
+
+    /**
      * Create DynamoDB Table data store
      */ 
     const classifiedsTable = new dynamodb.Table(this, 'ClassifiedsTable', {

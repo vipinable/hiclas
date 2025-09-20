@@ -394,7 +394,7 @@ def write_data(body,origin):
     imgurls = []
     for url in body['images']:
         UiD = url.split('/')[-2]
-        imgurls.append(f'{origin}/uploads/{uuid}/{url.split('/')[-1]}')
+        imgurls.append(f'{origin}/uploads/{UiD}/{url.split('/')[-1]}')
 
     response = table.put_item(Item={
         'id': str(UiD),
