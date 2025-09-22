@@ -50,9 +50,36 @@ def handler(event, context):
             response = table.query(
                 KeyConditionExpression=boto3.dynamodb.conditions.Key('id').eq(listing_id)
             )
+            if 'Items' not in response or len(response['Items']) == 0:
+                return({
+                    'statusCode': '404',
+                    'body': { 'message': 'Not Found' },
+                    'headers': {'Content-Type': 'application/json'}
+                })
+                
+            item = response['Items'][0]
+            imgurls = []
+            for url in item['images']:
+                imgurls.append(url['S'])
+
+            # Form result from the query
+            result = {
+                'images': imgurls,
+                'id': item['id'],
+                'title': item['title'],
+                'description': item['description'],
+                'price': item['price'],
+                'createdAt': item['createdAt'],
+                'updatedAt': item['updatedAt'],
+                'category': item['category'],
+                'condition': item['condition'],
+                'location': item['location'],
+                'status': item['status']
+            }
+
             return({
                 'statusCode': '200',
-                'body': response['Items'][0],
+                'body': result,
                 'headers': {'Content-Type': 'application/json'}
             })
         else:
