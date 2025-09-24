@@ -60,7 +60,7 @@ def handler(event, context):
             item = response['Items'][0]
             imgurls = []
             for url in item['images']:
-                imgurls.append(url['S'])
+                imgurls.append(url)
 
             # Form result from the query
             result = {
