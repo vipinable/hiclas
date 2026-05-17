@@ -10,11 +10,12 @@ import {
   aws_logs as logs,
   aws_cloudfront as cloudfront,
   aws_cloudfront_origins as origins, 
-  aws_apigateway as apigateway
+  aws_apigateway as apigateway,
+  aws_cognito as cognito,
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as path from 'path';
-// import { EdgeFunction } from 'aws-cdk-lib/aws-cloudfront/lib/experimental';
+
 export class LambdaWithLayer extends Stack {
   public fnUrl: string
   public apiUrl: string
@@ -28,10 +29,80 @@ export class LambdaWithLayer extends Stack {
     // Create a loggroup for the resources in this stack
     const hiclasLogGroup = new logs.LogGroup(this, 'hiclasLogGroup', {
       logGroupName: `/aws/${id}/logs`,
-      removalPolicy: RemovalPolicy.DESTROY, // Change to RETAIN for production
-      retention: logs.RetentionDays.ONE_WEEK, // Change to your desired retention period
+      removalPolicy: RemovalPolicy.DESTROY,
+      retention: logs.RetentionDays.ONE_WEEK,
     });
 
+    // -------------------------------------------------------------------------
+    // Cognito User Pool — restricts access to dev.highlyclassifieds.com
+    // -------------------------------------------------------------------------
+    const userPool = new cognito.UserPool(this, 'HiclasUserPool', {
+      userPoolName: `${id}-users`,
+      selfSignUpEnabled: false,       // only admins can create accounts
+      signInAliases: { email: true },
+      passwordPolicy: {
+        minLength: 8,
+        requireUppercase: true,
+        requireLowercase: true,
+        requireDigits: true,
+        requireSymbols: false,
+      },
+      accountRecovery: cognito.AccountRecovery.EMAIL_ONLY,
+      removalPolicy: RemovalPolicy.DESTROY,
+    });
+
+    const userPoolClient = new cognito.UserPoolClient(this, 'HiclasUserPoolClient', {
+      userPool,
+      generateSecret: false,
+      oAuth: {
+        flows: { authorizationCodeGrant: true },
+        scopes: [
+          cognito.OAuthScope.OPENID,
+          cognito.OAuthScope.EMAIL,
+          cognito.OAuthScope.PROFILE,
+        ],
+        callbackUrls: [
+          'https://dev.highlyclassifieds.com/auth/callback',
+          'https://fn.theworkingmethods.com/auth/callback',
+        ],
+        logoutUrls: [
+          'https://dev.highlyclassifieds.com/',
+          'https://fn.theworkingmethods.com/',
+        ],
+      },
+      supportedIdentityProviders: [cognito.UserPoolClientIdentityProvider.COGNITO],
+    });
+
+    const userPoolDomain = new cognito.UserPoolDomain(this, 'HiclasUserPoolDomain', {
+      userPool,
+      cognitoDomain: { domainPrefix: 'hiclas-dev-auth' },
+    });
+
+    // -------------------------------------------------------------------------
+    // Lambda@Edge — auth gate (origin-request, Node.js 20)
+    // Runs on every cache miss; verifies Cognito id_token cookie.
+    // origin-request supports environment variables (viewer-request does not).
+    // -------------------------------------------------------------------------
+    const edgeFunction = new cloudfront.experimental.EdgeFunction(this, 'EdgeFunction', {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'authfn.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../src')),
+      memorySize: 128,
+      timeout: Duration.seconds(5),
+      description: 'Cognito auth gate for hiclas CloudFront distribution',
+      environment: {
+        COGNITO_USER_POOL_ID: userPool.userPoolId,
+        COGNITO_CLIENT_ID:    userPoolClient.userPoolClientId,
+        COGNITO_DOMAIN:       `${userPoolDomain.domainName}.auth.${this.region}.amazoncognito.com`,
+        APP_DOMAIN:           'dev.highlyclassifieds.com',
+        COGNITO_REGION:       this.region,
+      },
+    });
+
+    const authEdge = [{
+      functionVersion: edgeFunction.currentVersion,
+      eventType: cloudfront.LambdaEdgeEventType.ORIGIN_REQUEST,
+    }];
 
     // Lambda layer creation definition
     const layer0 = new lambda.LayerVersion(this, 'LayerVersion', {
@@ -133,11 +204,11 @@ export class LambdaWithLayer extends Stack {
       );
 
     const indexfnUrl = indexfn.addFunctionUrl({
-      authType: lambda.FunctionUrlAuthType.NONE, // No authentication for the function URL
+      authType: lambda.FunctionUrlAuthType.NONE,
       cors: {
-        allowedOrigins: ['*'], // Allow all origins, adjust as needed
-        allowedMethods: [lambda.HttpMethod.GET, lambda.HttpMethod.POST], // Allow GET and POST methods
-        allowedHeaders: ['*'], // Allow all headers, adjust as needed
+        allowedOrigins: ['*'],
+        allowedMethods: [lambda.HttpMethod.GET, lambda.HttpMethod.POST],
+        allowedHeaders: ['*'],
       }
     })
 
@@ -191,46 +262,6 @@ export class LambdaWithLayer extends Stack {
 
     const domainCert = acm.Certificate.fromCertificateArn(this, 'domainCert', certificateArn);
 
-    // Create a Cloudfront edge@Lambda function
-    const edgeFunction = new cloudfront.experimental.EdgeFunction(this, 'EdgeFunction', {
-      runtime: lambda.Runtime.PYTHON_3_12,
-      handler: 'edgefn.handler',
-      code: lambda.Code.fromAsset(path.join(__dirname, '../src')),
-      memorySize: 128,
-      logGroup: hiclasLogGroup,
-      description: 'Edge function for hiclas CloudFront distribution',
-    });
-
-    edgeFunction.addToRolePolicy(new iam.PolicyStatement({
-      effect: iam.Effect.ALLOW,
-      resources: [
-        s3Bucket.arnForObjects("*"),
-        s3Bucket.bucketArn
-      ],
-      actions: [
-        's3:PutObject',
-        's3:GetObject',
-        's3:ListBucket'
-      ],
-    }));
-
-    // Add permission to invoke the edge function from CloudFront
-    edgeFunction.addPermission('AllowCloudFrontInvoke', {
-      principal: new iam.ServicePrincipal('edgelambda.amazonaws.com'),
-      action: 'lambda:InvokeFunction',
-      sourceArn: `arn:aws:cloudfront::${process.env.CDK_DEFAULT_ACCOUNT}:distribution/*`, // Replace with your CloudFront distribution ARN
-      sourceAccount: process.env.CDK_DEFAULT_ACCOUNT,
-    });
-
-    // // Define a custom OAC
-    // const oac = new cloudfront.FunctionUrlOriginAccessControl(this, 'MyOAC', {
-    //   signing: cloudfront.Signing.SIGV4_ALWAYS // No signing required for Function URL
-    // });
-
-    // const indexfnOrigin = origins.FunctionUrlOrigin.withOriginAccessControl(indexfnUrl, {
-    //   originAccessControl: oac,
-    // })
-
     // Create an S3 bucket origin for the CloudFront distribution
     const hiclastoreOrigin = origins.S3BucketOrigin.withOriginAccessControl(hiclastore, {
       originAccessLevels: [cloudfront.AccessLevel.READ, cloudfront.AccessLevel.LIST],
@@ -247,12 +278,12 @@ export class LambdaWithLayer extends Stack {
     const hiclasDist = new cloudfront.Distribution(this, 'hiclasDist', {
       comment: 'Distribution for hiclas deployment',
       defaultBehavior: {
-        // origin: indexfnOrigin,
         origin: hiclastoreOrigin,
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
         originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+        edgeLambdas: authEdge,
       },
       domainNames: ['fn.theworkingmethods.com','dev.highlyclassifieds.com'],
       certificate: hiclasCert,
@@ -260,35 +291,37 @@ export class LambdaWithLayer extends Stack {
     });
 
     /**
-     * Behavior for API calls
+     * Behavior for API calls — auth enforced via edge function
      */
     hiclasDist.addBehavior('/api/*', indexfnOrigin, {
       allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
       cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
       viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      edgeLambdas: authEdge,
     });
 
     /**
-     * Behavior for POST calls
+     * Behavior for POST calls — auth enforced via edge function
      */
     hiclasDist.addBehavior('/post', indexfnOrigin, {
       allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
       cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
       viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      edgeLambdas: authEdge,
     });
 
-
     /**
-     * Behavior for /listing/*
+     * Behavior for /listing/* — auth enforced via edge function
      */
     hiclasDist.addBehavior('/listing/*', indexfnOrigin, {
       allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
       cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
       viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      edgeLambdas: authEdge,
     });
 
     /**
-     * Behavior for CSS files
+     * Behavior for CSS files — static, no auth needed
      */
     hiclasDist.addBehavior('/css/*', hiclastoreOrigin, {
       cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
@@ -296,7 +329,7 @@ export class LambdaWithLayer extends Stack {
     });
 
     /**
-     * Behavior for Assets files
+     * Behavior for Assets files — static, no auth needed
      */
     hiclasDist.addBehavior('/assets/*', hiclastoreOrigin, {
       cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
@@ -304,7 +337,7 @@ export class LambdaWithLayer extends Stack {
     });
 
     /**
-     * Behavior for images
+     * Behavior for images — static, no auth needed
      */
     hiclasDist.addBehavior('/images/*', hiclastoreOrigin, {
       cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
@@ -313,7 +346,7 @@ export class LambdaWithLayer extends Stack {
     });
 
     /**
-     * Behavior for user-uploaded listing images stored at uploads/{uuid}/{n}.jpg
+     * Behavior for user-uploaded listing images — static, no auth needed
      */
     hiclasDist.addBehavior('/uploads/*', hiclastoreOrigin, {
       cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
@@ -328,8 +361,8 @@ export class LambdaWithLayer extends Stack {
       sources: [s3deploy.Source.asset('../iac/src/css')], 
       destinationBucket: hiclastore,
       destinationKeyPrefix: 'css/',
-      prune: false, // Set to true to remove files not in the source
-      retainOnDelete: false, // Set to true to retain files on stack deletion
+      prune: false,
+      retainOnDelete: false,
     });
 
     /**
@@ -338,9 +371,8 @@ export class LambdaWithLayer extends Stack {
     new s3deploy.BucketDeployment(this, 'DeployAssets', {
       sources: [s3deploy.Source.asset('../dist/')],
       destinationBucket: hiclastore,
-      // destinationKeyPrefix: 'assets/',
-      prune: false, // Set to true to remove files not in the source
-      retainOnDelete: false, // Set to true to retain files on stack deletion
+      prune: false,
+      retainOnDelete: false,
     });
 
     /**
@@ -350,8 +382,8 @@ export class LambdaWithLayer extends Stack {
       sources: [s3deploy.Source.asset('../iac/src/images/')],
       destinationBucket: hiclastore,
       destinationKeyPrefix: 'images/',
-      prune: false, // Set to true to remove files not in the source
-      retainOnDelete: false, // Set to true to retain files on stack deletion
+      prune: false,
+      retainOnDelete: false,
     });
 
     /**
@@ -360,8 +392,8 @@ export class LambdaWithLayer extends Stack {
     const classifiedsTable = new dynamodb.Table(this, 'ClassifiedsTable', {
       partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING }, 
       sortKey: { name: 'category', type: dynamodb.AttributeType.STRING }, 
-      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST, // On-demand pricing
-      removalPolicy: RemovalPolicy.DESTROY, // Change to RETAIN for production
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      removalPolicy: RemovalPolicy.DESTROY,
     });
 
     /**
@@ -406,7 +438,7 @@ export class LambdaWithLayer extends Stack {
         metricsEnabled: true,
       },
       description: 'Hiclas API Gateway',
-      cloudWatchRole: true, // Enable CloudWatch logging  
+      cloudWatchRole: true,
     });
 
     //Integrate the apifn lambda with the backend api gateway
@@ -419,29 +451,29 @@ export class LambdaWithLayer extends Stack {
         {
           statusCode: '200',
           responseModels: {
-            'application/json': apigateway.Model.EMPTY_MODEL, // Use an empty model for simplicity
+            'application/json': apigateway.Model.EMPTY_MODEL,
           },
         },
         {
           statusCode: '400',
           responseModels: {
-            'application/json': apigateway.Model.EMPTY_MODEL, // Use an empty model for simplicity
+            'application/json': apigateway.Model.EMPTY_MODEL,
           },
         },
         {
           statusCode: '500',
           responseModels: {
-            'application/json': apigateway.Model.EMPTY_MODEL, // Use an empty model for simplicity
+            'application/json': apigateway.Model.EMPTY_MODEL,
           },
         },
       ],
       requestParameters: {
-        'method.request.header.Content-Type': true, // Allow Content-Type header
-        'method.request.header.Accept': true, // Allow Accept header
-        'method.request.header.Authorization': true, // Allow Authorization header
+        'method.request.header.Content-Type': true,
+        'method.request.header.Accept': true,
+        'method.request.header.Authorization': true,
       },
       requestModels: {
-        'application/json': apigateway.Model.EMPTY_MODEL, // Use an empty model for simplicity
+        'application/json': apigateway.Model.EMPTY_MODEL,
       },
     });
 
@@ -449,23 +481,23 @@ export class LambdaWithLayer extends Stack {
     const proxyResource = rootResource.addResource('{proxy+}');
     proxyResource.addMethod('ANY', hiclasapiIntegration);
 
+    // -------------------------------------------------------------------------
+    // Outputs
+    // -------------------------------------------------------------------------
+    new CfnOutput(this, 'CognitoUserPoolId', {
+      value: userPool.userPoolId,
+      description: 'Cognito User Pool ID — use this to create users via AWS CLI or console',
+    });
 
-    // //Add beheavior for api gateway and forward requests to apigateway
-    // // hiclasDist.addBehavior('/api/*', new origins.HttpOrigin(hiclasapiIntegration.url.split('/')[2]), {
-    // hiclasDist.addBehavior('/api/*', new origins.RestApiOrigin(hiclasapi), {
-    //   viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
-    //   allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
-    //   cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
-    //   originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-    // });
+    new CfnOutput(this, 'CognitoClientId', {
+      value: userPoolClient.userPoolClientId,
+      description: 'Cognito App Client ID',
+    });
 
-    // //export the apiUrl as a CfnOutput
-    // new CfnOutput(this, 'ApiUrl', {
-    //   value: hiclasapi.url.split('/')[2], // Extract the domain part from the full URL
-    //   description: 'The URL of the Hiclas API Gateway',
-    //   exportName: 'HiclasApiUrl', // Export name for cross-stack references
-    // });
-
+    new CfnOutput(this, 'CognitoHostedUiDomain', {
+      value: `https://${userPoolDomain.domainName}.auth.${this.region}.amazoncognito.com`,
+      description: 'Cognito Hosted UI base URL',
+    });
 
   //EndStack
   }}
