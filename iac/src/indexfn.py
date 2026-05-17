@@ -29,7 +29,7 @@ def handler(event, context):
     logger.info("An event received %s" % (event))
 
     # Check if the request is coming from an allowed IP address if not deny access
-    allowed_ips = ['143.178.81.116','147.161.173.114','170.85.78.100']
+    allowed_ips = ['143.178.81.116','147.161.173.114','170.85.78.100','15.158.40.179']
     if 'via' not in event['headers'] or 'cloudfront.net' not in event['headers']['via'] or event['headers']['x-forwarded-for'] not in allowed_ips:
         ''' Deny access if using lambda url directly'''
         return({
@@ -474,7 +474,6 @@ def get_index(bucket):
         Key='index.html',
     )
     return(response['Body'].read())
-
 
 
 
