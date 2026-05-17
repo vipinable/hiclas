@@ -313,6 +313,15 @@ export class LambdaWithLayer extends Stack {
     });
 
     /**
+     * Behavior for user-uploaded listing images stored at uploads/{uuid}/{n}.jpg
+     */
+    hiclasDist.addBehavior('/uploads/*', hiclastoreOrigin, {
+      cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+      viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      compress: true,
+    });
+
+    /**
      * Deploy CSS files to the S3 bucket.
      */
     new s3deploy.BucketDeployment(this, 'DeployCSS', {
