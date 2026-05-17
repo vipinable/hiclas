@@ -147,8 +147,11 @@ def handler(event, context):
     elif len(raw_path) == 1 and raw_path[0] == 'post':
         if event['requestContext']['http']['method'] == 'POST' and event['requestContext']['http']['userAgent'] == 'Amazon CloudFront':
             body = json.loads(event['body'])
-            origin = event['headers']['origin'] if 'origin' in event['headers'] else event['headers']['referer']
-            response = write_data(body,origin)
+            # referer includes a path (e.g. /post), so always parse to scheme+host only
+            raw_origin = event['headers'].get('origin') or event['headers'].get('referer', '')
+            parsed = urllib.parse.urlparse(raw_origin)
+            origin = f'{parsed.scheme}://{parsed.netloc}'
+            response = write_data(body, origin)
             return({
                 'statusCode': '200',
                 'body': response,
@@ -421,21 +424,32 @@ def joblist(AccountID):
     return(response)
 
 # function to write data to dynamodb table
-def write_data(body,origin):
+def write_data(body, origin):
     table = dynamodb.Table(TABLE_CLASSIFIEDS)
-    timestamp_str = body['createdAt']  # Example: '2025-06-23T19:06:47.953Z'
+    timestamp_str = body['createdAt']
     dt = datetime.strptime(timestamp_str, "%Y-%m-%dT%H:%M:%S.%fZ")
     dt = dt.replace(tzinfo=timezone.utc)
 
     imgurls = []
+    item_id = None
     for url in body['images']:
-        UiD = url.split('/')[-2]
-        imgurls.append(f'{origin}/uploads/{UiD}/{url.split('/')[-1]}')
+        # Strip query string — presigned S3 URLs contain AWSAccessKeyId, Signature, etc.
+        clean_path = url.split('?')[0].rstrip('/')
+        parts = clean_path.split('/')
+        uid = parts[-2]
+        filename = parts[-1]
+        if item_id is None:
+            item_id = uid
+        imgurls.append(f'{origin}/uploads/{uid}/{filename}')
+
+    # Fall back to a fresh UUID if no images were provided
+    if item_id is None:
+        item_id = str(uuid.uuid4())
 
     response = table.put_item(Item={
-        'id': str(UiD),
+        'id': item_id,
         'createdAt': body['createdAt'],
-        'ts': int(dt.timestamp() * 1000),  # Convert to milliseconds
+        'ts': int(dt.timestamp() * 1000),
         'status': 'active',
         'updatedAt': body['createdAt'],
         'title': body['title'],
@@ -446,7 +460,7 @@ def write_data(body,origin):
         'condition': body['condition'],
         'images': imgurls
     })
-    return(response)
+    return response
 
 # function to write data to dynamodb table
 def query_data(TABLE_NAME):
