@@ -41,7 +41,13 @@ def handler(event, context):
          method=method, path=raw_path, client_ip=client_ip, via=via)
 
     # IP allowlist — must arrive via CloudFront and from a known IP
-    allowed_ips = ['143.178.81.116', '147.161.173.114', '170.85.78.100', '77.165.18.64']
+    allowed_ips = [
+        '143.178.81.116',
+        '147.161.173.114',
+        '170.85.78.100',
+        '77.165.18.64',
+        '2a02:a443:7a98:0:5cc9:96f2:7c6b:77f8',
+    ]
     via_ok = 'via' in headers and 'cloudfront.net' in via
     ip_ok = client_ip in allowed_ips
 
