@@ -16,7 +16,7 @@ import * as path from 'path';
  * Stack layout:
  *   CloudFront ──/──────▶ S3 (static site, private via OAC)
  *              └─/api/*─▶ Lambda Function URL (Python API)
- *   Lambda ◀────────────▶ DynamoDB (listings)
+ *   Lambda ◀──────────▶ DynamoDB (listings)
  */
 export class ClassifiedsStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {

@@ -3,26 +3,6 @@
 A clean, self-contained classifieds application built with the same tech
 stack as `hiclas`: **AWS CDK + CloudFront + Lambda + S3 + DynamoDB**.
 
-## Architecture
-
-```
-            ┌──────────────┐
-  browser ─▶│  CloudFront  │
-            └──────┬───────┘
-            /      │      \
-       (default)   │    (/api/*)
-            ▼              ▼
-      ┌─────────┐    ┌───────────────┐
-      │   S3    │    │ Lambda (FnURL)│
-      │ static  │    │  Python API   │
-      └─────────┘    └───────┬───────┘
-                             ▼
-                       ┌───────────┐
-                       │ DynamoDB  │
-                       │ listings  │
-                       └───────────┘
-```
-
 ## API
 
 | Method | Path                 | Description              |
@@ -45,6 +25,5 @@ npm install
 npx cdk deploy
 ```
 
-The stack name is `classifieds-dev` (driven by the `ApplicationName` and
-`Environment` env vars), kept separate from the existing `hiclas-dev`
-stack so the two can coexist in the same account.
+The stack name is `classifieds-dev`, kept separate from the existing
+`hiclas-dev` stack so the two can coexist in the same account.
