@@ -49,10 +49,23 @@ def _resp(status, body):
 def _ext_for(content_type):
     return {
         'image/jpeg': 'jpg',
-        'image/png': 'png',
+        'image/png':  'png',
         'image/webp': 'webp',
-        'image/gif': 'gif',
+        'image/gif':  'gif',
     }.get(content_type, 'jpg')
+
+
+def _cognito_trigger_message(err_msg: str) -> str:
+    """Extract the real inner error from a Cognito trigger-failure message.
+
+    Cognito wraps Lambda trigger errors as:
+      'CreateAuthChallenge failed with error <actual message>'
+    This unwraps that so users see the actionable root cause.
+    """
+    marker = 'failed with error '
+    if marker in err_msg:
+        return err_msg.split(marker, 1)[1].strip()
+    return err_msg
 
 
 def _require_auth(event):
@@ -77,8 +90,8 @@ def _require_auth(event):
 
 def handler(event, context):
     method = event.get('requestContext', {}).get('http', {}).get('method', 'GET')
-    path = event.get('rawPath', '/')
-    parts = [p for p in path.strip('/').split('/') if p]
+    path   = event.get('rawPath', '/')
+    parts  = [p for p in path.strip('/').split('/') if p]
 
     if method == 'OPTIONS':
         return _resp(200, {})
@@ -106,11 +119,11 @@ def handler(event, context):
                     Username=email,
                     MessageAction='SUPPRESS',
                     UserAttributes=[
-                        {'Name': 'email', 'Value': email},
+                        {'Name': 'email',          'Value': email},
                         {'Name': 'email_verified', 'Value': 'true'},
                     ],
                 )
-                # Set a random permanent password to move the user to CONFIRMED status
+                # Set a random permanent password to move the user to CONFIRMED
                 cognito_idp.admin_set_user_password(
                     UserPoolId=USER_POOL_ID,
                     Username=email,
@@ -128,14 +141,20 @@ def handler(event, context):
                 AuthParameters={'USERNAME': email},
             )
         except ClientError as e:
-            return _resp(500, {'message': 'Could not initiate auth: ' + e.response['Error']['Message']})
+            err_code = e.response['Error']['Code']
+            err_msg  = e.response['Error']['Message']
+            # Unwrap the inner Lambda/SES error from Cognito's wrapper message
+            inner = _cognito_trigger_message(err_msg)
+            if err_code == 'UserLambdaValidationException':
+                return _resp(500, {'message': f'OTP could not be sent: {inner}'})
+            return _resp(500, {'message': f'Auth error: {inner}'})
 
         return _resp(200, {
-            'session': response['Session'],
+            'session':       response['Session'],
             'challengeName': response.get('ChallengeName', 'CUSTOM_CHALLENGE'),
         })
 
-    # ── /api/auth/verify ──────────────────────────────────────────────────────
+    # ── /api/auth/verify ───────────────────────────────────────────────────────
     # Body: { "email": "...", "session": "...", "code": "123456" }
     # Returns: { "accessToken": "...", "idToken": "...", "expiresIn": 3600 }
     if parts == ['api', 'auth', 'verify'] and method == 'POST':
@@ -144,9 +163,9 @@ def handler(event, context):
         except ValueError:
             return _resp(400, {'message': 'Invalid JSON'})
 
-        email = data.get('email', '').strip().lower()
+        email   = data.get('email',   '').strip().lower()
         session = data.get('session', '')
-        code = data.get('code', '').strip()
+        code    = data.get('code',    '').strip()
 
         if not email or not session or not code:
             return _resp(400, {'message': 'email, session, and code are required'})
@@ -159,7 +178,7 @@ def handler(event, context):
                 Session=session,
                 ChallengeResponses={
                     'USERNAME': email,
-                    'ANSWER': code,
+                    'ANSWER':   code,
                 },
             )
         except ClientError as e:
@@ -174,12 +193,11 @@ def handler(event, context):
 
         return _resp(200, {
             'accessToken': auth_result['AccessToken'],
-            'idToken': auth_result.get('IdToken', ''),
-            'expiresIn': auth_result.get('ExpiresIn', 3600),
+            'idToken':     auth_result.get('IdToken', ''),
+            'expiresIn':   auth_result.get('ExpiresIn', 3600),
         })
 
-    # ── /api/presign ──────────────────────────────────────────────────────────
-    # Protected. Body: { "files": [{ "contentType": "image/jpeg" }, ...] }
+    # ── /api/presign ──────────────────────────────────────────────────────────────
     if parts == ['api', 'presign'] and method == 'POST':
         email, err = _require_auth(event)
         if err:
@@ -216,15 +234,15 @@ def handler(event, context):
                 ExpiresIn=300,
             )
             uploads.append({
-                'url': presigned['url'],
-                'fields': presigned['fields'],
-                'key': key,
+                'url':       presigned['url'],
+                'fields':    presigned['fields'],
+                'key':       key,
                 'imagePath': f'/{key}',
             })
 
         return _resp(200, {'listingId': listing_id, 'uploads': uploads})
 
-    # ── /api/listings ─────────────────────────────────────────────────────────
+    # ── /api/listings ───────────────────────────────────────────────────────────────
     if parts == ['api', 'listings']:
         if method == 'GET':
             items = table.scan().get('Items', [])
@@ -249,21 +267,21 @@ def handler(event, context):
                 images = [data['imageUrl']]
 
             item = {
-                'id': data.get('id') or str(uuid.uuid4()),
-                'title': data.get('title', 'Untitled'),
+                'id':          data.get('id') or str(uuid.uuid4()),
+                'title':       data.get('title', 'Untitled'),
                 'description': data.get('description', ''),
-                'price': str(data.get('price', '')),
-                'category': data.get('category', 'general'),
-                'location': data.get('location', ''),
-                'images': images,
-                'imageUrl': images[0] if images else data.get('imageUrl', ''),
-                'postedBy': email,
-                'createdAt': int(time.time() * 1000),
+                'price':       str(data.get('price', '')),
+                'category':    data.get('category', 'general'),
+                'location':    data.get('location', ''),
+                'images':      images,
+                'imageUrl':    images[0] if images else data.get('imageUrl', ''),
+                'postedBy':    email,
+                'createdAt':   int(time.time() * 1000),
             }
             table.put_item(Item=item)
             return _resp(201, item)
 
-    # ── /api/listings/{id} ────────────────────────────────────────────────────
+    # ── /api/listings/{id} ───────────────────────────────────────────────────────────
     if len(parts) == 3 and parts[:2] == ['api', 'listings'] and method == 'GET':
         result = table.get_item(Key={'id': parts[2]})
         item = result.get('Item')
