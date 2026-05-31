@@ -1,0 +1,130 @@
+name: Setup SES Sender Email
+
+# One-shot manual workflow: verifies the OTP sender address in SES and
+# re-deploys the dev stack so CreateAuthFn picks up the new OTP_SENDER_EMAIL.
+#
+# Before running:
+#   1. Set the SES_FROM_EMAIL repository variable (Settings > Variables > Actions)
+#      e.g.  noreply@yourdomain.com
+#   2. Run this workflow from Actions > Setup SES Sender Email > Run workflow
+#   3. Check the inbox of that address and click the AWS verification link
+#   4. In SES sandbox mode every *recipient* email must also be verified;
+#      request SES production access to lift that restriction.
+
+on:
+  workflow_dispatch:
+    inputs:
+      ses_email:
+        description: |
+          Sender email to verify (overrides the SES_FROM_EMAIL repo variable).
+          Leave blank to use the variable.
+        required: false
+        type: string
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.A_KEY }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.S_KEY }}
+  AWS_DEFAULT_REGION: "us-east-1"
+
+jobs:
+  setup-ses:
+    name: Verify SES identity & redeploy
+    runs-on: ubuntu-latest
+    environment: all
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # ------------------------------------------------------------------
+      # 1. Resolve the sender email (input beats variable)
+      # ------------------------------------------------------------------
+      - name: Resolve sender email
+        id: email
+        run: |
+          EMAIL="${{ github.event.inputs.ses_email }}"
+          if [ -z "$EMAIL" ]; then
+            EMAIL="${{ vars.SES_FROM_EMAIL }}"
+          fi
+          if [ -z "$EMAIL" ]; then
+            echo "::error::No email provided."
+            echo "::error::Set the SES_FROM_EMAIL repository variable under Settings > Variables > Actions,"
+            echo "::error::or pass the email as the ses_email input when triggering the workflow."
+            exit 1
+          fi
+          echo "email=$EMAIL" >> "$GITHUB_OUTPUT"
+          echo "Sender email: $EMAIL"
+
+      # ------------------------------------------------------------------
+      # 2. Confirm AWS credentials are working
+      # ------------------------------------------------------------------
+      - name: Verify AWS credentials
+        run: aws sts get-caller-identity --query Account --output text
+
+      # ------------------------------------------------------------------
+      # 3. Submit SES email verification request
+      # ------------------------------------------------------------------
+      - name: Request SES identity verification
+        id: ses
+        run: |
+          EMAIL="${{ steps.email.outputs.email }}"
+
+          # Check if already verified to avoid re-sending the link
+          STATUS=$(aws ses get-identity-verification-attributes \
+            --identities "$EMAIL" \
+            --query "VerificationAttributes.\"${EMAIL}\".VerificationStatus" \
+            --output text 2>/dev/null || echo "NotFound")
+
+          echo "Current SES verification status: $STATUS"
+          echo "status=$STATUS" >> "$GITHUB_OUTPUT"
+
+          if [ "$STATUS" = "Success" ]; then
+            echo "Email is already verified in SES — skipping verification request."
+          else
+            aws ses verify-email-identity --email-address "$EMAIL"
+            echo "Verification email sent to $EMAIL"
+            echo "Open that inbox and click the AWS verification link before sending OTPs."
+          fi
+
+      # ------------------------------------------------------------------
+      # 4. Re-deploy the dev CDK stack with the new sender email
+      #    This updates OTP_SENDER_EMAIL on the CreateAuthFn Lambda.
+      # ------------------------------------------------------------------
+      - name: Install aws-cdk
+        run: npm install -g aws-cdk && cdk --version
+
+      - name: Deploy stack with updated sender email
+        working-directory: app
+        run: |
+          npm install
+          cdk synth -c sesFromEmail="$SES_EMAIL"
+          cdk deploy --require-approval never -c sesFromEmail="$SES_EMAIL"
+        env:
+          SES_EMAIL: ${{ steps.email.outputs.email }}
+
+      # ------------------------------------------------------------------
+      # 5. Print a summary
+      # ------------------------------------------------------------------
+      - name: Summary
+        run: |
+          EMAIL="${{ steps.email.outputs.email }}"
+          STATUS="${{ steps.ses.outputs.status }}"
+
+          echo "## SES Setup Summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Sender email | \`$EMAIL\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| SES status before run | $STATUS |" >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$STATUS" = "Success" ]; then
+            echo "| Action taken | Already verified — no verification email sent |" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "| Action taken | Verification email sent — check inbox and click the link |" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          echo "| Lambda env var | \`OTP_SENDER_EMAIL\` updated on \`CreateAuthFn\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "> **SES sandbox mode:** every *recipient* address must also be verified." >> "$GITHUB_STEP_SUMMARY"
+          echo "> Request SES production access to lift this restriction." >> "$GITHUB_STEP_SUMMARY"
