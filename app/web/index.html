@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Classifieds — dev</title>
+  <style>
+    :root { --bg:#0f172a; --card:#1e293b; --accent:#38bdf8; --text:#e2e8f0; --muted:#94a3b8; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui, sans-serif; background:var(--bg); color:var(--text); }
+    header { padding:1.25rem 1.5rem; border-bottom:1px solid #334155; display:flex; align-items:center; gap:.6rem; }
+    header h1 { font-size:1.25rem; margin:0; }
+    header span { color:var(--muted); font-size:.85rem; }
+    main { max-width:960px; margin:0 auto; padding:1.5rem; }
+    .layout { display:grid; grid-template-columns: 320px 1fr; gap:1.5rem; }
+    @media (max-width:760px){ .layout{ grid-template-columns:1fr; } }
+    form, .grid { background:transparent; }
+    .card { background:var(--card); border:1px solid #334155; border-radius:12px; padding:1rem; }
+    label { display:block; font-size:.8rem; color:var(--muted); margin:.6rem 0 .25rem; }
+    input, textarea, select { width:100%; padding:.55rem .65rem; border-radius:8px; border:1px solid #475569; background:#0b1220; color:var(--text); font-size:.9rem; }
+    button { margin-top:1rem; width:100%; padding:.65rem; border:0; border-radius:8px; background:var(--accent); color:#06283d; font-weight:600; cursor:pointer; }
+    button:hover { opacity:.9; }
+    h2 { font-size:1rem; margin:0 0 .75rem; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:1rem; }
+    .listing { background:var(--card); border:1px solid #334155; border-radius:12px; overflow:hidden; }
+    .listing img { width:100%; height:140px; object-fit:cover; background:#0b1220; }
+    .listing .body { padding:.75rem; }
+    .listing h3 { margin:0 0 .25rem; font-size:.95rem; }
+    .listing .price { color:var(--accent); font-weight:600; font-size:.9rem; }
+    .listing p { color:var(--muted); font-size:.8rem; margin:.4rem 0 0; }
+    .badge { display:inline-block; font-size:.7rem; color:var(--muted); border:1px solid #475569; border-radius:999px; padding:.1rem .5rem; margin-top:.5rem; }
+    .empty { color:var(--muted); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Classifieds</h1>
+    <span>dev environment</span>
+  </header>
+  <main>
+    <div class="layout">
+      <form id="new-listing" class="card">
+        <h2>Post a listing</h2>
+        <label for="title">Title</label>
+        <input id="title" required maxlength="80" />
+        <label for="price">Price</label>
+        <input id="price" type="number" min="0" step="0.01" />
+        <label for="category">Category</label>
+        <select id="category">
+          <option value="general">General</option>
+          <option value="electronics">Electronics</option>
+          <option value="furniture">Furniture</option>
+          <option value="vehicles">Vehicles</option>
+          <option value="property">Property</option>
+        </select>
+        <label for="imageUrl">Image URL (optional)</label>
+        <input id="imageUrl" type="url" placeholder="https://..." />
+        <label for="description">Description</label>
+        <textarea id="description" rows="3"></textarea>
+        <button type="submit">Post listing</button>
+      </form>
+
+      <section>
+        <h2>Latest listings</h2>
+        <div id="grid" class="grid"><p class="empty">Loading…</p></div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const API = '/api/listings';
+    const grid = document.getElementById('grid');
+    const placeholder = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="220" height="140"><rect width="100%" height="100%" fill="#0b1220"/><text x="50%" y="50%" fill="#475569" font-family="sans-serif" font-size="14" text-anchor="middle" dy=".3em">No image</text></svg>'
+    );
+
+    function render(items) {
+      if (!items.length) { grid.innerHTML = '<p class="empty">No listings yet. Be the first to post!</p>'; return; }
+      grid.innerHTML = items.map(function (i) {
+        const img = i.imageUrl ? i.imageUrl : placeholder;
+        const price = i.price ? ('$' + i.price) : '—';
+        return '<article class="listing">' +
+          '<img src="' + img + '" alt="" onerror="this.src=\'' + placeholder + '\'" />' +
+          '<div class="body">' +
+            '<h3>' + escapeHtml(i.title) + '</h3>' +
+            '<div class="price">' + escapeHtml(price) + '</div>' +
+            '<p>' + escapeHtml(i.description || '') + '</p>' +
+            '<span class="badge">' + escapeHtml(i.category || 'general') + '</span>' +
+          '</div>' +
+        '</article>';
+      }).join('');
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c];
+      });
+    }
+
+    async function load() {
+      try {
+        const res = await fetch(API);
+        render(await res.json());
+      } catch (e) {
+        grid.innerHTML = '<p class="empty">Failed to load listings.</p>';
+      }
+    }
+
+    document.getElementById('new-listing').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const payload = {
+        title: document.getElementById('title').value,
+        price: document.getElementById('price').value,
+        category: document.getElementById('category').value,
+        imageUrl: document.getElementById('imageUrl').value,
+        description: document.getElementById('description').value,
+      };
+      await fetch(API, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+      e.target.reset();
+      load();
+    });
+
+    load();
+  </script>
+</body>
+</html>
