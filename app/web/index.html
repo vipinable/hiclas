@@ -190,7 +190,7 @@
     </form>
 
     <h2 class="section-title">Recently Listed</h2>
-    <div id="grid" class="grid"><p class="empty">Loading…</p></div>
+    <div id="grid" class="grid"><p class="empty">Loading&#8230;</p></div>
   </main>
 
   <!-- ── Post listing dialog ── -->
@@ -223,7 +223,7 @@
       <div class="dropzone" id="dropzone">
         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         <div>Click to choose or drop images here</div>
-        <div class="hint">JPEG, PNG, WebP or GIF · max 10 MB each · up to 10 images</div>
+        <div class="hint">JPEG, PNG, WebP or GIF &middot; max 10 MB each &middot; up to 10 images</div>
       </div>
       <input id="file-input" type="file" accept="image/png,image/jpeg,image/webp,image/gif" multiple hidden />
       <div class="previews" id="previews"></div>
@@ -355,7 +355,7 @@
       previews.innerHTML = selectedFiles.map(function (f, idx) {
         const url = URL.createObjectURL(f);
         return '<div class="thumb"><img src="' + url + '" alt="" />' +
-               '<button type="button" class="rm" data-idx="' + idx + '" aria-label="Remove">×</button></div>';
+               '<button type="button" class="rm" data-idx="' + idx + '" aria-label="Remove">&#215;</button></div>';
       }).join('');
       previews.querySelectorAll('.rm').forEach(function (btn) {
         btn.addEventListener('click', function () {
@@ -394,7 +394,6 @@
       return new Promise(function (resolve, reject) {
         const form = new FormData();
         Object.keys(presigned.fields).forEach(function (k) { form.append(k, presigned.fields[k]); });
-        form.append('Content-Type', file.type);
         form.append('file', file);
         const xhr = new XMLHttpRequest();
         xhr.open('POST', presigned.url, true);
