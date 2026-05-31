@@ -55,6 +55,7 @@ def handler(event, context):
                 'description': data.get('description', ''),
                 'price': str(data.get('price', '')),
                 'category': data.get('category', 'general'),
+                'location': data.get('location', ''),
                 'imageUrl': data.get('imageUrl', ''),
                 'createdAt': int(time.time() * 1000),
             }
