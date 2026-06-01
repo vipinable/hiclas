@@ -9,8 +9,10 @@ import {
   aws_ssm as ssm,
   aws_logs as logs,
   aws_cloudfront as cloudfront,
-  aws_cloudfront_origins as origins, 
-  aws_apigateway as apigateway
+  aws_cloudfront_origins as origins,
+  aws_apigateway as apigateway,
+  aws_ses as ses,
+  aws_ses_actions as sesActions
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as path from 'path';
@@ -448,6 +450,75 @@ export class LambdaWithLayer extends Stack {
     // Add proxy resource for /api/*
     const proxyResource = rootResource.addResource('{proxy+}');
     proxyResource.addMethod('ANY', hiclasapiIntegration);
+
+    /**
+     * SES email receiving.
+     *
+     * Flow:
+     *   1. SES writes the raw email to s3://hiclastore/emails/incoming/<messageId>
+     *      via an S3 action (CDK adds the required bucket policy automatically).
+     *   2. The same rule invokes emailRouterFn (Lambda action, ordered after S3).
+     *   3. emailRouterFn copies the staged object to emails/<user>/<messageId>
+     *      for each recipient and deletes the staging object.
+     *
+     * One-time setup performed outside CDK:
+     *   - Point the receiving domain's MX record at the inbound endpoint
+     *     emitted as SesInboundEndpoint (priority 10).
+     *   - Verify the receiving domain identity in SES.
+     *   - Activate the rule set:
+     *       aws ses set-active-receipt-rule-set --rule-set-name <SesRuleSetName>
+     *
+     * SES inbound is only available in us-east-1, us-west-2, eu-west-1.
+     */
+    const emailRouterFn = new lambda.Function(this, 'emailRouterFn', {
+      description: 'Routes incoming SES emails into emails/<user>/ in the uploads bucket',
+      runtime: lambda.Runtime.PYTHON_3_12,
+      timeout: Duration.seconds(30),
+      handler: 'emailrouter.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../src')),
+      logGroup: hiclasLogGroup,
+      environment: {
+        BUCKET_STORE: hiclastore.bucketName,
+        STAGING_PREFIX: 'emails/incoming/',
+        DEST_PREFIX: 'emails/',
+      },
+    });
+
+    emailRouterFn.addToRolePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ['s3:GetObject', 's3:PutObject', 's3:DeleteObject'],
+      resources: [hiclastore.arnForObjects('emails/*')],
+    }));
+
+    const sesReceiptRuleSet = new ses.ReceiptRuleSet(this, 'hiclasInboxRuleSet', {
+      receiptRuleSetName: `${id}-inbox`,
+    });
+
+    sesReceiptRuleSet.addRule('hiclasInboxRule', {
+      enabled: true,
+      scanEnabled: true,
+      tlsPolicy: ses.TlsPolicy.OPTIONAL,
+      actions: [
+        new sesActions.S3({
+          bucket: hiclastore,
+          objectKeyPrefix: 'emails/incoming/',
+        }),
+        new sesActions.Lambda({
+          function: emailRouterFn,
+          invocationType: sesActions.LambdaInvocationType.EVENT,
+        }),
+      ],
+    });
+
+    new CfnOutput(this, 'SesRuleSetName', {
+      value: sesReceiptRuleSet.receiptRuleSetName,
+      description: 'SES receipt rule set. Activate once with: aws ses set-active-receipt-rule-set --rule-set-name <value>',
+    });
+
+    new CfnOutput(this, 'SesInboundEndpoint', {
+      value: `inbound-smtp.${this.region}.amazonaws.com`,
+      description: 'Receiving domain MX record target (priority 10).',
+    });
 
 
     // //Add beheavior for api gateway and forward requests to apigateway
