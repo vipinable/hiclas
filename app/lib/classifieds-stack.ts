@@ -141,14 +141,18 @@ export class ClassifiedsStack extends Stack {
       code: lambda.Code.fromAsset(lambdaDir),
       timeout: Duration.seconds(30),
       memorySize: 128,
-      description: 'Moves inbound SES emails from raw/ to emails/<recipient>/ in S3',
+      description: 'Moves inbound SES emails from raw/ to emails/<cognito-username>/ in S3',
       environment: {
         UPLOAD_BUCKET: uploadsBucket.bucketName,
+        USER_POOL_ID: userPool.userPoolId,
       },
     });
 
     // Ingest Lambda needs to read the raw email and write to emails/<user>/
     uploadsBucket.grantReadWrite(emailIngestFn);
+
+    // Resolve a recipient email to its Cognito username for the S3 path
+    userPool.grant(emailIngestFn, 'cognito-idp:ListUsers');
 
     // ── SES email receiving ────────────────────────────────────────────────────
     // Set via CDK context: cdk deploy -c sesReceiveDomain=mail.yourdomain.com
@@ -287,7 +291,7 @@ export class ClassifiedsStack extends Stack {
             `Receiving email for domain: ${sesReceiveDomain}`,
             `Add MX record: ${sesReceiveDomain} → inbound-smtp.${this.region}.amazonaws.com (priority 10)`,
             'Activate rule set in SES console: Email receiving > Receipt rule sets > classifieds-inbound > Set as active',
-            'Emails land at: uploads-bucket/emails/<recipient@domain>/<messageId>.eml',
+            'Emails land at: uploads-bucket/emails/<cognito-username>/<messageId>.eml (unmatched -> emails/_unknown/)',
           ].join(' | ')
         : 'Email receiving disabled. Deploy with: cdk deploy -c sesReceiveDomain=mail.yourdomain.com',
       description: 'Email receiving setup — SES inbound to S3',

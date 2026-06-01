@@ -6,6 +6,12 @@ on:
       - dev
   # Manually trigger from Actions tab
   workflow_dispatch:
+    inputs:
+      sesReceiveDomain:
+        description: "Domain to receive inbound email for (e.g. mail.example.com). Leave blank to skip email-receiving setup."
+        required: false
+        type: string
+        default: ""
 
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.A_KEY }}
@@ -35,4 +41,16 @@ jobs:
 
       - name: Deploy stack
         working-directory: app
-        run: npm install && cdk synth && cdk deploy --require-approval never
+        env:
+          SES_RECEIVE_DOMAIN: ${{ github.event.inputs.sesReceiveDomain }}
+        run: |
+          npm install
+          CDK_CONTEXT=""
+          if [ -n "$SES_RECEIVE_DOMAIN" ]; then
+            echo "Email receiving enabled for domain: $SES_RECEIVE_DOMAIN"
+            CDK_CONTEXT="-c sesReceiveDomain=$SES_RECEIVE_DOMAIN"
+          else
+            echo "No sesReceiveDomain provided — email receiving setup will be skipped."
+          fi
+          cdk synth $CDK_CONTEXT
+          cdk deploy --require-approval never $CDK_CONTEXT

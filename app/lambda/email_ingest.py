@@ -1,10 +1,36 @@
-"""SES inbound email processor — copies raw emails to emails/<recipient>/ in S3."""
+"""SES inbound email processor — copies raw emails to emails/<cognito-username>/ in S3.
+
+The inbound recipient address is resolved to its Cognito username (via the
+user pool's email attribute). If no matching user is found, the email is
+filed under emails/_unknown/ so nothing is silently dropped.
+"""
 import os
 import boto3
 
 s3 = boto3.client('s3')
+cognito_idp = boto3.client('cognito-idp')
+
 UPLOAD_BUCKET = os.environ.get('UPLOAD_BUCKET', '')
+USER_POOL_ID = os.environ.get('USER_POOL_ID', '')
 RAW_PREFIX = 'emails/raw/'
+
+
+def _username_for_email(email):
+    """Return the Cognito username owning this email, or None if not found."""
+    if not USER_POOL_ID or not email:
+        return None
+    try:
+        resp = cognito_idp.list_users(
+            UserPoolId=USER_POOL_ID,
+            Filter=f'email = "{email}"',
+            Limit=1,
+        )
+        users = resp.get('Users', [])
+        if users:
+            return users[0]['Username']
+    except Exception as exc:
+        print(f'[EmailIngest] WARNING: Cognito lookup failed for {email}: {exc}')
+    return None
 
 
 def handler(event, context):
@@ -24,7 +50,11 @@ def handler(event, context):
             continue
 
         for recipient in recipients:
-            dest_key = f'emails/{recipient.lower()}/{message_id}.eml'
+            recipient = recipient.lower()
+            username = _username_for_email(recipient)
+            folder = username if username else '_unknown'
+            dest_key = f'emails/{folder}/{message_id}.eml'
+            print(f'[EmailIngest] {recipient} -> cognito username={username or "(none)"}')
             try:
                 s3.copy_object(
                     CopySource={'Bucket': UPLOAD_BUCKET, 'Key': raw_key},
