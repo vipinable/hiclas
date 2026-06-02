@@ -5,8 +5,9 @@ name: Setup SES Sender Email
 # Optionally also configures SES inbound email receiving for a domain.
 #
 # Before running:
-#   1. Set the SES_FROM_EMAIL repository variable (Settings > Variables > Actions)
-#      e.g.  noreply@yourdomain.com
+#   1. Set repo variables (Settings > Variables > Actions):
+#        SES_FROM_EMAIL     e.g.  noreply@highlyclassifieds.com
+#        SES_RECEIVE_DOMAIN e.g.  mail.highlyclassifieds.com
 #   2. Run this workflow from Actions > Setup SES Sender Email > Run workflow
 #   3. Check the inbox of that address and click the AWS verification link
 #   4. (If using email receiving) Add an MX record on sesReceiveDomain pointing to
@@ -19,15 +20,13 @@ on:
   workflow_dispatch:
     inputs:
       ses_email:
-        description: "Sender email to verify. Defaults to noreply@highlyclassifieds.com."
+        description: "Sender email to verify. Overrides the SES_FROM_EMAIL repo variable."
         required: false
         type: string
-        default: "noreply@highlyclassifieds.com"
       ses_receive_domain:
-        description: "Domain to receive inbound email for. SES stores emails to uploads-bucket/emails/<cognito-username>/. Defaults to mail.highlyclassifieds.com."
+        description: "Domain to receive inbound email for. Overrides the SES_RECEIVE_DOMAIN repo variable."
         required: false
         type: string
-        default: "mail.highlyclassifieds.com"
 
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.A_KEY }}
@@ -49,7 +48,7 @@ jobs:
       # ------------------------------------------------------------------
       # 1. Resolve the sender email (input beats variable)
       # ------------------------------------------------------------------
-      - name: Resolve sender email
+      - name: Resolve inputs
         id: email
         run: |
           EMAIL="${{ github.event.inputs.ses_email }}"
@@ -57,10 +56,19 @@ jobs:
             EMAIL="${{ vars.SES_FROM_EMAIL }}"
           fi
           if [ -z "$EMAIL" ]; then
-            EMAIL="noreply@highlyclassifieds.com"
+            echo "::error::No sender email provided. Set the SES_FROM_EMAIL repo variable (Settings > Variables > Actions) or pass ses_email when triggering the workflow."
+            exit 1
           fi
+
+          DOMAIN="${{ github.event.inputs.ses_receive_domain }}"
+          if [ -z "$DOMAIN" ]; then
+            DOMAIN="${{ vars.SES_RECEIVE_DOMAIN }}"
+          fi
+
           echo "email=$EMAIL" >> "$GITHUB_OUTPUT"
-          echo "Sender email: $EMAIL"
+          echo "domain=$DOMAIN" >> "$GITHUB_OUTPUT"
+          echo "Sender email : $EMAIL"
+          echo "Receive domain: ${DOMAIN:-"(not set — email receiving will be skipped)"}"
 
       # ------------------------------------------------------------------
       # 2. Confirm AWS credentials are working
@@ -104,7 +112,7 @@ jobs:
         working-directory: app
         env:
           SES_EMAIL: ${{ steps.email.outputs.email }}
-          SES_RECEIVE_DOMAIN: ${{ github.event.inputs.ses_receive_domain }}
+          SES_RECEIVE_DOMAIN: ${{ steps.email.outputs.domain }}
         run: |
           npm install
           CDK_CONTEXT="-c sesFromEmail=$SES_EMAIL"
@@ -122,7 +130,7 @@ jobs:
       # ------------------------------------------------------------------
       - name: Summary
         env:
-          SES_RECEIVE_DOMAIN: ${{ github.event.inputs.ses_receive_domain }}
+          SES_RECEIVE_DOMAIN: ${{ steps.email.outputs.domain }}
         run: |
           EMAIL="${{ steps.email.outputs.email }}"
           STATUS="${{ steps.ses.outputs.status }}"
