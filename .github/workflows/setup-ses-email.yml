@@ -19,18 +19,15 @@ on:
   workflow_dispatch:
     inputs:
       ses_email:
-        description: |
-          Sender email to verify (overrides the SES_FROM_EMAIL repo variable).
-          Leave blank to use the variable.
+        description: "Sender email to verify. Defaults to noreply@highlyclassifieds.com."
         required: false
         type: string
+        default: "noreply@highlyclassifieds.com"
       ses_receive_domain:
-        description: |
-          Domain to receive inbound email for (e.g. mail.yourdomain.com).
-          SES will store emails to uploads-bucket/emails/<cognito-username>/.
-          Leave blank to skip email-receiving setup.
+        description: "Domain to receive inbound email for. SES stores emails to uploads-bucket/emails/<cognito-username>/. Defaults to mail.highlyclassifieds.com."
         required: false
         type: string
+        default: "mail.highlyclassifieds.com"
 
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.A_KEY }}
@@ -60,10 +57,7 @@ jobs:
             EMAIL="${{ vars.SES_FROM_EMAIL }}"
           fi
           if [ -z "$EMAIL" ]; then
-            echo "::error::No email provided."
-            echo "::error::Set the SES_FROM_EMAIL repository variable under Settings > Variables > Actions,"
-            echo "::error::or pass the email as the ses_email input when triggering the workflow."
-            exit 1
+            EMAIL="noreply@highlyclassifieds.com"
           fi
           echo "email=$EMAIL" >> "$GITHUB_OUTPUT"
           echo "Sender email: $EMAIL"
