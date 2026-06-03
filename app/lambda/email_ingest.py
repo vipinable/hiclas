@@ -1,10 +1,15 @@
-"""SES inbound email processor — copies raw emails to emails/<cognito-username>/ in S3.
+"""SES inbound email processor — stores plain-text body to emails/<cognito-username>/ in S3.
 
-The inbound recipient address is resolved to its Cognito username (via the
-user pool's email attribute). If no matching user is found, the email is
-filed under emails/_unknown/ so nothing is silently dropped.
+Flow:
+  1. SES S3 action writes raw email to emails/raw/<messageId>
+  2. This Lambda reads it, parses the text/plain part, and saves
+     emails/<cognito-username>/<messageId>.txt (falls back to emails/_unknown/)
+  3. The raw staging copy is deleted.
 """
+import email
+import email.policy
 import os
+
 import boto3
 
 s3 = boto3.client('s3')
@@ -15,22 +20,48 @@ USER_POOL_ID = os.environ.get('USER_POOL_ID', '')
 RAW_PREFIX = 'emails/raw/'
 
 
-def _username_for_email(email):
-    """Return the Cognito username owning this email, or None if not found."""
-    if not USER_POOL_ID or not email:
+def _username_for_email(address):
+    """Return the Cognito username whose email attribute matches, or None."""
+    if not USER_POOL_ID or not address:
         return None
     try:
         resp = cognito_idp.list_users(
             UserPoolId=USER_POOL_ID,
-            Filter=f'email = "{email}"',
+            Filter=f'email = "{address}"',
             Limit=1,
         )
         users = resp.get('Users', [])
         if users:
             return users[0]['Username']
     except Exception as exc:
-        print(f'[EmailIngest] WARNING: Cognito lookup failed for {email}: {exc}')
+        print(f'[EmailIngest] WARNING: Cognito lookup failed for {address}: {exc}')
     return None
+
+
+def _extract_text(raw_bytes):
+    """Return the text/plain body of the email, or a fallback representation."""
+    msg = email.message_from_bytes(raw_bytes, policy=email.policy.default)
+
+    # Build a readable header block
+    headers = '\n'.join(
+        f'{h}: {msg[h]}'
+        for h in ('Date', 'From', 'To', 'Subject')
+        if msg[h]
+    )
+
+    # Walk parts and collect the first text/plain payload
+    plain = None
+    for part in msg.walk():
+        if part.get_content_type() == 'text/plain' and not part.get_filename():
+            plain = part.get_content()
+            break
+
+    if plain is None:
+        # No text/plain — fall back to the raw body as-is
+        plain = msg.get_body()
+        plain = plain.get_content() if plain else '(no readable body)'
+
+    return f'{headers}\n\n{plain.strip()}\n'
 
 
 def handler(event, context):
@@ -49,27 +80,37 @@ def handler(event, context):
             print('[EmailIngest] WARNING: missing messageId or recipients — skipping')
             continue
 
+        # Fetch the raw email once
+        try:
+            raw_obj = s3.get_object(Bucket=UPLOAD_BUCKET, Key=raw_key)
+            raw_bytes = raw_obj['Body'].read()
+        except Exception as exc:
+            print(f'[EmailIngest] ERROR: could not fetch raw email {raw_key}: {exc}')
+            raise
+
+        text_body = _extract_text(raw_bytes)
+
         for recipient in recipients:
             recipient = recipient.lower()
             username = _username_for_email(recipient)
             folder = username if username else '_unknown'
-            dest_key = f'emails/{folder}/{message_id}.eml'
-            print(f'[EmailIngest] {recipient} -> cognito username={username or "(none)"}')
+            dest_key = f'emails/{folder}/{message_id}.txt'
+            print(f'[EmailIngest] {recipient} -> cognito={username or "(none)"} -> {dest_key}')
             try:
-                s3.copy_object(
-                    CopySource={'Bucket': UPLOAD_BUCKET, 'Key': raw_key},
+                s3.put_object(
                     Bucket=UPLOAD_BUCKET,
                     Key=dest_key,
-                    MetadataDirective='COPY',
+                    Body=text_body.encode('utf-8'),
+                    ContentType='text/plain; charset=utf-8',
                 )
                 print(f'[EmailIngest] stored -> {dest_key}')
             except Exception as exc:
-                print(f'[EmailIngest] ERROR copying to {dest_key}: {exc}')
+                print(f'[EmailIngest] ERROR writing {dest_key}: {exc}')
                 raise
 
+        # Remove the raw staging copy
         try:
             s3.delete_object(Bucket=UPLOAD_BUCKET, Key=raw_key)
             print(f'[EmailIngest] cleaned up raw/{message_id}')
         except Exception as exc:
-            # Non-fatal: raw copy will just remain
             print(f'[EmailIngest] WARNING: could not delete raw key {raw_key}: {exc}')
