@@ -229,6 +229,19 @@
     }
     .dv-share-btn:hover { background:var(--blue-100); }
 
+    .dv-interest-btn {
+      display:inline-flex; align-items:center; justify-content:center; gap:0.5rem;
+      font-size:0.95rem; font-weight:700; cursor:pointer; border:0;
+      border-radius:0.375rem; padding:0.75rem 1.25rem; width:100%;
+      background:var(--green-600); color:#fff;
+      box-shadow:0 4px 6px -1px rgba(0,0,0,0.15);
+      transition:background .15s ease, transform .15s ease;
+    }
+    .dv-interest-btn:hover { background:#15803d; transform:translateY(-1px); }
+    .dv-interest-btn:disabled { opacity:0.65; cursor:not-allowed; transform:none; }
+    .dv-interest-btn.sent { background:#059669; cursor:default; }
+    .dv-interest-btn.sent:hover { background:#059669; transform:none; }
+
     /* Detail loading / error states */
     .dv-state { padding:4rem 0; text-align:center; color:var(--gray-500); }
     .dv-state .spinner {
@@ -400,6 +413,10 @@
             <p class="dv-desc" id="dv-desc"></p>
             <div class="dv-footer">
               <div class="dv-posted-by" id="dv-posted-by"></div>
+              <button type="button" id="dv-interest-btn" class="dv-interest-btn" style="display:none">
+                <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                Express Interest
+              </button>
               <button type="button" class="dv-share-btn" id="dv-share-btn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
                 Copy link
@@ -513,6 +530,8 @@
     // Detail page gallery state
     let dvImages = [];
     let dvIndex  = 0;
+    let dvCurrentListing = null;
+    const interestSent = new Set(); // listing IDs where interest was sent this session
 
     // ── Shared icon SVGs ─────────────────────────────────────────────────────
     const placeholder = 'data:image/svg+xml;utf8,' + encodeURIComponent(
@@ -733,7 +752,28 @@
       });
     }
 
+    function updateInterestBtn(listing) {
+      var btn = document.getElementById('dv-interest-btn');
+      var myEmail = getEmail();
+      // Hide the button if this is the viewer's own listing
+      if (myEmail && listing.postedBy === myEmail) {
+        btn.style.display = 'none';
+        return;
+      }
+      btn.style.display = 'flex';
+      if (interestSent.has(listing.id)) {
+        btn.disabled = true;
+        btn.classList.add('sent');
+        btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Interest sent';
+      } else {
+        btn.disabled = false;
+        btn.classList.remove('sent');
+        btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg> Express Interest';
+      }
+    }
+
     function renderDetailPage(listing) {
+      dvCurrentListing = listing;
       dvImages = allImages(listing);
       dvIndex  = 0;
 
@@ -775,6 +815,8 @@
       heroImg.onerror = function() { heroImg.onerror = null; heroImg.src = placeholder; };
       showDvImage(0);
 
+      updateInterestBtn(listing);
+
       document.getElementById('dv-loading').style.display = 'none';
       document.getElementById('dv-error').style.display   = 'none';
       document.getElementById('dv-content').style.display = 'block';
@@ -815,6 +857,37 @@
     // Gallery nav buttons
     document.getElementById('dv-prev').addEventListener('click', function() { showDvImage(dvIndex - 1); });
     document.getElementById('dv-next').addEventListener('click', function() { showDvImage(dvIndex + 1); });
+
+    // Express Interest
+    document.getElementById('dv-interest-btn').addEventListener('click', async function() {
+      if (!getToken()) {
+        openLoginModal(function() {
+          // Re-evaluate button visibility after login (may now be own listing)
+          if (dvCurrentListing) updateInterestBtn(dvCurrentListing);
+        });
+        return;
+      }
+      if (!dvCurrentListing) return;
+      var btn = this;
+      var id = dvCurrentListing.id;
+      btn.disabled = true;
+      btn.innerHTML = '<span>Sending&hellip;</span>';
+      try {
+        var res = await fetch('/api/listings/' + encodeURIComponent(id) + '/interest', {
+          method: 'POST',
+          headers: authHeaders(),
+        });
+        var data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Failed to send interest');
+        interestSent.add(id);
+        btn.classList.add('sent');
+        btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Interest sent';
+      } catch(err) {
+        alert(err.message || 'Could not send interest. Please try again.');
+        btn.disabled = false;
+        updateInterestBtn(dvCurrentListing);
+      }
+    });
 
     // Share / copy link
     document.getElementById('dv-share-btn').addEventListener('click', function() {

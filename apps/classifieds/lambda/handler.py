@@ -1,14 +1,16 @@
-"""Classifieds API — listings CRUD + S3 presign + email OTP auth.
+"""Classifieds API — listings CRUD + S3 presign + email OTP auth + interest relay.
 
 Public routes:
-    GET  /api/listings           list all listings (newest first)
-    GET  /api/listings/{id}      single listing
-    POST /api/auth/init          start email-OTP login (creates Cognito user if new)
-    POST /api/auth/verify        submit OTP, receive access token
+    GET  /api/listings              list all listings (newest first)
+    GET  /api/listings/{id}         single listing
+
+    POST /api/auth/init             start email-OTP login (creates Cognito user if new)
+    POST /api/auth/verify           submit OTP, receive access token
 
 Protected routes (require Authorization: Bearer <accessToken>):
-    POST /api/listings           create a listing
-    POST /api/presign            mint presigned S3 POSTs for direct image upload
+    POST /api/listings              create a listing
+    POST /api/presign               mint presigned S3 POSTs for direct image upload
+    POST /api/listings/{id}/interest  send masked interest notification to listing owner
 """
 import json
 import os
@@ -21,6 +23,7 @@ from botocore.exceptions import ClientError
 table = boto3.resource('dynamodb').Table(os.environ['TABLE_NAME'])
 s3 = boto3.client('s3')
 cognito_idp = boto3.client('cognito-idp')
+ses = boto3.client('ses')
 
 UPLOAD_BUCKET = os.environ.get('UPLOAD_BUCKET', '')
 MAX_IMAGES = int(os.environ.get('MAX_IMAGES', '10'))
@@ -29,6 +32,8 @@ MAX_BYTES = 10 * 1024 * 1024
 
 USER_POOL_ID = os.environ.get('USER_POOL_ID', '')
 USER_POOL_CLIENT_ID = os.environ.get('USER_POOL_CLIENT_ID', '')
+SES_FROM_EMAIL = os.environ.get('SES_FROM_EMAIL', '')
+SES_RECEIVE_DOMAIN = os.environ.get('SES_RECEIVE_DOMAIN', '')
 
 CORS = {
     'Content-Type': 'application/json',
@@ -56,12 +61,7 @@ def _ext_for(content_type):
 
 
 def _cognito_trigger_message(err_msg: str) -> str:
-    """Extract the real inner error from a Cognito trigger-failure message.
-
-    Cognito wraps Lambda trigger errors as:
-      'CreateAuthChallenge failed with error <actual message>'
-    This unwraps that so users see the actionable root cause.
-    """
+    """Extract the real inner error from a Cognito trigger-failure message."""
     marker = 'failed with error '
     if marker in err_msg:
         return err_msg.split(marker, 1)[1].strip()
@@ -71,21 +71,41 @@ def _cognito_trigger_message(err_msg: str) -> str:
 def _require_auth(event):
     """Validate Bearer access token via Cognito GetUser.
 
-    Returns (email, None) on success or (None, error_response) on failure.
-    GetUser authenticates itself using the access token — no IAM grant needed.
+    Returns (username, sub, None) on success or (None, None, error_response) on failure.
+    username — Cognito Username (the user's email address in this pool)
+    sub      — Cognito sub UUID, used as the masked reply-to local part
     """
     auth_header = (event.get('headers') or {}).get('authorization', '')
     if not auth_header.lower().startswith('bearer '):
-        return None, _resp(401, {'message': 'Authentication required'})
+        return None, None, _resp(401, {'message': 'Authentication required'})
     token = auth_header[7:].strip()
     try:
         result = cognito_idp.get_user(AccessToken=token)
-        return result['Username'], None
+        username = result['Username']
+        sub = next(
+            (a['Value'] for a in result.get('UserAttributes', []) if a['Name'] == 'sub'),
+            None,
+        )
+        return username, sub, None
     except ClientError as e:
         code = e.response['Error']['Code']
         if code in ('NotAuthorizedException', 'UserNotFoundException', 'TokenExpiredException'):
-            return None, _resp(401, {'message': 'Invalid or expired token'})
+            return None, None, _resp(401, {'message': 'Invalid or expired token'})
         raise
+
+
+def _cognito_email_for_user(username: str) -> str | None:
+    """Return the email attribute for a Cognito user, or None on failure."""
+    if not USER_POOL_ID or not username:
+        return None
+    try:
+        result = cognito_idp.admin_get_user(UserPoolId=USER_POOL_ID, Username=username)
+        for attr in result.get('UserAttributes', []):
+            if attr['Name'] == 'email':
+                return attr['Value']
+    except Exception as exc:
+        print(f'[Handler] WARNING: could not get email for {username}: {exc}')
+    return None
 
 
 def handler(event, context):
@@ -97,8 +117,6 @@ def handler(event, context):
         return _resp(200, {})
 
     # ── /api/auth/init ────────────────────────────────────────────────────────
-    # Body: { "email": "user@example.com" }
-    # Returns: { "session": "..." }
     if parts == ['api', 'auth', 'init'] and method == 'POST':
         try:
             data = json.loads(event.get('body') or '{}')
@@ -109,7 +127,6 @@ def handler(event, context):
         if not email or '@' not in email:
             return _resp(400, {'message': 'A valid email address is required'})
 
-        # Auto-create the Cognito user if this is their first login
         try:
             cognito_idp.admin_get_user(UserPoolId=USER_POOL_ID, Username=email)
         except ClientError as e:
@@ -123,7 +140,6 @@ def handler(event, context):
                         {'Name': 'email_verified', 'Value': 'true'},
                     ],
                 )
-                # Set a random permanent password to move the user to CONFIRMED
                 cognito_idp.admin_set_user_password(
                     UserPoolId=USER_POOL_ID,
                     Username=email,
@@ -143,7 +159,6 @@ def handler(event, context):
         except ClientError as e:
             err_code = e.response['Error']['Code']
             err_msg  = e.response['Error']['Message']
-            # Unwrap the inner Lambda/SES error from Cognito's wrapper message
             inner = _cognito_trigger_message(err_msg)
             if err_code == 'UserLambdaValidationException':
                 return _resp(500, {'message': f'OTP could not be sent: {inner}'})
@@ -154,9 +169,7 @@ def handler(event, context):
             'challengeName': response.get('ChallengeName', 'CUSTOM_CHALLENGE'),
         })
 
-    # ── /api/auth/verify ───────────────────────────────────────────────────────
-    # Body: { "email": "...", "session": "...", "code": "123456" }
-    # Returns: { "accessToken": "...", "idToken": "...", "expiresIn": 3600 }
+    # ── /api/auth/verify ──────────────────────────────────────────────────────
     if parts == ['api', 'auth', 'verify'] and method == 'POST':
         try:
             data = json.loads(event.get('body') or '{}')
@@ -197,9 +210,9 @@ def handler(event, context):
             'expiresIn':   auth_result.get('ExpiresIn', 3600),
         })
 
-    # ── /api/presign ──────────────────────────────────────────────────────────────
+    # ── /api/presign ──────────────────────────────────────────────────────────
     if parts == ['api', 'presign'] and method == 'POST':
-        email, err = _require_auth(event)
+        username, _, err = _require_auth(event)
         if err:
             return err
 
@@ -242,7 +255,7 @@ def handler(event, context):
 
         return _resp(200, {'listingId': listing_id, 'uploads': uploads})
 
-    # ── /api/listings ───────────────────────────────────────────────────────────────
+    # ── /api/listings ─────────────────────────────────────────────────────────
     if parts == ['api', 'listings']:
         if method == 'GET':
             items = table.scan().get('Items', [])
@@ -250,7 +263,7 @@ def handler(event, context):
             return _resp(200, items)
 
         if method == 'POST':
-            email, err = _require_auth(event)
+            username, _, err = _require_auth(event)
             if err:
                 return err
 
@@ -275,18 +288,91 @@ def handler(event, context):
                 'location':    data.get('location', ''),
                 'images':      images,
                 'imageUrl':    images[0] if images else data.get('imageUrl', ''),
-                'postedBy':    email,
+                'postedBy':    username,
                 'createdAt':   int(time.time() * 1000),
             }
             table.put_item(Item=item)
             return _resp(201, item)
 
-    # ── /api/listings/{id} ───────────────────────────────────────────────────────────
+    # ── /api/listings/{id} ────────────────────────────────────────────────────
     if len(parts) == 3 and parts[:2] == ['api', 'listings'] and method == 'GET':
         result = table.get_item(Key={'id': parts[2]})
         item = result.get('Item')
         if not item:
             return _resp(404, {'message': 'Not found'})
         return _resp(200, item)
+
+    # ── /api/listings/{id}/interest ───────────────────────────────────────────
+    # Sends a masked email to the listing owner. Reply-To is set to
+    # <requester-sub>@<SES_RECEIVE_DOMAIN> so replies route back via SES ingest
+    # without exposing either party's real email address.
+    if len(parts) == 4 and parts[:2] == ['api', 'listings'] and parts[3] == 'interest' and method == 'POST':
+        username, sub, err = _require_auth(event)
+        if err:
+            return err
+
+        listing_id = parts[2]
+        result = table.get_item(Key={'id': listing_id})
+        listing = result.get('Item')
+        if not listing:
+            return _resp(404, {'message': 'Listing not found'})
+
+        owner = listing.get('postedBy', '')
+        if not owner:
+            return _resp(400, {'message': 'This listing has no owner on record'})
+
+        if owner == username:
+            return _resp(400, {'message': 'You cannot express interest in your own listing'})
+
+        if not SES_FROM_EMAIL or not SES_RECEIVE_DOMAIN:
+            return _resp(503, {'message': 'Email relay not configured on this server'})
+
+        if not sub:
+            return _resp(500, {'message': 'Could not determine your account identifier'})
+
+        owner_email = _cognito_email_for_user(owner)
+        if not owner_email:
+            return _resp(500, {'message': 'Could not reach the listing owner'})
+
+        title    = listing.get('title', 'Untitled')
+        price    = listing.get('price', '')
+        location = listing.get('location', '')
+        reply_to = f'{sub}@{SES_RECEIVE_DOMAIN}'
+
+        detail_lines = [f'  Title: {title}']
+        if price:
+            detail_lines.append(f'  Price: ${price}')
+        if location:
+            detail_lines.append(f'  Location: {location}')
+
+        body = (
+            f'Hello,\n\n'
+            f'Someone has expressed interest in your listing: "{title}"\n\n'
+            f'To respond, simply reply to this email. Your reply will be delivered '
+            f'privately — no real email addresses are shared between parties.\n\n'
+            f'Listing details:\n'
+            + '\n'.join(detail_lines)
+            + '\n\n— The HighlyClassifieds Team\n'
+        )
+
+        try:
+            ses.send_email(
+                Source=SES_FROM_EMAIL,
+                Destination={'ToAddresses': [owner_email]},
+                ReplyToAddresses=[reply_to],
+                Message={
+                    'Subject': {
+                        'Data': f'[HighlyClassifieds] Interest in your listing: {title}',
+                        'Charset': 'UTF-8',
+                    },
+                    'Body': {'Text': {'Data': body, 'Charset': 'UTF-8'}},
+                },
+            )
+        except Exception as exc:
+            print(f'[Handler] ERROR sending interest email to {owner_email}: {exc}')
+            return _resp(500, {'message': 'Failed to send interest notification'})
+
+        print(f'[Handler] interest: listing={listing_id} owner={owner} reply_to={reply_to}')
+        return _resp(200, {'message': 'Interest notification sent'})
 
     return _resp(404, {'message': 'Not found'})

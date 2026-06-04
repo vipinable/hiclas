@@ -135,6 +135,11 @@ export class ClassifiedsStack extends Stack {
       },
     }));
 
+    // ── SES context variables (needed by both email ingest and API Lambda) ──────
+    // Set via CDK context: cdk deploy -c sesReceiveDomain=mail.yourdomain.com
+    // Note: SES email receiving is only available in us-east-1, us-west-2, eu-west-1
+    const sesReceiveDomain = this.node.tryGetContext('sesReceiveDomain') || '';
+
     // ── Email ingest Lambda ────────────────────────────────────────────────────
     const emailIngestFn = new lambda.Function(this, 'EmailIngestFn', {
       runtime: lambda.Runtime.PYTHON_3_12,
@@ -146,6 +151,7 @@ export class ClassifiedsStack extends Stack {
       environment: {
         UPLOAD_BUCKET: uploadsBucket.bucketName,
         USER_POOL_ID: userPool.userPoolId,
+        SES_RECEIVE_DOMAIN: sesReceiveDomain,
       },
     });
 
@@ -156,11 +162,7 @@ export class ClassifiedsStack extends Stack {
     userPool.grant(emailIngestFn, 'cognito-idp:ListUsers');
 
     // ── SES email receiving ────────────────────────────────────────────────────
-    // Set via CDK context: cdk deploy -c sesReceiveDomain=mail.yourdomain.com
     // Also requires an MX record: sesReceiveDomain → inbound-smtp.<region>.amazonaws.com
-    // Note: SES email receiving is only available in us-east-1, us-west-2, eu-west-1
-    const sesReceiveDomain = this.node.tryGetContext('sesReceiveDomain') || '';
-
     const receiptRuleSet = new ses.ReceiptRuleSet(this, 'EmailReceiptRuleSet', {
       receiptRuleSetName: 'classifieds-inbound',
     });
@@ -198,6 +200,8 @@ export class ClassifiedsStack extends Stack {
         MAX_IMAGES: '10',
         USER_POOL_ID: userPool.userPoolId,
         USER_POOL_CLIENT_ID: userPoolClient.userPoolClientId,
+        SES_FROM_EMAIL: sesFromEmail,
+        SES_RECEIVE_DOMAIN: sesReceiveDomain,
       },
     });
 
@@ -205,7 +209,7 @@ export class ClassifiedsStack extends Stack {
     uploadsBucket.grantPut(apiFn);
     uploadsBucket.grantRead(apiFn);
 
-    // API Lambda needs these Cognito admin operations to manage users and auth
+    // API Lambda needs Cognito admin operations and SES for the interest relay
     userPool.grant(apiFn,
       'cognito-idp:AdminGetUser',
       'cognito-idp:AdminCreateUser',
@@ -213,6 +217,10 @@ export class ClassifiedsStack extends Stack {
       'cognito-idp:AdminInitiateAuth',
       'cognito-idp:AdminRespondToAuthChallenge',
     );
+    apiFn.addToRolePolicy(new iam.PolicyStatement({
+      actions: ['ses:SendEmail', 'ses:SendRawEmail'],
+      resources: ['*'],
+    }));
 
     const apiUrl = apiFn.addFunctionUrl({
       authType: lambda.FunctionUrlAuthType.NONE,
