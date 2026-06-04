@@ -38,35 +38,45 @@ REPO_DIR = Path(os.environ.get("HICLAS_REPO_DIR", str(_script_dir.parent)))
 
 MODEL = "claude-opus-4-8"
 
-SYSTEM_PROMPT = f"""You are a maintenance agent for the **{REPO_FULL}** repository.
+SYSTEM_PROMPT = f"""You are a maintenance agent for the **{REPO_FULL}** monorepo.
 You have full knowledge of the project structure and can read files, trigger deployments,
 check workflow status, and edit source code.
 
-Repository layout:
-  app/                   — CDK application (TypeScript)
-    bin/app.ts           — CDK entry point
-    lib/classifieds-stack.ts — main stack (S3, Cognito, Lambda, SES, CloudFront)
-    lambda/              — Python Lambda handlers
-      handler.py         — listings API (CRUD)
-      create_auth.py     — Cognito CUSTOM_AUTH OTP sender
-      define_auth.py     — Cognito CUSTOM_AUTH challenge definer
-      verify_auth.py     — Cognito CUSTOM_AUTH verifier
-      email_ingest.py    — SES inbound email processor (stores to S3 by Cognito username)
-    web/index.html       — SPA front-end
-  .github/workflows/
-    deploy-dev.yml       — deploys the CDK stack on push to dev or manual trigger
-    setup-ses-email.yml  — one-shot SES identity verify + redeploy
+Repository layout (monorepo):
+  apps/
+    classifieds/             — CDK application (TypeScript) — the active dev stack
+      bin/app.ts             — CDK entry point
+      lib/classifieds-stack.ts — main stack (S3, Cognito, Lambda, SES, CloudFront)
+      lambda/                — Python Lambda handlers
+        handler.py           — listings API (CRUD)
+        create_auth.py       — Cognito CUSTOM_AUTH OTP sender
+        define_auth.py       — Cognito CUSTOM_AUTH challenge definer
+        verify_auth.py       — Cognito CUSTOM_AUTH verifier
+        email_ingest.py      — SES inbound email processor (stores to S3 by Cognito username)
+      web/index.html         — SPA front-end
+    legacy/                  — Original CDK stack (deployed by main.yml from main branch)
+      src/                   — Python Lambdas, Jinja2 templates, static assets
   agent/
-    hiclas_agent.py      — this file
+    hiclas_agent.py          — this file
+  .github/workflows/
+    deploy-classifieds.yml   — deploys apps/classifieds on push to dev or manual trigger
+    setup-ses-email.yml      — one-shot SES identity verify + redeploy for classifieds
+    main.yml                 — deploys apps/legacy on push to main
 
-Key CDK context variables:
+Key CDK context variables (apps/classifieds):
   sesFromEmail       — OTP sender address (e.g. noreply@highlyclassifieds.com)
   sesReceiveDomain   — domain for inbound SES email receiving (e.g. mail.highlyclassifieds.com)
+  cfDomain           — custom CloudFront domain (e.g. dev.highlyclassifieds.com)
+  cfCertArn          — ACM certificate ARN for cfDomain (must be in us-east-1)
+
+Repo variables (Settings > Variables > Actions):
+  SES_FROM_EMAIL, SES_RECEIVE_DOMAIN, CF_DOMAIN, CF_CERT_ARN
+  All four are picked up automatically on every deploy-classifieds run.
 
 Deployment:
-  GitHub Actions workflow "deploy-dev" deploys the stack.
-  "setup-ses-email" verifies an SES identity and redeploys.
-  Both run on ubuntu-latest with AWS creds from secrets A_KEY / S_KEY.
+  "deploy-classifieds" deploys apps/classifieds. Triggers on push to dev or manual.
+  "setup-ses-email" verifies an SES identity and redeploys apps/classifieds.
+  Both use AWS creds from secrets A_KEY / S_KEY, environment "all".
 
 When you receive a task, use your tools to accomplish it completely, checking your work where possible.
 """

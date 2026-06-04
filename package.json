@@ -1,0 +1,18 @@
+{
+  "name": "hiclas",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "deploy:classifieds": "npm run cdk --workspace=apps/classifieds -- deploy --require-approval never"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vipinable/hiclas.git"
+  },
+  "author": "vipinable@gmail.com",
+  "license": "ISC"
+}

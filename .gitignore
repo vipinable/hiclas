@@ -1,0 +1,10 @@
+node_modules/
+cdk.out/
+*.js
+*.d.ts
+*.js.map
+dist/
+build/
+layer/
+repo.tar.gz
+classified-nexus-ui-main/

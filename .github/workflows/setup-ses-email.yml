@@ -109,7 +109,7 @@ jobs:
         run: npm install -g aws-cdk && cdk --version
 
       - name: Deploy stack
-        working-directory: app
+        working-directory: apps/classifieds
         env:
           SES_EMAIL: ${{ steps.email.outputs.email }}
           SES_RECEIVE_DOMAIN: ${{ steps.email.outputs.domain }}

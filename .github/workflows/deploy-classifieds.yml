@@ -55,7 +55,7 @@ jobs:
         run: echo "node:$(node --version), cdk:$(cdk --version)"
 
       - name: Deploy stack
-        working-directory: app
+        working-directory: apps/classifieds
         env:
           SES_FROM_EMAIL: ${{ github.event.inputs.sesFromEmail || vars.SES_FROM_EMAIL }}
           SES_RECEIVE_DOMAIN: ${{ github.event.inputs.sesReceiveDomain || vars.SES_RECEIVE_DOMAIN }}
