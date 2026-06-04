@@ -1045,5 +1045,14 @@
     load();       // pre-fetch listings so grid is ready
     router();     // honour any hash present on initial load
   </script>
+
+  <footer style="
+    text-align:center; padding:1.5rem 1rem;
+    font-size:0.78rem; color:var(--gray-400);
+    border-top:1px solid var(--gray-200); background:var(--white);
+  ">
+    &copy; <span id="footer-year"></span> HighlyClassifieds. All rights reserved.
+  </footer>
+  <script>document.getElementById('footer-year').textContent = new Date().getFullYear();</script>
 </body>
 </html>
