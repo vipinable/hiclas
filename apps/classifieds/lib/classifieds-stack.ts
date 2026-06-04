@@ -136,7 +136,7 @@ export class ClassifiedsStack extends Stack {
     }));
 
     // ── SES context variables (needed by both email ingest and API Lambda) ──────
-    // Set via CDK context: cdk deploy -c sesReceiveDomain=mail.yourdomain.com
+    // Set via CDK context: cdk deploy -c sesReceiveDomain=highlyclassifieds.com
     // Note: SES email receiving is only available in us-east-1, us-west-2, eu-west-1
     const sesReceiveDomain = this.node.tryGetContext('sesReceiveDomain') || '';
 
@@ -147,19 +147,22 @@ export class ClassifiedsStack extends Stack {
       code: lambda.Code.fromAsset(lambdaDir),
       timeout: Duration.seconds(30),
       memorySize: 128,
-      description: 'Moves inbound SES emails from raw/ to emails/<cognito-username>/ in S3',
+      description: 'Stores inbound SES emails to emails/<cognito-sub>/ in S3 and forwards to real inbox',
       environment: {
         UPLOAD_BUCKET: uploadsBucket.bucketName,
         USER_POOL_ID: userPool.userPoolId,
         SES_RECEIVE_DOMAIN: sesReceiveDomain,
+        SES_FROM_EMAIL: sesFromEmail,
       },
     });
 
-    // Ingest Lambda needs to read the raw email and write to emails/<user>/
+    // Ingest Lambda: read/write S3, lookup Cognito users, forward via SES
     uploadsBucket.grantReadWrite(emailIngestFn);
-
-    // Resolve a recipient email to its Cognito username for the S3 path
     userPool.grant(emailIngestFn, 'cognito-idp:ListUsers');
+    emailIngestFn.addToRolePolicy(new iam.PolicyStatement({
+      actions: ['ses:SendEmail', 'ses:SendRawEmail'],
+      resources: ['*'],
+    }));
 
     // ── SES email receiving ────────────────────────────────────────────────────
     // Also requires an MX record: sesReceiveDomain → inbound-smtp.<region>.amazonaws.com
@@ -318,7 +321,7 @@ export class ClassifiedsStack extends Stack {
             `Receiving email for domain: ${sesReceiveDomain}`,
             `Add MX record: ${sesReceiveDomain} → inbound-smtp.${this.region}.amazonaws.com (priority 10)`,
             'Activate rule set in SES console: Email receiving > Receipt rule sets > classifieds-inbound > Set as active',
-            'Emails land at: uploads-bucket/emails/<cognito-username>/<messageId>.eml (unmatched -> emails/_unknown/)',
+            'Emails land at: uploads-bucket/emails/<cognito-sub>/<messageId>.txt and are forwarded to real inbox',
           ].join(' | ')
         : 'Email receiving disabled. Deploy with: cdk deploy -c sesReceiveDomain=mail.yourdomain.com',
       description: 'Email receiving setup — SES inbound to S3',

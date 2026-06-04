@@ -7,7 +7,7 @@ name: Setup SES Sender Email
 # Before running:
 #   1. Set repo variables (Settings > Variables > Actions):
 #        SES_FROM_EMAIL     e.g.  noreply@highlyclassifieds.com
-#        SES_RECEIVE_DOMAIN e.g.  mail.highlyclassifieds.com
+#        SES_RECEIVE_DOMAIN e.g.  highlyclassifieds.com
 #   2. Run this workflow from Actions > Setup SES Sender Email > Run workflow
 #   3. Check the inbox of that address and click the AWS verification link
 #   4. (If using email receiving) Add an MX record on sesReceiveDomain pointing to
