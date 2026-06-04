@@ -12,6 +12,16 @@ on:
         required: false
         type: string
         default: ""
+      cfDomain:
+        description: "Custom domain for CloudFront (e.g. dev.highlyclassifieds.com). Requires cfCertArn."
+        required: false
+        type: string
+        default: ""
+      cfCertArn:
+        description: "ACM certificate ARN (us-east-1) covering cfDomain. Required when cfDomain is set."
+        required: false
+        type: string
+        default: ""
 
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.A_KEY }}
@@ -43,14 +53,22 @@ jobs:
         working-directory: app
         env:
           SES_RECEIVE_DOMAIN: ${{ github.event.inputs.sesReceiveDomain }}
+          CF_DOMAIN: ${{ github.event.inputs.cfDomain || vars.CF_DOMAIN }}
+          CF_CERT_ARN: ${{ github.event.inputs.cfCertArn || vars.CF_CERT_ARN }}
         run: |
           npm install
           CDK_CONTEXT=""
           if [ -n "$SES_RECEIVE_DOMAIN" ]; then
             echo "Email receiving enabled for domain: $SES_RECEIVE_DOMAIN"
-            CDK_CONTEXT="-c sesReceiveDomain=$SES_RECEIVE_DOMAIN"
+            CDK_CONTEXT="$CDK_CONTEXT -c sesReceiveDomain=$SES_RECEIVE_DOMAIN"
           else
             echo "No sesReceiveDomain provided — email receiving setup will be skipped."
+          fi
+          if [ -n "$CF_DOMAIN" ] && [ -n "$CF_CERT_ARN" ]; then
+            echo "Custom CloudFront domain: $CF_DOMAIN"
+            CDK_CONTEXT="$CDK_CONTEXT -c cfDomain=$CF_DOMAIN -c cfCertArn=$CF_CERT_ARN"
+          elif [ -n "$CF_DOMAIN" ]; then
+            echo "::warning::cfDomain set but cfCertArn is missing — custom domain skipped."
           fi
           cdk synth $CDK_CONTEXT
           cdk deploy --require-approval never $CDK_CONTEXT

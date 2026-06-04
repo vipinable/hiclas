@@ -10,6 +10,7 @@ import {
   aws_cognito as cognito,
   aws_ses as ses,
   aws_ses_actions as sesActions,
+  aws_certificatemanager as acm,
 } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as path from 'path';
@@ -223,11 +224,25 @@ export class ClassifiedsStack extends Stack {
     });
 
     // ── CloudFront ─────────────────────────────────────────────────────────────
+    // Optional custom domain. Set via CDK context:
+    //   cdk deploy -c cfDomain=dev.highlyclassifieds.com -c cfCertArn=arn:aws:acm:us-east-1:...
+    // The ACM certificate must exist in us-east-1 and cover the cfDomain before deploying.
+    const cfDomain = this.node.tryGetContext('cfDomain') || '';
+    const cfCertArn = this.node.tryGetContext('cfCertArn') || '';
+
+    const certificate = cfCertArn
+      ? acm.Certificate.fromCertificateArn(this, 'SiteCert', cfCertArn)
+      : undefined;
+
     const uploadsOrigin = origins.S3BucketOrigin.withOriginAccessControl(uploadsBucket);
 
     const distribution = new cloudfront.Distribution(this, 'Distribution', {
       comment: 'Classifieds dev distribution',
       defaultRootObject: 'index.html',
+      ...(cfDomain && certificate ? {
+        domainNames: [cfDomain],
+        certificate,
+      } : {}),
       defaultBehavior: {
         origin: origins.S3BucketOrigin.withOriginAccessControl(siteBucket),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
@@ -257,8 +272,12 @@ export class ClassifiedsStack extends Stack {
 
     // ── Outputs ────────────────────────────────────────────────────────────────
     new CfnOutput(this, 'DistributionUrl', {
-      value: `https://${distribution.distributionDomainName}`,
+      value: cfDomain ? `https://${cfDomain}` : `https://${distribution.distributionDomainName}`,
       description: 'Public URL of the classifieds app',
+    });
+    new CfnOutput(this, 'DistributionDomain', {
+      value: distribution.distributionDomainName,
+      description: 'CloudFront domain — point your CNAME here',
     });
     new CfnOutput(this, 'UserPoolId', {
       value: userPool.userPoolId,
