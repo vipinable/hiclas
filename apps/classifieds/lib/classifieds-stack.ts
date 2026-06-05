@@ -101,6 +101,14 @@ export class ClassifiedsStack extends Stack {
     });
 
     // ── S3 buckets ─────────────────────────────────────────────────────────────
+    const pagesBucket = new s3.Bucket(this, 'PagesBucket', {
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      encryption: s3.BucketEncryption.S3_MANAGED,
+      enforceSSL: true,
+      removalPolicy: RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+    });
+
     const siteBucket = new s3.Bucket(this, 'SiteBucket', {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       encryption: s3.BucketEncryption.S3_MANAGED,
@@ -234,6 +242,19 @@ export class ClassifiedsStack extends Stack {
       },
     });
 
+    // ── CloudFront Function — strip /pages prefix before serving from pagesBucket
+    const stripPagesPrefixFn = new cloudfront.Function(this, 'StripPagesPrefixFn', {
+      code: cloudfront.FunctionCode.fromInline(`
+function handler(event) {
+  var req = event.request;
+  // /pages/about.html → /about.html
+  req.uri = req.uri.slice(6) || '/index.html';
+  return req;
+}
+      `.trim()),
+      comment: 'Strip /pages prefix for S3 pages bucket origin',
+    });
+
     // ── CloudFront ─────────────────────────────────────────────────────────────
     // Optional custom domain. Set via CDK context:
     //   cdk deploy -c cfDomain=dev.highlyclassifieds.com -c cfCertArn=arn:aws:acm:us-east-1:...
@@ -274,11 +295,28 @@ export class ClassifiedsStack extends Stack {
       compress: true,
     });
 
+    distribution.addBehavior('/pages/*', origins.S3BucketOrigin.withOriginAccessControl(pagesBucket), {
+      viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+      compress: true,
+      functionAssociations: [{
+        function: stripPagesPrefixFn,
+        eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+      }],
+    });
+
     new s3deploy.BucketDeployment(this, 'DeploySite', {
       sources: [s3deploy.Source.asset(path.join(__dirname, '../web'))],
       destinationBucket: siteBucket,
       distribution,
       distributionPaths: ['/*'],
+    });
+
+    new s3deploy.BucketDeployment(this, 'DeployPages', {
+      sources: [s3deploy.Source.asset(path.join(__dirname, '../pages'))],
+      destinationBucket: pagesBucket,
+      distribution,
+      distributionPaths: ['/pages/*'],
     });
 
     // ── Outputs ────────────────────────────────────────────────────────────────
@@ -305,6 +343,10 @@ export class ClassifiedsStack extends Stack {
     new CfnOutput(this, 'UploadsBucketName', {
       value: uploadsBucket.bucketName,
       description: 'S3 bucket for listing images',
+    });
+    new CfnOutput(this, 'PagesBucketName', {
+      value: pagesBucket.bucketName,
+      description: 'S3 bucket for static pages (About, FAQ, Terms)',
     });
     new CfnOutput(this, 'SesSetupNote', {
       value: [
