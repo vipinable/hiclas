@@ -1,0 +1,25 @@
+{
+  "name": "hiclas",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "nx run-many -t build",
+    "build:affected": "nx affected -t build",
+    "deploy:classifieds": "nx run classifieds:deploy",
+    "deploy:eu": "nx run classifieds-eu:deploy",
+    "deploy:us": "nx run classifieds-us:deploy",
+    "deploy:production": "nx run-many -t deploy --projects=classifieds-eu,classifieds-us"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vipinable/hiclas.git"
+  },
+  "author": "vipinable@gmail.com",
+  "license": "ISC",
+  "devDependencies": {
+    "nx": "^22.7.5"
+  }
+}
