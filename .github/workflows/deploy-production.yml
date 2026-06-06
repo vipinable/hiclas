@@ -1,11 +1,15 @@
 name: Deploy Classifieds (production)
 
-# Triggered manually or on push to main.
-# Each environment (eu, us) loads its config from the corresponding
-# apps/classifieds/<env>/config.env folder, then deploys the CDK stack.
-# GitHub Actions environments named 'eu' and 'us' are used so that
-# environment-scoped secrets and approval gates can be configured in
-# Settings > Environments.
+# Dispatches deployments to the environment-specific repos:
+#   vipinable/hiclas-eu  →  eu-west-1
+#   vipinable/hiclas-us  →  us-east-1
+#
+# Each env repo checks out this repo at the specified ref and runs the CDK
+# deploy with its own environment config and GitHub Actions environment secrets.
+#
+# Prerequisites:
+#   - vipinable/hiclas-eu and vipinable/hiclas-us repos exist with deploy.yml
+#   - GH_TOKEN secret has workflow:write access on both env repos
 
 on:
   workflow_dispatch:
@@ -19,98 +23,37 @@ on:
           - us
           - both
         default: both
+      hiclas_ref:
+        description: "Branch or tag of this repo to deploy (default: main)"
+        required: false
+        type: string
+        default: main
 
 jobs:
-  deploy-eu:
+  trigger-eu:
     if: ${{ github.event.inputs.target == 'eu' || github.event.inputs.target == 'both' }}
-    name: Deploy — eu (eu-west-1)
+    name: Dispatch → hiclas-eu
     runs-on: ubuntu-latest
-    environment: eu
-    defaults:
-      run:
-        shell: bash
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Load eu environment config
-        run: cat apps/classifieds/eu/config.env >> "$GITHUB_ENV"
-
-      - name: Set AWS credentials
-        run: |
-          echo "AWS_ACCESS_KEY_ID=${{ secrets.A_KEY }}" >> "$GITHUB_ENV"
-          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.S_KEY }}" >> "$GITHUB_ENV"
-
-      - name: Check aws cli
-        run: aws --version && aws sts get-caller-identity --query Account --output text
-
-      - name: Install aws cdk package
-        run: npm install -g aws-cdk && cdk --version
-
-      - name: Deploy stack
-        working-directory: apps/classifieds
+      - name: Trigger eu deployment
         env:
-          SES_FROM_EMAIL: ${{ vars.SES_FROM_EMAIL }}
-          SES_RECEIVE_DOMAIN: ${{ vars.SES_RECEIVE_DOMAIN }}
-          CF_DOMAIN: ${{ vars.CF_DOMAIN }}
-          CF_CERT_ARN: ${{ vars.CF_CERT_ARN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
-          npm install
-          CDK_CONTEXT=""
-          if [ -n "$SES_FROM_EMAIL" ]; then
-            CDK_CONTEXT="$CDK_CONTEXT -c sesFromEmail=$SES_FROM_EMAIL"
-          fi
-          if [ -n "$SES_RECEIVE_DOMAIN" ]; then
-            CDK_CONTEXT="$CDK_CONTEXT -c sesReceiveDomain=$SES_RECEIVE_DOMAIN"
-          fi
-          if [ -n "$CF_DOMAIN" ] && [ -n "$CF_CERT_ARN" ]; then
-            CDK_CONTEXT="$CDK_CONTEXT -c cfDomain=$CF_DOMAIN -c cfCertArn=$CF_CERT_ARN"
-          fi
-          cdk synth $CDK_CONTEXT
-          cdk deploy --require-approval never $CDK_CONTEXT
+          gh workflow run deploy.yml \
+            --repo vipinable/hiclas-eu \
+            --ref main \
+            --field hiclas_ref=${{ github.event.inputs.hiclas_ref || 'main' }}
 
-  deploy-us:
+  trigger-us:
     if: ${{ github.event.inputs.target == 'us' || github.event.inputs.target == 'both' }}
-    name: Deploy — us (us-east-1)
+    name: Dispatch → hiclas-us
     runs-on: ubuntu-latest
-    environment: us
-    defaults:
-      run:
-        shell: bash
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Load us environment config
-        run: cat apps/classifieds/us/config.env >> "$GITHUB_ENV"
-
-      - name: Set AWS credentials
-        run: |
-          echo "AWS_ACCESS_KEY_ID=${{ secrets.A_KEY }}" >> "$GITHUB_ENV"
-          echo "AWS_SECRET_ACCESS_KEY=${{ secrets.S_KEY }}" >> "$GITHUB_ENV"
-
-      - name: Check aws cli
-        run: aws --version && aws sts get-caller-identity --query Account --output text
-
-      - name: Install aws cdk package
-        run: npm install -g aws-cdk && cdk --version
-
-      - name: Deploy stack
-        working-directory: apps/classifieds
+      - name: Trigger us deployment
         env:
-          SES_FROM_EMAIL: ${{ vars.SES_FROM_EMAIL }}
-          SES_RECEIVE_DOMAIN: ${{ vars.SES_RECEIVE_DOMAIN }}
-          CF_DOMAIN: ${{ vars.CF_DOMAIN }}
-          CF_CERT_ARN: ${{ vars.CF_CERT_ARN }}
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
-          npm install
-          CDK_CONTEXT=""
-          if [ -n "$SES_FROM_EMAIL" ]; then
-            CDK_CONTEXT="$CDK_CONTEXT -c sesFromEmail=$SES_FROM_EMAIL"
-          fi
-          if [ -n "$SES_RECEIVE_DOMAIN" ]; then
-            CDK_CONTEXT="$CDK_CONTEXT -c sesReceiveDomain=$SES_RECEIVE_DOMAIN"
-          fi
-          if [ -n "$CF_DOMAIN" ] && [ -n "$CF_CERT_ARN" ]; then
-            CDK_CONTEXT="$CDK_CONTEXT -c cfDomain=$CF_DOMAIN -c cfCertArn=$CF_CERT_ARN"
-          fi
-          cdk synth $CDK_CONTEXT
-          cdk deploy --require-approval never $CDK_CONTEXT
+          gh workflow run deploy.yml \
+            --repo vipinable/hiclas-us \
+            --ref main \
+            --field hiclas_ref=${{ github.event.inputs.hiclas_ref || 'main' }}
