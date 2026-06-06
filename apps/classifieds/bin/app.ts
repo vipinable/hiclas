@@ -5,8 +5,8 @@ import { ClassifiedsStack } from '../lib/classifieds-stack';
 
 const app = new cdk.App();
 
-const appName = process.env.ApplicationName || 'classifieds';
-const envName = process.env.Environment || 'dev';
+const appName = process.env.APP_NAME || 'classifieds';
+const envName = process.env.ENV_NAME || 'dev';
 
 new ClassifiedsStack(app, `${appName}-${envName}`, {
   env: {
