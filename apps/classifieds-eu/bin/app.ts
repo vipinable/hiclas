@@ -6,12 +6,12 @@ import { ClassifiedsStack } from '../lib/classifieds-stack';
 const app = new cdk.App();
 
 const appName = process.env.APP_NAME || 'classifieds';
-const envName = process.env.ENV_NAME || 'dev';
+const envName = process.env.ENV_NAME || 'eu';
 
 new ClassifiedsStack(app, `${appName}-${envName}`, {
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
-    region: process.env.CDK_DEFAULT_REGION,
+    region: process.env.CDK_DEFAULT_REGION || 'eu-west-1',
   },
-  description: 'Fresh minimal classifieds app',
+  description: 'Classifieds app — eu production environment (eu-west-1)',
 });

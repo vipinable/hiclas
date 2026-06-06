@@ -1,0 +1,23 @@
+{
+  "$schema": "./node_modules/nx/schemas/nx-schema.json",
+  "defaultBase": "main",
+  "namedInputs": {
+    "default": ["{projectRoot}/**/*"],
+    "production": ["default", "!{projectRoot}/**/*.spec.ts"]
+  },
+  "targetDefaults": {
+    "build": {
+      "cache": true,
+      "inputs": ["production"]
+    },
+    "synth": {
+      "cache": true,
+      "inputs": ["production"],
+      "dependsOn": ["build"]
+    },
+    "deploy": {
+      "inputs": ["production"],
+      "dependsOn": ["build"]
+    }
+  }
+}
