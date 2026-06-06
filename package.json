@@ -6,15 +6,20 @@
     "apps/*"
   ],
   "scripts": {
-    "build": "npm run build --workspaces --if-present",
-    "deploy:classifieds": "npm run cdk --workspace=apps/classifieds -- deploy --require-approval never",
-    "deploy:eu": "npm run cdk --workspace=apps/classifieds-eu -- deploy --require-approval never",
-    "deploy:us": "npm run cdk --workspace=apps/classifieds-us -- deploy --require-approval never"
+    "build": "nx run-many -t build",
+    "build:affected": "nx affected -t build",
+    "deploy:classifieds": "nx run classifieds:deploy",
+    "deploy:eu": "nx run classifieds-eu:deploy",
+    "deploy:us": "nx run classifieds-us:deploy",
+    "deploy:production": "nx run-many -t deploy --projects=classifieds-eu,classifieds-us"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vipinable/hiclas.git"
   },
   "author": "vipinable@gmail.com",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "nx": "^22.7.5"
+  }
 }
