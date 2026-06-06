@@ -1,0 +1,106 @@
+name: Deploy Classifieds (production)
+
+# Uses nx to deploy the eu and/or us production apps.
+# eu → apps/classifieds-eu  (eu-west-1)
+# us → apps/classifieds-us  (us-east-1)
+#
+# Each app has its own independent bin/ and lib/ under apps/classifieds-{env}/.
+# Set environment-scoped secrets in Settings → Environments → eu / us.
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: "Which production environment to deploy"
+        required: true
+        type: choice
+        options:
+          - eu
+          - us
+          - both
+        default: both
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.A_KEY }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.S_KEY }}
+
+jobs:
+  deploy-eu:
+    if: ${{ github.event.inputs.target == 'eu' || github.event.inputs.target == 'both' }}
+    name: Deploy — eu (eu-west-1)
+    runs-on: ubuntu-latest
+    environment: eu
+    defaults:
+      run:
+        shell: bash
+    env:
+      AWS_DEFAULT_REGION: eu-west-1
+      APP_NAME: ${{ vars.APP_NAME || 'classifieds' }}
+      ENV_NAME: eu
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install aws-cdk
+        run: npm install -g aws-cdk && cdk --version
+
+      - name: Check AWS credentials
+        run: aws sts get-caller-identity --query Account --output text
+
+      - name: nx build classifieds-eu
+        run: npx nx run classifieds-eu:build
+
+      - name: nx deploy classifieds-eu
+        env:
+          SES_FROM_EMAIL: ${{ vars.SES_FROM_EMAIL }}
+          SES_RECEIVE_DOMAIN: ${{ vars.SES_RECEIVE_DOMAIN }}
+          CF_DOMAIN: ${{ vars.CF_DOMAIN }}
+          CF_CERT_ARN: ${{ vars.CF_CERT_ARN }}
+        run: |
+          CDK_CONTEXT=""
+          [ -n "$SES_FROM_EMAIL" ]     && CDK_CONTEXT="$CDK_CONTEXT -c sesFromEmail=$SES_FROM_EMAIL"
+          [ -n "$SES_RECEIVE_DOMAIN" ] && CDK_CONTEXT="$CDK_CONTEXT -c sesReceiveDomain=$SES_RECEIVE_DOMAIN"
+          [ -n "$CF_DOMAIN" ] && [ -n "$CF_CERT_ARN" ] && CDK_CONTEXT="$CDK_CONTEXT -c cfDomain=$CF_DOMAIN -c cfCertArn=$CF_CERT_ARN"
+          npx nx run classifieds-eu:deploy --args="$CDK_CONTEXT"
+
+  deploy-us:
+    if: ${{ github.event.inputs.target == 'us' || github.event.inputs.target == 'both' }}
+    name: Deploy — us (us-east-1)
+    runs-on: ubuntu-latest
+    environment: us
+    defaults:
+      run:
+        shell: bash
+    env:
+      AWS_DEFAULT_REGION: us-east-1
+      APP_NAME: ${{ vars.APP_NAME || 'classifieds' }}
+      ENV_NAME: us
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install aws-cdk
+        run: npm install -g aws-cdk && cdk --version
+
+      - name: Check AWS credentials
+        run: aws sts get-caller-identity --query Account --output text
+
+      - name: nx build classifieds-us
+        run: npx nx run classifieds-us:build
+
+      - name: nx deploy classifieds-us
+        env:
+          SES_FROM_EMAIL: ${{ vars.SES_FROM_EMAIL }}
+          SES_RECEIVE_DOMAIN: ${{ vars.SES_RECEIVE_DOMAIN }}
+          CF_DOMAIN: ${{ vars.CF_DOMAIN }}
+          CF_CERT_ARN: ${{ vars.CF_CERT_ARN }}
+        run: |
+          CDK_CONTEXT=""
+          [ -n "$SES_FROM_EMAIL" ]     && CDK_CONTEXT="$CDK_CONTEXT -c sesFromEmail=$SES_FROM_EMAIL"
+          [ -n "$SES_RECEIVE_DOMAIN" ] && CDK_CONTEXT="$CDK_CONTEXT -c sesReceiveDomain=$SES_RECEIVE_DOMAIN"
+          [ -n "$CF_DOMAIN" ] && [ -n "$CF_CERT_ARN" ] && CDK_CONTEXT="$CDK_CONTEXT -c cfDomain=$CF_DOMAIN -c cfCertArn=$CF_CERT_ARN"
+          npx nx run classifieds-us:deploy --args="$CDK_CONTEXT"

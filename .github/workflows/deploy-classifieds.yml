@@ -1,0 +1,88 @@
+name: Deploy Classifieds (dev)
+
+on:
+  push:
+    branches:
+      - dev
+  workflow_dispatch:
+    inputs:
+      sesFromEmail:
+        description: "SES sender email for OTPs. Overrides the SES_FROM_EMAIL repo variable."
+        required: false
+        type: string
+        default: ""
+      sesReceiveDomain:
+        description: "Domain to receive inbound email for. Overrides the SES_RECEIVE_DOMAIN repo variable."
+        required: false
+        type: string
+        default: ""
+      cfDomain:
+        description: "Custom domain for CloudFront (e.g. dev.highlyclassifieds.com). Requires cfCertArn."
+        required: false
+        type: string
+        default: ""
+      cfCertArn:
+        description: "ACM certificate ARN (us-east-1) covering cfDomain. Required when cfDomain is set."
+        required: false
+        type: string
+        default: ""
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.A_KEY }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.S_KEY }}
+  AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION || 'us-east-1' }}
+  APP_NAME: ${{ vars.APP_NAME || 'classifieds' }}
+  ENV_NAME: ${{ vars.ENV_NAME || 'dev' }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    # Must match the GitHub Environment where CF_DOMAIN / CF_CERT_ARN and the
+    # other env-scoped variables live, otherwise vars.* resolve to empty and
+    # the custom-domain mapping gets dropped on deploy.
+    environment: dev
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Check aws cli
+        run: aws --version && aws sts get-caller-identity --query Account --output text
+
+      - name: Install aws cdk package
+        run: npm install -g aws-cdk && cdk --version
+
+      - name: Check running versions
+        run: echo "node:$(node --version), cdk:$(cdk --version)"
+
+      - name: Deploy stack
+        working-directory: apps/classifieds
+        env:
+          SES_FROM_EMAIL: ${{ github.event.inputs.sesFromEmail || vars.SES_FROM_EMAIL }}
+          SES_RECEIVE_DOMAIN: ${{ github.event.inputs.sesReceiveDomain || vars.SES_RECEIVE_DOMAIN }}
+          CF_DOMAIN: ${{ github.event.inputs.cfDomain || vars.CF_DOMAIN }}
+          CF_CERT_ARN: ${{ github.event.inputs.cfCertArn || vars.CF_CERT_ARN }}
+        run: |
+          npm install
+          CDK_CONTEXT=""
+          if [ -n "$SES_FROM_EMAIL" ]; then
+            echo "SES sender email: $SES_FROM_EMAIL"
+            CDK_CONTEXT="$CDK_CONTEXT -c sesFromEmail=$SES_FROM_EMAIL"
+          else
+            echo "::warning::SES_FROM_EMAIL not set — OTP emails will use the placeholder default."
+          fi
+          if [ -n "$SES_RECEIVE_DOMAIN" ]; then
+            echo "Email receiving enabled for domain: $SES_RECEIVE_DOMAIN"
+            CDK_CONTEXT="$CDK_CONTEXT -c sesReceiveDomain=$SES_RECEIVE_DOMAIN"
+          else
+            echo "No sesReceiveDomain — email receiving setup will be skipped."
+          fi
+          if [ -n "$CF_DOMAIN" ] && [ -n "$CF_CERT_ARN" ]; then
+            echo "Custom CloudFront domain: $CF_DOMAIN"
+            CDK_CONTEXT="$CDK_CONTEXT -c cfDomain=$CF_DOMAIN -c cfCertArn=$CF_CERT_ARN"
+          elif [ -n "$CF_DOMAIN" ]; then
+            echo "::warning::cfDomain set but cfCertArn is missing — custom domain skipped."
+          fi
+          cdk synth $CDK_CONTEXT
+          cdk deploy --require-approval never $CDK_CONTEXT

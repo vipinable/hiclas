@@ -2,22 +2,29 @@ name: Setup SES Sender Email
 
 # One-shot manual workflow: verifies the OTP sender address in SES and
 # re-deploys the dev stack so CreateAuthFn picks up the new OTP_SENDER_EMAIL.
+# Optionally also configures SES inbound email receiving for a domain.
 #
 # Before running:
-#   1. Set the SES_FROM_EMAIL repository variable (Settings > Variables > Actions)
-#      e.g.  noreply@yourdomain.com
+#   1. Set repo variables (Settings > Variables > Actions):
+#        SES_FROM_EMAIL     e.g.  noreply@highlyclassifieds.com
+#        SES_RECEIVE_DOMAIN e.g.  highlyclassifieds.com
 #   2. Run this workflow from Actions > Setup SES Sender Email > Run workflow
 #   3. Check the inbox of that address and click the AWS verification link
-#   4. In SES sandbox mode every *recipient* email must also be verified;
+#   4. (If using email receiving) Add an MX record on sesReceiveDomain pointing to
+#      inbound-smtp.us-east-1.amazonaws.com (priority 10), then activate the
+#      "classifieds-inbound" rule set in the SES console.
+#   5. In SES sandbox mode every *recipient* email must also be verified;
 #      request SES production access to lift that restriction.
 
 on:
   workflow_dispatch:
     inputs:
       ses_email:
-        description: |
-          Sender email to verify (overrides the SES_FROM_EMAIL repo variable).
-          Leave blank to use the variable.
+        description: "Sender email to verify. Overrides the SES_FROM_EMAIL repo variable."
+        required: false
+        type: string
+      ses_receive_domain:
+        description: "Domain to receive inbound email for. Overrides the SES_RECEIVE_DOMAIN repo variable."
         required: false
         type: string
 
@@ -41,7 +48,7 @@ jobs:
       # ------------------------------------------------------------------
       # 1. Resolve the sender email (input beats variable)
       # ------------------------------------------------------------------
-      - name: Resolve sender email
+      - name: Resolve inputs
         id: email
         run: |
           EMAIL="${{ github.event.inputs.ses_email }}"
@@ -49,13 +56,19 @@ jobs:
             EMAIL="${{ vars.SES_FROM_EMAIL }}"
           fi
           if [ -z "$EMAIL" ]; then
-            echo "::error::No email provided."
-            echo "::error::Set the SES_FROM_EMAIL repository variable under Settings > Variables > Actions,"
-            echo "::error::or pass the email as the ses_email input when triggering the workflow."
+            echo "::error::No sender email provided. Set the SES_FROM_EMAIL repo variable (Settings > Variables > Actions) or pass ses_email when triggering the workflow."
             exit 1
           fi
+
+          DOMAIN="${{ github.event.inputs.ses_receive_domain }}"
+          if [ -z "$DOMAIN" ]; then
+            DOMAIN="${{ vars.SES_RECEIVE_DOMAIN }}"
+          fi
+
           echo "email=$EMAIL" >> "$GITHUB_OUTPUT"
-          echo "Sender email: $EMAIL"
+          echo "domain=$DOMAIN" >> "$GITHUB_OUTPUT"
+          echo "Sender email : $EMAIL"
+          echo "Receive domain: ${DOMAIN:-"(not set — email receiving will be skipped)"}"
 
       # ------------------------------------------------------------------
       # 2. Confirm AWS credentials are working
@@ -89,25 +102,35 @@ jobs:
           fi
 
       # ------------------------------------------------------------------
-      # 4. Re-deploy the dev CDK stack with the new sender email
-      #    This updates OTP_SENDER_EMAIL on the CreateAuthFn Lambda.
+      # 4. Re-deploy the dev CDK stack with the new sender email and
+      #    optional receive domain context.
       # ------------------------------------------------------------------
       - name: Install aws-cdk
         run: npm install -g aws-cdk && cdk --version
 
-      - name: Deploy stack with updated sender email
-        working-directory: app
-        run: |
-          npm install
-          cdk synth -c sesFromEmail="$SES_EMAIL"
-          cdk deploy --require-approval never -c sesFromEmail="$SES_EMAIL"
+      - name: Deploy stack
+        working-directory: apps/classifieds
         env:
           SES_EMAIL: ${{ steps.email.outputs.email }}
+          SES_RECEIVE_DOMAIN: ${{ steps.email.outputs.domain }}
+        run: |
+          npm install
+          CDK_CONTEXT="-c sesFromEmail=$SES_EMAIL"
+          if [ -n "$SES_RECEIVE_DOMAIN" ]; then
+            echo "Email receiving enabled for domain: $SES_RECEIVE_DOMAIN"
+            CDK_CONTEXT="$CDK_CONTEXT -c sesReceiveDomain=$SES_RECEIVE_DOMAIN"
+          else
+            echo "No sesReceiveDomain provided — email receiving setup skipped."
+          fi
+          cdk synth $CDK_CONTEXT
+          cdk deploy --require-approval never $CDK_CONTEXT
 
       # ------------------------------------------------------------------
       # 5. Print a summary
       # ------------------------------------------------------------------
       - name: Summary
+        env:
+          SES_RECEIVE_DOMAIN: ${{ steps.email.outputs.domain }}
         run: |
           EMAIL="${{ steps.email.outputs.email }}"
           STATUS="${{ steps.ses.outputs.status }}"
@@ -125,6 +148,18 @@ jobs:
           fi
 
           echo "| Lambda env var | \`OTP_SENDER_EMAIL\` updated on \`CreateAuthFn\` |" >> "$GITHUB_STEP_SUMMARY"
+
+          if [ -n "$SES_RECEIVE_DOMAIN" ]; then
+            echo "| Email receiving domain | \`$SES_RECEIVE_DOMAIN\` |" >> "$GITHUB_STEP_SUMMARY"
+            echo "| Inbound email path | \`uploads-bucket/emails/<cognito-username>/<messageId>.eml\` |" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "> **Next steps for email receiving:**" >> "$GITHUB_STEP_SUMMARY"
+            echo "> 1. Add MX record: \`$SES_RECEIVE_DOMAIN → inbound-smtp.\${AWS_DEFAULT_REGION}.amazonaws.com\` (priority 10)" >> "$GITHUB_STEP_SUMMARY"
+            echo "> 2. In the SES console go to **Email receiving → Receipt rule sets → classifieds-inbound → Set as active**" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "| Email receiving | Not configured (no sesReceiveDomain provided) |" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "> **SES sandbox mode:** every *recipient* address must also be verified." >> "$GITHUB_STEP_SUMMARY"
           echo "> Request SES production access to lift this restriction." >> "$GITHUB_STEP_SUMMARY"
