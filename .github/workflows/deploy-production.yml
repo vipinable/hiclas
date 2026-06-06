@@ -1,15 +1,11 @@
 name: Deploy Classifieds (production)
 
-# Dispatches deployments to the environment-specific repos:
-#   vipinable/hiclas-eu  →  eu-west-1
-#   vipinable/hiclas-us  →  us-east-1
+# Deploys the classifieds app to the eu and/or us production environments.
+# eu → apps/classifieds-eu  (eu-west-1)
+# us → apps/classifieds-us  (us-east-1)
 #
-# Each env repo checks out this repo at the specified ref and runs the CDK
-# deploy with its own environment config and GitHub Actions environment secrets.
-#
-# Prerequisites:
-#   - vipinable/hiclas-eu and vipinable/hiclas-us repos exist with deploy.yml
-#   - GH_TOKEN secret has workflow:write access on both env repos
+# Each app imports ClassifiedsStack from apps/classifieds and configures it
+# with the environment-specific region and GitHub Actions environment secrets.
 
 on:
   workflow_dispatch:
@@ -23,37 +19,94 @@ on:
           - us
           - both
         default: both
-      hiclas_ref:
-        description: "Branch or tag of this repo to deploy (default: main)"
-        required: false
-        type: string
-        default: main
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.A_KEY }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.S_KEY }}
 
 jobs:
-  trigger-eu:
+  deploy-eu:
     if: ${{ github.event.inputs.target == 'eu' || github.event.inputs.target == 'both' }}
-    name: Dispatch → hiclas-eu
+    name: Deploy — eu (eu-west-1)
     runs-on: ubuntu-latest
+    environment: eu
+    defaults:
+      run:
+        shell: bash
+    env:
+      AWS_DEFAULT_REGION: eu-west-1
+      APP_NAME: ${{ vars.APP_NAME || 'classifieds' }}
+      ENV_NAME: eu
     steps:
-      - name: Trigger eu deployment
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: |
-          gh workflow run deploy.yml \
-            --repo vipinable/hiclas-eu \
-            --ref main \
-            --field hiclas_ref=${{ github.event.inputs.hiclas_ref || 'main' }}
+      - uses: actions/checkout@v3
 
-  trigger-us:
-    if: ${{ github.event.inputs.target == 'us' || github.event.inputs.target == 'both' }}
-    name: Dispatch → hiclas-us
-    runs-on: ubuntu-latest
-    steps:
-      - name: Trigger us deployment
+      - name: Check aws cli
+        run: aws --version && aws sts get-caller-identity --query Account --output text
+
+      - name: Install aws cdk package
+        run: npm install -g aws-cdk && cdk --version
+
+      - name: Deploy stack
+        working-directory: apps/classifieds-eu
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+          SES_FROM_EMAIL: ${{ vars.SES_FROM_EMAIL }}
+          SES_RECEIVE_DOMAIN: ${{ vars.SES_RECEIVE_DOMAIN }}
+          CF_DOMAIN: ${{ vars.CF_DOMAIN }}
+          CF_CERT_ARN: ${{ vars.CF_CERT_ARN }}
         run: |
-          gh workflow run deploy.yml \
-            --repo vipinable/hiclas-us \
-            --ref main \
-            --field hiclas_ref=${{ github.event.inputs.hiclas_ref || 'main' }}
+          npm install
+          CDK_CONTEXT=""
+          if [ -n "$SES_FROM_EMAIL" ]; then
+            CDK_CONTEXT="$CDK_CONTEXT -c sesFromEmail=$SES_FROM_EMAIL"
+          fi
+          if [ -n "$SES_RECEIVE_DOMAIN" ]; then
+            CDK_CONTEXT="$CDK_CONTEXT -c sesReceiveDomain=$SES_RECEIVE_DOMAIN"
+          fi
+          if [ -n "$CF_DOMAIN" ] && [ -n "$CF_CERT_ARN" ]; then
+            CDK_CONTEXT="$CDK_CONTEXT -c cfDomain=$CF_DOMAIN -c cfCertArn=$CF_CERT_ARN"
+          fi
+          cdk synth $CDK_CONTEXT
+          cdk deploy --require-approval never $CDK_CONTEXT
+
+  deploy-us:
+    if: ${{ github.event.inputs.target == 'us' || github.event.inputs.target == 'both' }}
+    name: Deploy — us (us-east-1)
+    runs-on: ubuntu-latest
+    environment: us
+    defaults:
+      run:
+        shell: bash
+    env:
+      AWS_DEFAULT_REGION: us-east-1
+      APP_NAME: ${{ vars.APP_NAME || 'classifieds' }}
+      ENV_NAME: us
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Check aws cli
+        run: aws --version && aws sts get-caller-identity --query Account --output text
+
+      - name: Install aws cdk package
+        run: npm install -g aws-cdk && cdk --version
+
+      - name: Deploy stack
+        working-directory: apps/classifieds-us
+        env:
+          SES_FROM_EMAIL: ${{ vars.SES_FROM_EMAIL }}
+          SES_RECEIVE_DOMAIN: ${{ vars.SES_RECEIVE_DOMAIN }}
+          CF_DOMAIN: ${{ vars.CF_DOMAIN }}
+          CF_CERT_ARN: ${{ vars.CF_CERT_ARN }}
+        run: |
+          npm install
+          CDK_CONTEXT=""
+          if [ -n "$SES_FROM_EMAIL" ]; then
+            CDK_CONTEXT="$CDK_CONTEXT -c sesFromEmail=$SES_FROM_EMAIL"
+          fi
+          if [ -n "$SES_RECEIVE_DOMAIN" ]; then
+            CDK_CONTEXT="$CDK_CONTEXT -c sesReceiveDomain=$SES_RECEIVE_DOMAIN"
+          fi
+          if [ -n "$CF_DOMAIN" ] && [ -n "$CF_CERT_ARN" ]; then
+            CDK_CONTEXT="$CDK_CONTEXT -c cfDomain=$CF_DOMAIN -c cfCertArn=$CF_CERT_ARN"
+          fi
+          cdk synth $CDK_CONTEXT
+          cdk deploy --require-approval never $CDK_CONTEXT

@@ -7,7 +7,9 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
-    "deploy:classifieds": "npm run cdk --workspace=apps/classifieds -- deploy --require-approval never"
+    "deploy:classifieds": "npm run cdk --workspace=apps/classifieds -- deploy --require-approval never",
+    "deploy:eu": "npm run cdk --workspace=apps/classifieds-eu -- deploy --require-approval never",
+    "deploy:us": "npm run cdk --workspace=apps/classifieds-us -- deploy --require-approval never"
   },
   "repository": {
     "type": "git",
