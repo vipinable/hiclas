@@ -37,7 +37,10 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: all
+    # Must match the GitHub Environment where CF_DOMAIN / CF_CERT_ARN and the
+    # other env-scoped variables live, otherwise vars.* resolve to empty and
+    # the custom-domain mapping gets dropped on deploy.
+    environment: dev
     defaults:
       run:
         shell: bash
