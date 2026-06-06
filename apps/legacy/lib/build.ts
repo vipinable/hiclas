@@ -254,7 +254,7 @@ export class LambdaWithLayer extends Stack {
         cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
         originRequestPolicy: cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
       },
-      domainNames: ['fn.theworkingmethods.com'],
+      domainNames: ['fn.theworkingmethods.com','dev.highlyclassifieds.com'],
       certificate: hiclasCert,
       defaultRootObject: 'index.html',
     });
