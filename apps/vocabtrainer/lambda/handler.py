@@ -1,10 +1,12 @@
-"""VocabTrainer game API.
+"""VocabTrainer game API + page server.
 
-Routes (all served from a Lambda Function URL):
+The Lambda is fronted by a single Function URL and serves both the web UI
+and the JSON API:
 
-    GET  /api/lists                 -> list available CSV keys in the vocab bucket
-    GET  /api/round?list=<key>&n=4  -> one match round: a target word + n meaning choices
-    POST /api/answer                -> grade the user's pick, return is_correct + the right meaning
+    GET  /                          -> index.html (the game UI)
+    GET  /lists                     -> list available CSV keys in the vocab bucket
+    GET  /round?list=<key>&n=4      -> one match round: a target word + n meaning choices
+    POST /answer                    -> grade the user's pick, return is_correct + the right meaning
 
 Round shape:
     {
@@ -18,8 +20,8 @@ Round shape:
         ]
     }
 
-The round_id is just `<list>|<word>` — the client echoes it back with the
-chosen choice id so we can grade without server-side session state.
+The round_id is `<list>|<word>` — the client echoes it back with the
+chosen meaning so we can grade without server-side session state.
 """
 
 import csv
@@ -36,20 +38,33 @@ s3 = boto3.client("s3")
 BUCKET = os.environ["VOCAB_BUCKET"]
 DEFAULT_KEY = os.environ.get("DEFAULT_VOCAB_KEY", "default.csv")
 
+# Page is shipped alongside the handler in the Lambda bundle.
+_PAGE_PATH = os.path.join(os.path.dirname(__file__), "index.html")
+with open(_PAGE_PATH, "r", encoding="utf-8") as _f:
+    INDEX_HTML = _f.read()
 
-def _resp(status, body, extra_headers=None):
-    headers = {
-        "content-type": "application/json",
-        "access-control-allow-origin": "*",
-        "access-control-allow-headers": "*",
-        "access-control-allow-methods": "GET,POST,OPTIONS",
-    }
-    if extra_headers:
-        headers.update(extra_headers)
+
+def _json(status, body):
     return {
         "statusCode": status,
-        "headers": headers,
+        "headers": {
+            "content-type": "application/json",
+            "access-control-allow-origin": "*",
+            "access-control-allow-headers": "*",
+            "access-control-allow-methods": "GET,POST,OPTIONS",
+        },
         "body": json.dumps(body),
+    }
+
+
+def _html(status, body):
+    return {
+        "statusCode": status,
+        "headers": {
+            "content-type": "text/html; charset=utf-8",
+            "cache-control": "no-store",
+        },
+        "body": body,
     }
 
 
@@ -66,7 +81,6 @@ def _load_vocab(key):
         meaning = row[1].strip()
         if not word or not meaning:
             continue
-        # skip a header row if it looks like one
         if word.lower() == "word" and meaning.lower() == "meaning":
             continue
         pairs.append((word, meaning))
@@ -91,7 +105,6 @@ def _pick_round(pairs, n_choices):
     target_idx = random.randrange(len(pairs))
     word, correct_meaning = pairs[target_idx]
 
-    # pool of distractor meanings: every other meaning, deduped
     distractor_pool = list({m for i, (_, m) in enumerate(pairs) if i != target_idx and m != correct_meaning})
     random.shuffle(distractor_pool)
     distractors = distractor_pool[: n_choices - 1]
@@ -103,17 +116,20 @@ def _pick_round(pairs, n_choices):
 
 
 def _route(method, path, qs, body):
-    # Strip the optional CloudFront /api prefix so both `/api/round` and `/round` work.
+    # Strip optional /api prefix so both `/api/round` and `/round` work.
     if path.startswith("/api/"):
         path = path[4:]
     elif path == "/api":
         path = "/"
 
     if method == "OPTIONS":
-        return _resp(204, {})
+        return _json(204, {})
+
+    if method == "GET" and path in ("/", "/index.html"):
+        return _html(200, INDEX_HTML)
 
     if method == "GET" and path == "/lists":
-        return _resp(200, {"lists": _list_vocab_keys()})
+        return _json(200, {"lists": _list_vocab_keys()})
 
     if method == "GET" and path == "/round":
         key = (qs.get("list") or [DEFAULT_KEY])[0]
@@ -123,14 +139,13 @@ def _route(method, path, qs, body):
             n = 4
         pairs = _load_vocab(key)
         if len(pairs) < 2:
-            return _resp(400, {"error": f"vocab list '{key}' needs at least 2 entries"})
+            return _json(400, {"error": f"vocab list '{key}' needs at least 2 entries"})
         word, correct_meaning, choices = _pick_round(pairs, n)
-        return _resp(200, {
+        return _json(200, {
             "list": key,
             "round_id": f"{key}|{word}",
             "word": word,
             "choices": choices,
-            # NOTE: also returned so the client can show the right meaning after a wrong guess.
             "correct_meaning": correct_meaning,
         })
 
@@ -138,24 +153,24 @@ def _route(method, path, qs, body):
         try:
             data = json.loads(body or "{}")
         except json.JSONDecodeError:
-            return _resp(400, {"error": "invalid JSON body"})
+            return _json(400, {"error": "invalid JSON body"})
         round_id = data.get("round_id") or ""
         chosen_meaning = (data.get("chosen_meaning") or "").strip()
         if "|" not in round_id or not chosen_meaning:
-            return _resp(400, {"error": "round_id and chosen_meaning are required"})
+            return _json(400, {"error": "round_id and chosen_meaning are required"})
         key, word = round_id.split("|", 1)
         pairs = _load_vocab(key)
         correct = next((m for w, m in pairs if w == word), None)
         if correct is None:
-            return _resp(404, {"error": f"word '{word}' not found in '{key}'"})
+            return _json(404, {"error": f"word '{word}' not found in '{key}'"})
         is_correct = chosen_meaning == correct
-        return _resp(200, {
+        return _json(200, {
             "is_correct": is_correct,
             "correct_meaning": correct,
             "points_awarded": 1 if is_correct else 0,
         })
 
-    return _resp(404, {"error": f"no route for {method} {path}"})
+    return _json(404, {"error": f"no route for {method} {path}"})
 
 
 def handler(event, _context):
@@ -174,7 +189,6 @@ def handler(event, _context):
     parsed = urlparse(raw_path)
     path = parsed.path or "/"
 
-    # Lambda Function URLs put the query string in rawQueryString.
     raw_qs = event.get("rawQueryString") or parsed.query or ""
     qs = parse_qs(raw_qs)
 
@@ -186,6 +200,6 @@ def handler(event, _context):
     try:
         return _route(method, path, qs, body)
     except s3.exceptions.NoSuchKey:
-        return _resp(404, {"error": "vocab list not found"})
-    except Exception as exc:  # noqa: BLE001 — surface the message to the client for now
-        return _resp(500, {"error": str(exc)})
+        return _json(404, {"error": "vocab list not found"})
+    except Exception as exc:  # noqa: BLE001
+        return _json(500, {"error": str(exc)})

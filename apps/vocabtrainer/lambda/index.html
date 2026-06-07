@@ -141,16 +141,6 @@
   <div class="panel">
     <div class="row">
       <div>
-        <label for="apiInput">API URL</label>
-        <input id="apiInput" placeholder="https://xxxx.lambda-url.us-east-1.on.aws/">
-      </div>
-      <div style="flex: 0 0 auto;">
-        <label>&nbsp;</label>
-        <button id="saveApi" class="secondary" style="width: auto; padding: 10px 14px;">Save</button>
-      </div>
-    </div>
-    <div class="row" style="margin-top: 12px;">
-      <div>
         <label for="listSelect">Word list</label>
         <select id="listSelect"><option>(loading…)</option></select>
       </div>
@@ -185,11 +175,7 @@
 </div>
 
 <script>
-const API_KEY = "vocabtrainer.apiUrl";
-
 const els = {
-  apiInput: document.getElementById("apiInput"),
-  saveApi: document.getElementById("saveApi"),
   listSelect: document.getElementById("listSelect"),
   startBtn: document.getElementById("startBtn"),
   err: document.getElementById("err"),
@@ -204,7 +190,6 @@ const els = {
 };
 
 let state = {
-  apiUrl: localStorage.getItem(API_KEY) || "",
   score: 0,
   roundNum: 0,
   streak: 0,
@@ -212,21 +197,13 @@ let state = {
   answered: false,
 };
 
-els.apiInput.value = state.apiUrl;
-
 function showError(msg) {
   els.err.textContent = msg;
   els.err.style.display = msg ? "block" : "none";
 }
 
-function apiBase() {
-  let u = state.apiUrl.trim();
-  if (!u) throw new Error("Set the Lambda Function URL above first.");
-  return u.replace(/\/+$/, "");
-}
-
 async function api(path, opts) {
-  const res = await fetch(apiBase() + path, opts);
+  const res = await fetch(path, opts);
   if (!res.ok) {
     let msg = `HTTP ${res.status}`;
     try { const j = await res.json(); if (j.error) msg = j.error; } catch (_) {}
@@ -333,15 +310,10 @@ async function onChoose(btn, chosenMeaning) {
   }
 }
 
-els.saveApi.addEventListener("click", () => {
-  state.apiUrl = els.apiInput.value.trim();
-  localStorage.setItem(API_KEY, state.apiUrl);
-  loadLists();
-});
 els.startBtn.addEventListener("click", nextRound);
 els.nextBtn.addEventListener("click", nextRound);
 
-if (state.apiUrl) loadLists();
+loadLists();
 </script>
 </body>
 </html>

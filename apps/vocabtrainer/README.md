@@ -5,21 +5,19 @@ A tiny web app for learning vocabulary by playing a word-match game.
 ## Architecture
 
 ```
-Browser ──▶ S3 static site (index.html)
-        ──▶ Lambda Function URL ──▶ Lambda (handler.py)
-                                       │
+Browser ──▶ Lambda Function URL ──▶ Lambda (handler.py)
+                                       │  GET /              -> index.html
+                                       │  GET /lists         -> available CSV keys
+                                       │  GET /round?list=…  -> word + 4 meanings
+                                       │  POST /answer       -> grade pick
                                        ▼
-                               S3 vocab bucket
-                               (word,meaning CSVs)
+                                S3 vocab bucket
+                                (word,meaning CSVs)
 ```
 
-- **Vocab bucket** — holds CSV files in `word,meaning` format. A seed
-  `default.csv` is uploaded on first deploy from `seed/`.
-- **Game Lambda** — exposes a Function URL with three routes: `/lists`,
-  `/round`, `/answer`. It loads a CSV from the vocab bucket, randomly
-  picks a target word, and builds a multiple-choice round.
-- **Site bucket** — a public S3 website hosting `web/index.html`, the
-  single-page game UI.
+The Lambda is the entire app: it serves the HTML page on `GET /` and the
+JSON API on the other routes. S3 holds only the CSV word lists. A seed
+`default.csv` is uploaded on the first deploy from `seed/`.
 
 ## Deploy
 
@@ -27,9 +25,8 @@ Browser ──▶ S3 static site (index.html)
 APP_NAME=vocabtrainer ENV_NAME=dev npx nx run vocabtrainer:deploy
 ```
 
-The CDK outputs include:
-- `SiteUrl` — open this to play.
-- `ApiUrl` — paste this into the page when prompted.
+Outputs:
+- `AppUrl` — Lambda Function URL; open it in a browser to play.
 - `VocabBucketName` — upload more `word,meaning` CSVs here to add lists.
 
 ## Adding word lists
@@ -42,7 +39,7 @@ ephemeral,lasting for a very short time
 ubiquitous,present everywhere at the same time
 ```
 
-The list will appear in the dropdown on the next page load.
+The list appears in the dropdown on the next page load.
 
 ## API
 
