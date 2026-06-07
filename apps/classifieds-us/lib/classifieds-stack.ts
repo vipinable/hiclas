@@ -34,9 +34,7 @@ export class ClassifiedsStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    // Lambda code and static assets live in apps/classifieds/ (shared source)
-    const classifiedsRoot = path.join(__dirname, '../../classifieds');
-    const lambdaDir = path.join(classifiedsRoot, 'lambda');
+    const lambdaDir = path.join(__dirname, '../lambda');
 
     // ── DynamoDB ──────────────────────────────────────────────────────────────
     const table = new dynamodb.Table(this, 'ListingsTable', {
@@ -308,14 +306,14 @@ function handler(event) {
     });
 
     new s3deploy.BucketDeployment(this, 'DeploySite', {
-      sources: [s3deploy.Source.asset(path.join(classifiedsRoot, 'web'))],
+      sources: [s3deploy.Source.asset(path.join(__dirname, '../web'))],
       destinationBucket: siteBucket,
       distribution,
       distributionPaths: ['/*'],
     });
 
     new s3deploy.BucketDeployment(this, 'DeployPages', {
-      sources: [s3deploy.Source.asset(path.join(classifiedsRoot, 'pages'))],
+      sources: [s3deploy.Source.asset(path.join(__dirname, '../pages'))],
       destinationBucket: pagesBucket,
       distribution,
       distributionPaths: ['/pages/*'],
