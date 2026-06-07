@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privacy Policy — HighlyClassifieds</title>
+  <style>
+    :root {
+      --blue-50:#eff6ff; --blue-100:#dbeafe; --blue-600:#2563eb; --blue-700:#1d4ed8;
+      --gray-100:#f3f4f6; --gray-200:#e5e7eb; --gray-400:#9ca3af; --gray-500:#6b7280;
+      --gray-600:#4b5563; --gray-700:#374151; --gray-800:#1f2937; --gray-900:#111827;
+      --muted:#64748b; --white:#ffffff;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin:0; padding:0; }
+    body {
+      font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      color: var(--gray-900); background: var(--white); line-height: 1.7;
+    }
+    a { color: var(--blue-600); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .navbar {
+      width:100%; display:flex; align-items:center; justify-content:space-between;
+      border-bottom:1px solid var(--gray-200); background:var(--white);
+      padding:0.75rem 2.5rem; box-shadow:0 1px 2px 0 rgba(0,0,0,0.05);
+      position:sticky; top:0; z-index:30;
+    }
+    .brand { display:flex; align-items:center; gap:0.5rem; text-decoration:none; }
+    .brand svg { color:var(--blue-600); width:1.6rem; height:1.6rem; }
+    .brand .name { font-weight:800; font-size:1.15rem; color:var(--blue-700); }
+    .back-btn {
+      display:inline-flex; align-items:center; gap:0.35rem;
+      font-size:0.85rem; font-weight:600; color:var(--blue-600);
+      background:var(--blue-50); border:1px solid var(--blue-100);
+      border-radius:0.375rem; padding:0.4rem 0.85rem; cursor:pointer;
+      text-decoration:none; transition:background .15s;
+    }
+    .back-btn:hover { background:var(--blue-100); text-decoration:none; }
+
+    .hero {
+      background: linear-gradient(135deg, var(--blue-600) 0%, #1e40af 100%);
+      color: #fff; text-align: center; padding: 4rem 2rem 3.5rem;
+    }
+    .hero h1 { font-size:2.5rem; font-weight:800; margin:0 0 0.75rem; letter-spacing:-0.03em; }
+    .hero .meta { font-size:0.9rem; opacity:0.8; }
+
+    .container { max-width:860px; margin:0 auto; padding:3rem 2rem 4rem; }
+    @media(max-width:640px){ .container{ padding:2rem 1rem 3rem; } }
+
+    .effective-notice {
+      background:var(--gray-100); border-radius:0.5rem; padding:1rem 1.25rem;
+      font-size:0.88rem; color:var(--gray-600); margin-bottom:2rem;
+    }
+
+    .toc {
+      background:var(--blue-50); border:1px solid var(--blue-100); border-radius:0.75rem;
+      padding:1.25rem 1.5rem; margin-bottom:2.5rem;
+    }
+    .toc p { font-weight:700; color:var(--gray-800); margin:0 0 0.5rem; font-size:0.9rem; text-transform:uppercase; letter-spacing:0.05em; }
+    .toc ol { margin:0; padding-left:1.4rem; }
+    .toc li { margin:0.2rem 0; }
+    .toc a { color:var(--blue-600); font-size:0.88rem; }
+
+    section { margin-bottom:2.5rem; }
+    section h2 {
+      font-size:1.15rem; font-weight:700; color:var(--gray-900);
+      border-bottom:2px solid var(--gray-200); padding-bottom:0.4rem;
+      margin:0 0 1rem; counter-increment:section;
+    }
+    section h2::before { content:counter(section) ". "; color:var(--blue-600); font-weight:800; }
+    .terms-body { counter-reset:section; }
+
+    p { color:var(--gray-700); margin:0 0 0.8rem; font-size:0.95rem; }
+    ul, ol { color:var(--gray-700); padding-left:1.4rem; margin:0 0 0.8rem; }
+    li { margin-bottom:0.4rem; font-size:0.95rem; }
+    strong { color:var(--gray-900); }
+
+    table {
+      width:100%; border-collapse:collapse; margin:1rem 0 1.5rem; font-size:0.9rem;
+    }
+    th {
+      background:var(--gray-100); color:var(--gray-800); font-weight:700;
+      text-align:left; padding:0.6rem 0.85rem; border:1px solid var(--gray-200);
+    }
+    td { padding:0.6rem 0.85rem; border:1px solid var(--gray-200); color:var(--gray-700); vertical-align:top; }
+    tr:nth-child(even) td { background:var(--gray-100); }
+
+    footer {
+      text-align:center; padding:1.5rem 1rem;
+      font-size:0.78rem; color:var(--gray-400);
+      border-top:1px solid var(--gray-200);
+    }
+    .footer-links { display:flex; flex-direction:column; align-items:center; gap:0.4rem; margin-bottom:0.75rem; }
+    footer a { color:var(--gray-500); }
+    footer a:hover { color:var(--blue-600); }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="brand" href="/">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+    <span class="name">HighlyClassifieds</span>
+  </a>
+  <a class="back-btn" href="/">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    Back to marketplace
+  </a>
+</nav>
+
+<div class="hero">
+  <h1>Privacy Policy</h1>
+  <p class="meta">Last updated: <span id="date-display"></span></p>
+</div>
+
+<div class="container">
+
+  <div class="effective-notice">
+    This Privacy Policy explains what personal data HighlyClassifieds collects, why we collect it, how it is used and stored, and the choices you have. We are committed to handling your data with care and transparency.
+  </div>
+
+  <div class="toc">
+    <p>Contents</p>
+    <ol>
+      <li><a href="#data-collected">Data We Collect</a></li>
+      <li><a href="#how-we-use">How We Use Your Data</a></li>
+      <li><a href="#data-storage">Data Storage &amp; Security</a></li>
+      <li><a href="#sharing">Data Sharing</a></li>
+      <li><a href="#relay">Email Relay &amp; Privacy</a></li>
+      <li><a href="#cookies">Cookies &amp; Tracking</a></li>
+      <li><a href="#retention">Data Retention</a></li>
+      <li><a href="#rights">Your Rights</a></li>
+      <li><a href="#children">Children&rsquo;s Privacy</a></li>
+      <li><a href="#changes">Changes to This Policy</a></li>
+      <li><a href="#contact">Contact Us</a></li>
+    </ol>
+  </div>
+
+  <div class="terms-body">
+
+    <section id="data-collected">
+      <h2>Data We Collect</h2>
+      <p>We collect only the minimum personal data needed to operate the platform:</p>
+      <table>
+        <thead>
+          <tr><th>Data</th><th>When collected</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Email address</td><td>When you sign in</td><td>Authentication and relay communications</td></tr>
+          <tr><td>Listing content (title, description, price, location, images)</td><td>When you post a listing</td><td>Publishing your ad to the marketplace</td></tr>
+          <tr><td>Relay messages</td><td>When you use Express Interest or reply via email</td><td>Routing private communications between users</td></tr>
+          <tr><td>Session token</td><td>After sign-in</td><td>Keeping you authenticated during a session</td></tr>
+          <tr><td>IP address &amp; basic request metadata</td><td>On each page visit</td><td>Security, fraud prevention, and abuse detection</td></tr>
+        </tbody>
+      </table>
+      <p>We do <strong>not</strong> collect your name, phone number, postal address, payment information, device fingerprint, or browsing history.</p>
+    </section>
+
+    <section id="how-we-use">
+      <h2>How We Use Your Data</h2>
+      <p>Your data is used solely to provide and improve the HighlyClassifieds service:</p>
+      <ul>
+        <li><strong>Authentication</strong> &mdash; your email address is used to send one-time login codes and to identify your account;</li>
+        <li><strong>Listing publication</strong> &mdash; listing content you submit is displayed to other users on the platform;</li>
+        <li><strong>Email relay</strong> &mdash; your email address is used as the destination for relay-forwarded messages from buyers or sellers you have interacted with;</li>
+        <li><strong>Security</strong> &mdash; IP address and request data help us detect abuse, enforce rate limits, and investigate reports;</li>
+        <li><strong>Service improvement</strong> &mdash; aggregated, anonymised usage patterns (not personal data) inform platform improvements.</li>
+      </ul>
+      <p>We never use your data for advertising, profiling, or sale to third parties.</p>
+    </section>
+
+    <section id="data-storage">
+      <h2>Data Storage &amp; Security</h2>
+      <p>All data is stored on Amazon Web Services (AWS) infrastructure:</p>
+      <ul>
+        <li>Listing content and images are stored in Amazon S3 with server-side encryption and no public access;</li>
+        <li>User account data is managed by Amazon Cognito with industry-standard token security;</li>
+        <li>Listing metadata is stored in Amazon DynamoDB, encrypted at rest;</li>
+        <li>All data in transit is encrypted via HTTPS/TLS 1.2 or higher.</li>
+      </ul>
+      <p>Access to personal data is restricted to the systems and functions that need it to operate. No human operator has routine access to user data or message content.</p>
+    </section>
+
+    <section id="sharing">
+      <h2>Data Sharing</h2>
+      <p>We do not sell, rent, or share your personal data with third parties for their own purposes. Data may be shared only in the following limited circumstances:</p>
+      <ul>
+        <li><strong>AWS infrastructure</strong> &mdash; data is processed and stored on Amazon Web Services as our cloud provider;</li>
+        <li><strong>Legal obligations</strong> &mdash; we may disclose data if required to do so by law, regulation, or valid legal process (e.g. a court order);</li>
+        <li><strong>Safety</strong> &mdash; we may share information with law enforcement if we have a good-faith belief that disclosure is necessary to prevent imminent harm.</li>
+      </ul>
+    </section>
+
+    <section id="relay">
+      <h2>Email Relay &amp; Privacy</h2>
+      <p>The HighlyClassifieds email relay is a core privacy feature. When a buyer expresses interest in your listing, we notify you using a masked address for the buyer. Replies route through our system without either party&rsquo;s real email address being revealed.</p>
+      <p>Relay messages are temporarily stored on our infrastructure for delivery. Once successfully delivered, messages are not retained beyond what is needed for abuse investigation. We may review relay content in response to a valid trust and safety report or legal requirement, but do not monitor relay traffic routinely.</p>
+    </section>
+
+    <section id="cookies">
+      <h2>Cookies &amp; Tracking</h2>
+      <p>HighlyClassifieds uses minimal client-side storage:</p>
+      <ul>
+        <li><strong>localStorage</strong> &mdash; your session token and email address are stored in your browser&rsquo;s localStorage after you sign in. This data never leaves your device except as an authentication header when making API requests;</li>
+        <li>We do <strong>not</strong> use advertising cookies, third-party analytics scripts, tracking pixels, or fingerprinting technologies.</li>
+      </ul>
+    </section>
+
+    <section id="retention">
+      <h2>Data Retention</h2>
+      <p>We retain personal data only as long as necessary:</p>
+      <ul>
+        <li><strong>Account data</strong> (email address, Cognito identity) &mdash; retained until you request account deletion;</li>
+        <li><strong>Listing content</strong> &mdash; retained until you remove the listing or request deletion;</li>
+        <li><strong>Relay messages</strong> &mdash; retained for a maximum of 90 days after delivery, then automatically purged;</li>
+        <li><strong>Access logs</strong> &mdash; retained for up to 30 days for security and abuse investigation purposes.</li>
+      </ul>
+    </section>
+
+    <section id="rights">
+      <h2>Your Rights</h2>
+      <p>Depending on your jurisdiction, you may have the following rights regarding your personal data:</p>
+      <ul>
+        <li><strong>Access</strong> &mdash; request a copy of the personal data we hold about you;</li>
+        <li><strong>Rectification</strong> &mdash; ask us to correct inaccurate data;</li>
+        <li><strong>Erasure</strong> &mdash; request deletion of your account and associated data;</li>
+        <li><strong>Restriction</strong> &mdash; ask us to stop processing your data in certain circumstances;</li>
+        <li><strong>Portability</strong> &mdash; request your data in a machine-readable format;</li>
+        <li><strong>Objection</strong> &mdash; object to processing based on legitimate interests.</li>
+      </ul>
+      <p>To exercise any of these rights, email <a href="mailto:privacy@highlyclassifieds.com">privacy@highlyclassifieds.com</a> from the address linked to your account. We will respond within 30 days.</p>
+    </section>
+
+    <section id="children">
+      <h2>Children&rsquo;s Privacy</h2>
+      <p>HighlyClassifieds is not intended for use by individuals under the age of 18. We do not knowingly collect personal data from children. If you believe a child has provided us with their data, please contact <a href="mailto:privacy@highlyclassifieds.com">privacy@highlyclassifieds.com</a> and we will delete the information promptly.</p>
+    </section>
+
+    <section id="changes">
+      <h2>Changes to This Policy</h2>
+      <p>We may update this Privacy Policy from time to time. When we do, the &ldquo;Last updated&rdquo; date at the top of this page will be revised. For significant changes, we will make reasonable efforts to notify registered users by email.</p>
+      <p>Continued use of the platform after a policy update constitutes acceptance of the revised policy.</p>
+    </section>
+
+    <section id="contact">
+      <h2>Contact Us</h2>
+      <p>For any privacy-related questions, requests, or concerns, please contact our privacy team:</p>
+      <ul>
+        <li>Email: <a href="mailto:privacy@highlyclassifieds.com">privacy@highlyclassifieds.com</a></li>
+        <li>Response time: within 30 days for formal requests; typically within 2 business days for general enquiries.</li>
+      </ul>
+    </section>
+
+  </div>
+</div>
+
+<footer>
+  <div class="footer-links">
+    <a href="/pages/about.html">About</a>
+    <a href="/pages/faq.html">FAQ</a>
+    <a href="/pages/terms.html">Terms of Service</a>
+    <a href="/pages/contact.html">Contact</a>
+    <a href="/pages/user-agreement.html">User Agreement</a>
+    <a href="/pages/privacy.html">Privacy Policy</a>
+  </div>
+  <div>&copy; 2016&ndash;<span id="footer-year"></span> HighlyClassifieds. All rights reserved.</div>
+</footer>
+<script>
+  document.getElementById('footer-year').textContent = new Date().getFullYear();
+  var d = new Date();
+  var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('date-display').textContent = months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+</script>
+
+</body>
+</html>

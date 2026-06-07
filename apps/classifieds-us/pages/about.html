@@ -97,7 +97,8 @@
       font-size:0.78rem; color:var(--gray-400);
       border-top:1px solid var(--gray-200);
     }
-    footer a { color:var(--gray-500); margin:0 0.5rem; }
+    .footer-links { display:flex; flex-direction:column; align-items:center; gap:0.4rem; margin-bottom:0.75rem; }
+    footer a { color:var(--gray-500); }
     footer a:hover { color:var(--blue-600); }
   </style>
 </head>
@@ -203,14 +204,17 @@
 </div>
 
 <footer>
-  <div>&copy; <script>document.write(new Date().getFullYear())</script> HighlyClassifieds. All rights reserved.</div>
-  <div style="margin-top:0.5rem">
+  <div class="footer-links">
     <a href="/pages/about.html">About</a>
     <a href="/pages/faq.html">FAQ</a>
-    <a href="/pages/terms.html">Terms &amp; Conditions</a>
-    <a href="/">Marketplace</a>
+    <a href="/pages/terms.html">Terms of Service</a>
+    <a href="/pages/contact.html">Contact</a>
+    <a href="/pages/user-agreement.html">User Agreement</a>
+    <a href="/pages/privacy.html">Privacy Policy</a>
   </div>
+  <div>&copy; 2016&ndash;<span id="footer-year"></span> HighlyClassifieds. All rights reserved.</div>
 </footer>
+<script>document.getElementById('footer-year').textContent = new Date().getFullYear();</script>
 
 </body>
 </html>
