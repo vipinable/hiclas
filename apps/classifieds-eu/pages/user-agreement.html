@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>User Agreement — HighlyClassifieds</title>
+  <style>
+    :root {
+      --blue-50:#eff6ff; --blue-100:#dbeafe; --blue-600:#2563eb; --blue-700:#1d4ed8;
+      --gray-100:#f3f4f6; --gray-200:#e5e7eb; --gray-400:#9ca3af; --gray-500:#6b7280;
+      --gray-600:#4b5563; --gray-700:#374151; --gray-800:#1f2937; --gray-900:#111827;
+      --muted:#64748b; --white:#ffffff;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin:0; padding:0; }
+    body {
+      font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      color: var(--gray-900); background: var(--white); line-height: 1.7;
+    }
+    a { color: var(--blue-600); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .navbar {
+      width:100%; display:flex; align-items:center; justify-content:space-between;
+      border-bottom:1px solid var(--gray-200); background:var(--white);
+      padding:0.75rem 2.5rem; box-shadow:0 1px 2px 0 rgba(0,0,0,0.05);
+      position:sticky; top:0; z-index:30;
+    }
+    .brand { display:flex; align-items:center; gap:0.5rem; text-decoration:none; }
+    .brand svg { color:var(--blue-600); width:1.6rem; height:1.6rem; }
+    .brand .name { font-weight:800; font-size:1.15rem; color:var(--blue-700); }
+    .back-btn {
+      display:inline-flex; align-items:center; gap:0.35rem;
+      font-size:0.85rem; font-weight:600; color:var(--blue-600);
+      background:var(--blue-50); border:1px solid var(--blue-100);
+      border-radius:0.375rem; padding:0.4rem 0.85rem; cursor:pointer;
+      text-decoration:none; transition:background .15s;
+    }
+    .back-btn:hover { background:var(--blue-100); text-decoration:none; }
+
+    .hero {
+      background: linear-gradient(135deg, var(--blue-600) 0%, #1e40af 100%);
+      color: #fff; text-align: center; padding: 4rem 2rem 3.5rem;
+    }
+    .hero h1 { font-size:2.5rem; font-weight:800; margin:0 0 0.75rem; letter-spacing:-0.03em; }
+    .hero .meta { font-size:0.9rem; opacity:0.8; }
+
+    .container { max-width:860px; margin:0 auto; padding:3rem 2rem 4rem; }
+    @media(max-width:640px){ .container{ padding:2rem 1rem 3rem; } }
+
+    .effective-notice {
+      background:var(--gray-100); border-radius:0.5rem; padding:1rem 1.25rem;
+      font-size:0.88rem; color:var(--gray-600); margin-bottom:2rem;
+    }
+
+    .toc {
+      background:var(--blue-50); border:1px solid var(--blue-100); border-radius:0.75rem;
+      padding:1.25rem 1.5rem; margin-bottom:2.5rem;
+    }
+    .toc p { font-weight:700; color:var(--gray-800); margin:0 0 0.5rem; font-size:0.9rem; text-transform:uppercase; letter-spacing:0.05em; }
+    .toc ol { margin:0; padding-left:1.4rem; }
+    .toc li { margin:0.2rem 0; }
+    .toc a { color:var(--blue-600); font-size:0.88rem; }
+
+    section { margin-bottom:2.5rem; }
+    section h2 {
+      font-size:1.15rem; font-weight:700; color:var(--gray-900);
+      border-bottom:2px solid var(--gray-200); padding-bottom:0.4rem;
+      margin:0 0 1rem; counter-increment:section;
+    }
+    section h2::before { content:counter(section) ". "; color:var(--blue-600); font-weight:800; }
+    .terms-body { counter-reset:section; }
+
+    p { color:var(--gray-700); margin:0 0 0.8rem; font-size:0.95rem; }
+    ul, ol { color:var(--gray-700); padding-left:1.4rem; margin:0 0 0.8rem; }
+    li { margin-bottom:0.4rem; font-size:0.95rem; }
+    strong { color:var(--gray-900); }
+
+    .info-box {
+      background:var(--blue-50); border-left:4px solid var(--blue-600);
+      border-radius:0 0.5rem 0.5rem 0; padding:1rem 1.25rem; margin:1rem 0;
+      font-size:0.9rem; color:var(--gray-700);
+    }
+
+    footer {
+      text-align:center; padding:1.5rem 1rem;
+      font-size:0.78rem; color:var(--gray-400);
+      border-top:1px solid var(--gray-200);
+    }
+    .footer-links { display:flex; flex-direction:column; align-items:center; gap:0.4rem; margin-bottom:0.75rem; }
+    footer a { color:var(--gray-500); }
+    footer a:hover { color:var(--blue-600); }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="brand" href="/">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+    <span class="name">HighlyClassifieds</span>
+  </a>
+  <a class="back-btn" href="/">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    Back to marketplace
+  </a>
+</nav>
+
+<div class="hero">
+  <h1>User Agreement</h1>
+  <p class="meta">Last updated: <span id="date-display"></span></p>
+</div>
+
+<div class="container">
+
+  <div class="effective-notice">
+    This User Agreement sets out the rules and expectations for everyone who participates in the HighlyClassifieds marketplace. By using the platform you agree to follow these guidelines. Please also read our <a href="/pages/terms.html">Terms of Service</a> and <a href="/pages/privacy.html">Privacy Policy</a>.
+  </div>
+
+  <div class="toc">
+    <p>Contents</p>
+    <ol>
+      <li><a href="#participation">Marketplace Participation</a></li>
+      <li><a href="#sellers">Seller Responsibilities</a></li>
+      <li><a href="#buyers">Buyer Responsibilities</a></li>
+      <li><a href="#communication">Communication Standards</a></li>
+      <li><a href="#transactions">Transactions &amp; Payments</a></li>
+      <li><a href="#safety">Safety Guidelines</a></li>
+      <li><a href="#prohibited">Prohibited Behaviour</a></li>
+      <li><a href="#enforcement">Enforcement</a></li>
+    </ol>
+  </div>
+
+  <div class="terms-body">
+
+    <section id="participation">
+      <h2>Marketplace Participation</h2>
+      <p>HighlyClassifieds is a community marketplace for buying and selling items locally. All users are expected to participate honestly, respectfully, and in good faith. The quality of the marketplace depends on every member upholding these standards.</p>
+      <p>By creating a listing or contacting a seller, you confirm that you are at least 18 years old and that you are acting in your personal capacity, not on behalf of a commercial enterprise unless you have agreed separate terms with us.</p>
+    </section>
+
+    <section id="sellers">
+      <h2>Seller Responsibilities</h2>
+      <p>As a seller on HighlyClassifieds, you agree to:</p>
+      <ul>
+        <li>Provide accurate, honest, and complete descriptions of items you list;</li>
+        <li>Use photographs of the actual item being sold &mdash; no stock images or images of different items;</li>
+        <li>Set a fair asking price and not artificially inflate prices;</li>
+        <li>Respond to genuine buyer enquiries within a reasonable time;</li>
+        <li>Honour confirmed arrangements to sell, unless exceptional circumstances arise;</li>
+        <li>Remove or mark listings as sold promptly once an item is no longer available;</li>
+        <li>Disclose any known faults, damage, or limitations of the item;</li>
+        <li>Ensure you have the legal right to sell the item being listed.</li>
+      </ul>
+      <div class="info-box">Misrepresenting an item&rsquo;s condition or features may result in listing removal and account suspension.</div>
+    </section>
+
+    <section id="buyers">
+      <h2>Buyer Responsibilities</h2>
+      <p>As a buyer on HighlyClassifieds, you agree to:</p>
+      <ul>
+        <li>Express interest only in items you are genuinely considering purchasing;</li>
+        <li>Communicate respectfully with sellers at all times;</li>
+        <li>Honour confirmed arrangements to buy, unless exceptional circumstances arise;</li>
+        <li>Inspect items before completing a transaction wherever possible;</li>
+        <li>Not pressure sellers into lowering prices unreasonably or use aggressive negotiation tactics;</li>
+        <li>Report listings you believe to be fraudulent or in breach of these guidelines.</li>
+      </ul>
+    </section>
+
+    <section id="communication">
+      <h2>Communication Standards</h2>
+      <p>All communication between users through the HighlyClassifieds relay must remain courteous and relevant to the transaction. The following are not permitted:</p>
+      <ul>
+        <li>Harassment, threats, or abusive language of any kind;</li>
+        <li>Unsolicited commercial messages or spam;</li>
+        <li>Requests for personal information (phone numbers, home addresses) before a reasonable level of trust is established;</li>
+        <li>Any attempt to move communication off the relay in order to avoid platform protections;</li>
+        <li>Discriminatory language based on race, gender, religion, nationality, disability, or any other protected characteristic.</li>
+      </ul>
+    </section>
+
+    <section id="transactions">
+      <h2>Transactions &amp; Payments</h2>
+      <p>HighlyClassifieds facilitates connections between buyers and sellers but is not a party to any transaction. We do not hold funds, process payments, or offer buyer or seller protection beyond the communication relay.</p>
+      <p>You are solely responsible for:</p>
+      <ul>
+        <li>Agreeing on a fair price and payment method with the other party;</li>
+        <li>Verifying the item&rsquo;s condition before handing over payment;</li>
+        <li>Choosing a safe location for in-person exchanges;</li>
+        <li>Any tax obligations arising from your sales activity.</li>
+      </ul>
+      <p>We strongly recommend cash transactions or trusted payment platforms for local sales, and caution against wire transfers or gift card payments, which are common vectors for fraud.</p>
+    </section>
+
+    <section id="safety">
+      <h2>Safety Guidelines</h2>
+      <p>Your safety is important to us. When meeting someone from the marketplace in person:</p>
+      <ul>
+        <li>Meet in a busy, well-lit public place during daylight hours when possible;</li>
+        <li>Bring a friend or let someone know where you are going;</li>
+        <li>Do not share your home address until you are confident in the other party;</li>
+        <li>Trust your instincts &mdash; if something feels wrong, cancel the meeting;</li>
+        <li>For high-value items, consider meeting at a police station&rsquo;s designated safe exchange zone.</li>
+      </ul>
+    </section>
+
+    <section id="prohibited">
+      <h2>Prohibited Behaviour</h2>
+      <p>The following behaviours are strictly prohibited and will result in immediate account suspension:</p>
+      <ul>
+        <li>Fraud, misrepresentation, or deliberate deception of other users;</li>
+        <li>Creating fake listings or bait-and-switch schemes;</li>
+        <li>Collecting personal data from other users for purposes unrelated to the transaction;</li>
+        <li>Attempting to circumvent the relay system to harvest real email addresses;</li>
+        <li>Posting the same item in multiple listings simultaneously;</li>
+        <li>Operating multiple accounts to evade suspensions or manipulate the platform;</li>
+        <li>Using automated tools to scrape listings or send bulk messages.</li>
+      </ul>
+    </section>
+
+    <section id="enforcement">
+      <h2>Enforcement</h2>
+      <p>We take violations of this User Agreement seriously. Depending on the severity and frequency of violations, we may:</p>
+      <ul>
+        <li>Remove individual listings without notice;</li>
+        <li>Issue a warning to the user&rsquo;s account;</li>
+        <li>Temporarily suspend the account;</li>
+        <li>Permanently ban the account and associated email address;</li>
+        <li>Report serious violations to law enforcement authorities where appropriate.</li>
+      </ul>
+      <p>If you believe your account has been incorrectly suspended, contact us at <a href="mailto:support@highlyclassifieds.com">support@highlyclassifieds.com</a> and we will review your case within three business days.</p>
+      <p>To report a user or listing in violation of this agreement, email <a href="mailto:trust@highlyclassifieds.com">trust@highlyclassifieds.com</a> with details and, where possible, a link to the relevant listing or a copy of any communications.</p>
+    </section>
+
+  </div>
+</div>
+
+<footer>
+  <div class="footer-links">
+    <a href="/pages/about.html">About</a>
+    <a href="/pages/faq.html">FAQ</a>
+    <a href="/pages/terms.html">Terms of Service</a>
+    <a href="/pages/contact.html">Contact</a>
+    <a href="/pages/user-agreement.html">User Agreement</a>
+    <a href="/pages/privacy.html">Privacy Policy</a>
+  </div>
+  <div>&copy; 2016&ndash;<span id="footer-year"></span> HighlyClassifieds. All rights reserved.</div>
+</footer>
+<script>
+  document.getElementById('footer-year').textContent = new Date().getFullYear();
+  var d = new Date();
+  var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('date-display').textContent = months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+</script>
+
+</body>
+</html>
