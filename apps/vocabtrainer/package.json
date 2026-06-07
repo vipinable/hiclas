@@ -1,0 +1,22 @@
+{
+  "name": "vocabtrainer-app",
+  "version": "0.1.0",
+  "bin": {
+    "app": "bin/app.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "cdk": "cdk"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.41",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.4.3"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.201.0",
+    "constructs": "^10.1.0",
+    "source-map-support": "^0.5.21"
+  }
+}

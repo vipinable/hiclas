@@ -9,3 +9,5 @@ layer/
 repo.tar.gz
 classified-nexus-ui-main/
 .nx/
+__pycache__/
+*.pyc
