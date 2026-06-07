@@ -21,11 +21,23 @@ JSON API on the other routes. S3 holds only the CSV word lists. A seed
 
 ## How the game works
 
-The page shows two columns — **Words** on the left, **Meanings** on the
-right, each shuffled independently. Click a word to select it, then
-click the meaning you think matches. Correct matches lock the pair in
-place; wrong picks flash red and deselect. Score = number of correct
-matches; attempts counts every meaning-click.
+Open the URL and the settings panel appears: pick a word list and how
+many pairs you want on the board (2–50), then click **Start game**.
+
+The board shows two columns — **Words** on the left, **Meanings** on
+the right, each shuffled independently. Click a word to select it,
+then click the meaning you think matches.
+
+- **Correct** picks pulse green and are removed; the server hands back
+  a new word+meaning that hasn't been on the board yet. The new word
+  slots into the freed word position, and its meaning is inserted at a
+  random position in the meanings column. Play continues indefinitely.
+- **Wrong** picks flash red and deselect the word.
+- The board shrinks once the word list is exhausted; the game ends
+  automatically when the last pair is matched.
+- **End game** stops the round at any time and shows your final score,
+  accuracy, and best streak. You can change the board size on the
+  settings panel and start a new game whenever you like.
 
 ## Deploy
 
@@ -55,5 +67,8 @@ The list appears in the dropdown on the next page load.
 - `GET /board?list=<key>&n=6` — returns `{list, words[], meanings[]}`,
   N pairs sampled from the list with the meanings shuffled independently
   from the words.
-- `POST /answer` — body `{list, word, chosen_meaning}`. Returns
-  `{is_correct, correct_meaning, points_awarded}`.
+- `POST /answer` — body `{list, word, chosen_meaning, current_words?}`.
+  Returns `{is_correct, correct_meaning, points_awarded, replacement}`.
+  When the pick is correct and `current_words` lists everything still
+  on the board, `replacement` is a `{word, meaning}` from the rest of
+  the list (or `null` once the list is exhausted).

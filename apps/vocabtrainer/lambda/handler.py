@@ -8,8 +8,13 @@ and the JSON API:
     GET  /board?list=<key>&n=6        -> a match-board: N words + N meanings
                                          shuffled independently
     POST /answer                      -> grade a {list, word, chosen_meaning}
-                                         pick, returns is_correct + the
-                                         correct meaning + points_awarded
+                                         pick. When correct and the request
+                                         includes current_words[], the
+                                         response also carries a replacement
+                                         {word, meaning} drawn from the rest
+                                         of the list so the board can refill
+                                         in place and play continues
+                                         indefinitely.
 
 Board shape:
     {
@@ -144,6 +149,7 @@ def _route(method, path, qs, body):
         key = (data.get("list") or "").strip() or DEFAULT_KEY
         word = (data.get("word") or "").strip()
         chosen_meaning = (data.get("chosen_meaning") or "").strip()
+        current_words = data.get("current_words") or []
         if not word or not chosen_meaning:
             return _json(400, {"error": "word and chosen_meaning are required"})
         pairs = _load_vocab(key)
@@ -151,11 +157,19 @@ def _route(method, path, qs, body):
         if correct is None:
             return _json(404, {"error": f"word '{word}' not found in '{key}'"})
         is_correct = chosen_meaning == correct
-        return _json(200, {
+        response = {
             "is_correct": is_correct,
             "correct_meaning": correct,
             "points_awarded": 1 if is_correct else 0,
-        })
+            "replacement": None,
+        }
+        if is_correct:
+            excluded = set(current_words)
+            candidates = [(w, m) for w, m in pairs if w not in excluded]
+            if candidates:
+                rw, rm = random.choice(candidates)
+                response["replacement"] = {"word": rw, "meaning": rm}
+        return _json(200, response)
 
     return _json(404, {"error": f"no route for {method} {path}"})
 
