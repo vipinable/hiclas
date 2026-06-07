@@ -175,7 +175,7 @@ export class ClassifiedsStack extends Stack {
     // ── SES email receiving ────────────────────────────────────────────────────
     // Also requires an MX record: sesReceiveDomain → inbound-smtp.<region>.amazonaws.com
     const receiptRuleSet = new ses.ReceiptRuleSet(this, 'EmailReceiptRuleSet', {
-      receiptRuleSetName: 'classifieds-inbound',
+      receiptRuleSetName: `${this.stackName}-inbound`,
     });
 
     receiptRuleSet.addRule('InboxRule', {
@@ -269,7 +269,7 @@ function handler(event) {
     const uploadsOrigin = origins.S3BucketOrigin.withOriginAccessControl(uploadsBucket);
 
     const distribution = new cloudfront.Distribution(this, 'Distribution', {
-      comment: 'Classifieds dev distribution',
+      comment: `${this.stackName} distribution`,
       defaultRootObject: 'index.html',
       ...(cfDomain && certificate ? {
         domainNames: [cfDomain],
