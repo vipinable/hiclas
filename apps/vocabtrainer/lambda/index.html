@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>VocabTrainer — match the word to its meaning</title>
+<title>VocabTrainer — match the columns</title>
 <style>
   :root {
     --bg: #0f172a;
@@ -14,6 +14,7 @@
     --accent: #38bdf8;
     --good: #22c55e;
     --bad: #ef4444;
+    --selected: #facc15;
     --border: #334155;
   }
   * { box-sizing: border-box; }
@@ -28,7 +29,7 @@
     justify-content: center;
     padding: 24px 16px 80px;
   }
-  .wrap { width: 100%; max-width: 640px; }
+  .wrap { width: 100%; max-width: 820px; }
   h1 {
     font-size: 1.6rem;
     margin: 0 0 4px;
@@ -42,10 +43,10 @@
     padding: 20px;
     margin-bottom: 16px;
   }
-  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .row { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; }
   .row > * { flex: 1; min-width: 0; }
   label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 6px; }
-  select, input, button {
+  select, button {
     font: inherit;
     color: inherit;
     background: var(--panel-2);
@@ -62,13 +63,8 @@
     border: none;
     transition: filter 0.15s ease;
   }
-  button:hover { filter: brightness(1.08); }
-  button.secondary {
-    background: transparent;
-    color: var(--text);
-    border: 1px solid var(--border);
-    font-weight: 500;
-  }
+  button:hover:not(:disabled) { filter: brightness(1.08); }
+  button:disabled { cursor: default; opacity: 0.7; }
   .score {
     display: flex;
     justify-content: space-between;
@@ -77,46 +73,57 @@
     color: var(--muted);
   }
   .score b { color: var(--text); }
-  .word {
-    font-size: 2rem;
-    font-weight: 700;
-    text-align: center;
-    margin: 8px 0 4px;
-    letter-spacing: 0.5px;
+  .board {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
   }
-  .word-hint {
+  .col-title {
     text-align: center;
     color: var(--muted);
     font-size: 0.85rem;
-    margin-bottom: 18px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
   }
-  .choices { display: grid; gap: 10px; }
-  .choice {
+  .col { display: grid; gap: 10px; }
+  .tile {
     background: var(--panel-2);
-    border: 1px solid var(--border);
+    border: 2px solid var(--border);
     color: var(--text);
     text-align: left;
-    padding: 14px 16px;
+    padding: 12px 14px;
     border-radius: 10px;
     cursor: pointer;
     font-weight: 500;
-    transition: transform 0.05s ease, border-color 0.15s ease, background 0.15s ease;
-  }
-  .choice:hover:not(:disabled) { border-color: var(--accent); }
-  .choice:disabled { cursor: default; }
-  .choice.correct { background: rgba(34, 197, 94, 0.18); border-color: var(--good); }
-  .choice.wrong { background: rgba(239, 68, 68, 0.18); border-color: var(--bad); }
-  .feedback {
-    margin-top: 16px;
-    padding: 12px 14px;
-    border-radius: 10px;
     font-size: 0.95rem;
-    display: none;
+    transition: border-color 0.12s ease, background 0.12s ease, transform 0.05s ease;
+    width: 100%;
   }
-  .feedback.good { display: block; background: rgba(34, 197, 94, 0.12); color: var(--good); }
-  .feedback.bad { display: block; background: rgba(239, 68, 68, 0.12); color: var(--bad); }
-  .actions { display: flex; gap: 10px; margin-top: 14px; }
-  .actions button { flex: 1; }
+  .tile.word { font-weight: 700; text-align: center; font-size: 1.05rem; }
+  .tile:hover:not(:disabled):not(.matched) { border-color: var(--accent); }
+  .tile.selected {
+    border-color: var(--selected);
+    background: rgba(250, 204, 21, 0.12);
+  }
+  .tile.matched {
+    border-color: var(--good);
+    background: rgba(34, 197, 94, 0.15);
+    color: var(--muted);
+    cursor: default;
+    text-decoration: line-through;
+    text-decoration-color: rgba(148, 163, 184, 0.5);
+  }
+  .tile.flash-bad {
+    border-color: var(--bad);
+    background: rgba(239, 68, 68, 0.18);
+    animation: shake 0.35s ease;
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-4px); }
+    75% { transform: translateX(4px); }
+  }
   .error {
     background: rgba(239, 68, 68, 0.12);
     color: var(--bad);
@@ -127,14 +134,28 @@
     display: none;
     font-size: 0.9rem;
   }
+  .done-banner {
+    display: none;
+    background: rgba(34, 197, 94, 0.12);
+    color: var(--good);
+    border: 1px solid var(--good);
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    text-align: center;
+    font-weight: 600;
+  }
   .footer-hint { color: var(--muted); font-size: 0.8rem; text-align: center; margin-top: 24px; }
   code { background: var(--panel-2); padding: 1px 6px; border-radius: 4px; font-size: 0.85rem; }
+  @media (max-width: 520px) {
+    .board { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>VocabTrainer</h1>
-  <p class="sub">Pick the meaning that matches the word. One point per correct answer.</p>
+  <p class="sub">Click a word, then click the meaning that matches it. One point per correct match.</p>
 
   <div id="err" class="error"></div>
 
@@ -144,9 +165,17 @@
         <label for="listSelect">Word list</label>
         <select id="listSelect"><option>(loading…)</option></select>
       </div>
+      <div>
+        <label for="sizeSelect">Pairs per board</label>
+        <select id="sizeSelect">
+          <option value="4">4</option>
+          <option value="6" selected>6</option>
+          <option value="8">8</option>
+          <option value="10">10</option>
+        </select>
+      </div>
       <div style="flex: 0 0 auto;">
-        <label>&nbsp;</label>
-        <button id="startBtn" style="width: auto; padding: 10px 18px;">Start / Refresh</button>
+        <button id="newBoardBtn" style="width: auto; padding: 10px 18px;">New board</button>
       </div>
     </div>
   </div>
@@ -154,18 +183,23 @@
   <div class="panel">
     <div class="score">
       <div>Score: <b id="score">0</b></div>
-      <div>Round: <b id="roundNum">0</b></div>
-      <div>Streak: <b id="streak">0</b></div>
+      <div>Matched: <b id="matched">0</b> / <b id="total">0</b></div>
+      <div>Attempts: <b id="attempts">0</b></div>
     </div>
   </div>
 
-  <div class="panel" id="gamePanel" style="display: none;">
-    <div class="word" id="word">—</div>
-    <div class="word-hint">Tap the meaning that matches</div>
-    <div class="choices" id="choices"></div>
-    <div class="feedback" id="feedback"></div>
-    <div class="actions">
-      <button id="nextBtn" disabled>Next word →</button>
+  <div id="doneBanner" class="done-banner"></div>
+
+  <div class="panel" id="boardPanel" style="display: none;">
+    <div class="board">
+      <div>
+        <div class="col-title">Words</div>
+        <div class="col" id="wordsCol"></div>
+      </div>
+      <div>
+        <div class="col-title">Meanings</div>
+        <div class="col" id="meaningsCol"></div>
+      </div>
     </div>
   </div>
 
@@ -177,24 +211,27 @@
 <script>
 const els = {
   listSelect: document.getElementById("listSelect"),
-  startBtn: document.getElementById("startBtn"),
+  sizeSelect: document.getElementById("sizeSelect"),
+  newBoardBtn: document.getElementById("newBoardBtn"),
   err: document.getElementById("err"),
   score: document.getElementById("score"),
-  roundNum: document.getElementById("roundNum"),
-  streak: document.getElementById("streak"),
-  gamePanel: document.getElementById("gamePanel"),
-  word: document.getElementById("word"),
-  choices: document.getElementById("choices"),
-  feedback: document.getElementById("feedback"),
-  nextBtn: document.getElementById("nextBtn"),
+  matched: document.getElementById("matched"),
+  total: document.getElementById("total"),
+  attempts: document.getElementById("attempts"),
+  doneBanner: document.getElementById("doneBanner"),
+  boardPanel: document.getElementById("boardPanel"),
+  wordsCol: document.getElementById("wordsCol"),
+  meaningsCol: document.getElementById("meaningsCol"),
 };
 
 let state = {
+  list: "",
+  selectedWordEl: null,
+  matchedPairs: 0,
+  totalPairs: 0,
+  attempts: 0,
   score: 0,
-  roundNum: 0,
-  streak: 0,
-  round: null,
-  answered: false,
+  busy: false,
 };
 
 function showError(msg) {
@@ -232,86 +269,127 @@ async function loadLists() {
   }
 }
 
-async function nextRound() {
-  showError("");
-  els.feedback.className = "feedback";
-  els.feedback.textContent = "";
-  els.nextBtn.disabled = true;
-  state.answered = false;
+function makeTile(text, kind) {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.className = `tile ${kind}`;
+  b.textContent = text;
+  b.dataset.value = text;
+  return b;
+}
 
+async function newBoard() {
+  showError("");
+  els.doneBanner.style.display = "none";
   const list = els.listSelect.value;
   if (!list || list.startsWith("(")) {
     showError("Pick a word list first.");
     return;
   }
+  const n = parseInt(els.sizeSelect.value, 10) || 6;
   try {
-    const round = await api(`/round?list=${encodeURIComponent(list)}&n=4`);
-    state.round = round;
-    state.roundNum += 1;
-    els.roundNum.textContent = state.roundNum;
-    els.word.textContent = round.word;
-    els.gamePanel.style.display = "block";
-    renderChoices(round.choices);
+    const board = await api(`/board?list=${encodeURIComponent(list)}&n=${n}`);
+    state.list = board.list;
+    state.selectedWordEl = null;
+    state.matchedPairs = 0;
+    state.totalPairs = board.words.length;
+    els.matched.textContent = "0";
+    els.total.textContent = String(state.totalPairs);
+
+    els.wordsCol.innerHTML = "";
+    els.meaningsCol.innerHTML = "";
+    board.words.forEach(w => {
+      const t = makeTile(w, "word");
+      t.addEventListener("click", () => onWordClick(t));
+      els.wordsCol.appendChild(t);
+    });
+    board.meanings.forEach(m => {
+      const t = makeTile(m, "meaning");
+      t.addEventListener("click", () => onMeaningClick(t));
+      els.meaningsCol.appendChild(t);
+    });
+    els.boardPanel.style.display = "block";
   } catch (e) {
-    showError("Couldn't fetch a round: " + e.message);
+    showError("Couldn't load a board: " + e.message);
   }
 }
 
-function renderChoices(choices) {
-  els.choices.innerHTML = "";
-  choices.forEach(c => {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "choice";
-    btn.textContent = c.meaning;
-    btn.dataset.meaning = c.meaning;
-    btn.addEventListener("click", () => onChoose(btn, c.meaning));
-    els.choices.appendChild(btn);
-  });
+function onWordClick(t) {
+  if (state.busy || t.classList.contains("matched")) return;
+  if (state.selectedWordEl) state.selectedWordEl.classList.remove("selected");
+  if (state.selectedWordEl === t) {
+    state.selectedWordEl = null;
+    return;
+  }
+  state.selectedWordEl = t;
+  t.classList.add("selected");
 }
 
-async function onChoose(btn, chosenMeaning) {
-  if (state.answered) return;
-  state.answered = true;
-  Array.from(els.choices.children).forEach(c => c.disabled = true);
+async function onMeaningClick(t) {
+  if (state.busy || t.classList.contains("matched")) return;
+  if (!state.selectedWordEl) {
+    // require word-first per the rules
+    flashHint(t);
+    return;
+  }
+  state.busy = true;
+  const wordEl = state.selectedWordEl;
+  const word = wordEl.dataset.value;
+  const chosen = t.dataset.value;
+  state.attempts += 1;
+  els.attempts.textContent = String(state.attempts);
 
   try {
     const result = await api("/answer", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        round_id: state.round.round_id,
-        chosen_meaning: chosenMeaning,
-      }),
+      body: JSON.stringify({ list: state.list, word, chosen_meaning: chosen }),
     });
     if (result.is_correct) {
-      btn.classList.add("correct");
+      wordEl.classList.remove("selected");
+      wordEl.classList.add("matched");
+      t.classList.add("matched");
+      wordEl.disabled = true;
+      t.disabled = true;
+      state.selectedWordEl = null;
+      state.matchedPairs += 1;
       state.score += result.points_awarded || 1;
-      state.streak += 1;
-      els.feedback.className = "feedback good";
-      els.feedback.textContent = `Correct! +${result.points_awarded || 1} point.`;
+      els.matched.textContent = String(state.matchedPairs);
+      els.score.textContent = String(state.score);
+      if (state.matchedPairs === state.totalPairs) finishRound();
     } else {
-      btn.classList.add("wrong");
-      state.streak = 0;
-      // highlight the right one
-      Array.from(els.choices.children).forEach(c => {
-        if (c.dataset.meaning === result.correct_meaning) c.classList.add("correct");
-      });
-      els.feedback.className = "feedback bad";
-      els.feedback.textContent = `Not quite. "${state.round.word}" means: ${result.correct_meaning}`;
+      flashBad(wordEl);
+      flashBad(t);
+      wordEl.classList.remove("selected");
+      state.selectedWordEl = null;
     }
-    els.score.textContent = state.score;
-    els.streak.textContent = state.streak;
-    els.nextBtn.disabled = false;
   } catch (e) {
-    showError("Couldn't grade answer: " + e.message);
-    state.answered = false;
-    Array.from(els.choices.children).forEach(c => c.disabled = false);
+    showError("Couldn't grade match: " + e.message);
+  } finally {
+    state.busy = false;
   }
 }
 
-els.startBtn.addEventListener("click", nextRound);
-els.nextBtn.addEventListener("click", nextRound);
+function flashBad(el) {
+  el.classList.add("flash-bad");
+  setTimeout(() => el.classList.remove("flash-bad"), 380);
+}
+
+function flashHint(el) {
+  // Subtle nudge that the user should pick a word first
+  el.classList.add("flash-bad");
+  setTimeout(() => el.classList.remove("flash-bad"), 200);
+}
+
+function finishRound() {
+  const acc = state.attempts > 0
+    ? Math.round((state.matchedPairs / state.attempts) * 100)
+    : 100;
+  els.doneBanner.textContent = `Board complete! ${state.matchedPairs} matched in ${state.attempts} attempts (${acc}% accuracy).`;
+  els.doneBanner.style.display = "block";
+}
+
+els.newBoardBtn.addEventListener("click", newBoard);
 
 loadLists();
 </script>
