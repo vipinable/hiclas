@@ -3,25 +3,20 @@
 The Lambda is fronted by a single Function URL and serves both the web UI
 and the JSON API:
 
-    GET  /                          -> index.html (the game UI)
-    GET  /lists                     -> list available CSV keys in the vocab bucket
-    GET  /round?list=<key>&n=4      -> one match round: a target word + n meaning choices
-    POST /answer                    -> grade the user's pick, return is_correct + the right meaning
+    GET  /                            -> index.html (the game UI)
+    GET  /lists                       -> list available CSV keys
+    GET  /board?list=<key>&n=6        -> a match-board: N words + N meanings
+                                         shuffled independently
+    POST /answer                      -> grade a {list, word, chosen_meaning}
+                                         pick, returns is_correct + the
+                                         correct meaning + points_awarded
 
-Round shape:
+Board shape:
     {
         "list": "default.csv",
-        "round_id": "default.csv|ephemeral",
-        "word": "ephemeral",
-        "choices": [
-            {"id": "0", "meaning": "lasting for a very short time"},
-            {"id": "1", "meaning": "present everywhere"},
-            ...
-        ]
+        "words":   ["ephemeral", "ubiquitous", ...],     # display order
+        "meanings": ["present everywhere", "lasting...", ...]  # shuffled
     }
-
-The round_id is `<list>|<word>` — the client echoes it back with the
-chosen meaning so we can grade without server-side session state.
 """
 
 import csv
@@ -38,7 +33,6 @@ s3 = boto3.client("s3")
 BUCKET = os.environ["VOCAB_BUCKET"]
 DEFAULT_KEY = os.environ.get("DEFAULT_VOCAB_KEY", "default.csv")
 
-# Page is shipped alongside the handler in the Lambda bundle.
 _PAGE_PATH = os.path.join(os.path.dirname(__file__), "index.html")
 with open(_PAGE_PATH, "r", encoding="utf-8") as _f:
     INDEX_HTML = _f.read()
@@ -98,25 +92,20 @@ def _list_vocab_keys():
     return sorted(keys)
 
 
-def _pick_round(pairs, n_choices):
+def _pick_board(pairs, n):
+    """Pick n distinct pairs and return (words_in_display_order, meanings_shuffled)."""
     if len(pairs) < 2:
         raise ValueError("vocab list needs at least 2 entries")
-    n_choices = max(2, min(n_choices, len(pairs)))
-    target_idx = random.randrange(len(pairs))
-    word, correct_meaning = pairs[target_idx]
-
-    distractor_pool = list({m for i, (_, m) in enumerate(pairs) if i != target_idx and m != correct_meaning})
-    random.shuffle(distractor_pool)
-    distractors = distractor_pool[: n_choices - 1]
-
-    choices_meanings = distractors + [correct_meaning]
-    random.shuffle(choices_meanings)
-    choices = [{"id": str(i), "meaning": m} for i, m in enumerate(choices_meanings)]
-    return word, correct_meaning, choices
+    n = max(2, min(n, len(pairs)))
+    sample = random.sample(pairs, n)
+    random.shuffle(sample)  # words display order
+    words = [w for w, _ in sample]
+    meanings = [m for _, m in sample]
+    random.shuffle(meanings)  # independently shuffled column
+    return words, meanings
 
 
 def _route(method, path, qs, body):
-    # Strip optional /api prefix so both `/api/round` and `/round` work.
     if path.startswith("/api/"):
         path = path[4:]
     elif path == "/api":
@@ -131,22 +120,20 @@ def _route(method, path, qs, body):
     if method == "GET" and path == "/lists":
         return _json(200, {"lists": _list_vocab_keys()})
 
-    if method == "GET" and path == "/round":
+    if method == "GET" and path == "/board":
         key = (qs.get("list") or [DEFAULT_KEY])[0]
         try:
-            n = int((qs.get("n") or ["4"])[0])
+            n = int((qs.get("n") or ["6"])[0])
         except ValueError:
-            n = 4
+            n = 6
         pairs = _load_vocab(key)
         if len(pairs) < 2:
             return _json(400, {"error": f"vocab list '{key}' needs at least 2 entries"})
-        word, correct_meaning, choices = _pick_round(pairs, n)
+        words, meanings = _pick_board(pairs, n)
         return _json(200, {
             "list": key,
-            "round_id": f"{key}|{word}",
-            "word": word,
-            "choices": choices,
-            "correct_meaning": correct_meaning,
+            "words": words,
+            "meanings": meanings,
         })
 
     if method == "POST" and path == "/answer":
@@ -154,11 +141,11 @@ def _route(method, path, qs, body):
             data = json.loads(body or "{}")
         except json.JSONDecodeError:
             return _json(400, {"error": "invalid JSON body"})
-        round_id = data.get("round_id") or ""
+        key = (data.get("list") or "").strip() or DEFAULT_KEY
+        word = (data.get("word") or "").strip()
         chosen_meaning = (data.get("chosen_meaning") or "").strip()
-        if "|" not in round_id or not chosen_meaning:
-            return _json(400, {"error": "round_id and chosen_meaning are required"})
-        key, word = round_id.split("|", 1)
+        if not word or not chosen_meaning:
+            return _json(400, {"error": "word and chosen_meaning are required"})
         pairs = _load_vocab(key)
         correct = next((m for w, m in pairs if w == word), None)
         if correct is None:
