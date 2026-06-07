@@ -38,47 +38,85 @@ REPO_DIR = Path(os.environ.get("HICLAS_REPO_DIR", str(_script_dir.parent)))
 
 MODEL = "claude-opus-4-8"
 
-SYSTEM_PROMPT = f"""You are a maintenance agent for the **{REPO_FULL}** monorepo.
+SYSTEM_PROMPT = f"""You are a maintenance agent for the **{REPO_FULL}** nx monorepo.
 You have full knowledge of the project structure and can read files, trigger deployments,
-check workflow status, and edit source code.
+check workflow status, edit source code, and run git commands.
 
-Repository layout (monorepo):
+## MANDATORY: Sync dev with main before any change
+
+Before making ANY code or file change, always run these git steps using run_git_command:
+  1. ["fetch", "origin"]
+  2. ["checkout", "dev"]
+  3. ["merge", "origin/main", "--no-edit"]
+  4. ["push", "origin", "dev"]   (only needed if main had new commits)
+
+Then create a feature branch off the freshly-synced dev for your changes.
+Never skip this sync step — it keeps dev up to date and prevents stale-base PRs.
+
+## Repository layout (nx monorepo)
+
   apps/
-    classifieds/             — CDK application (TypeScript) — the active dev stack
-      bin/app.ts             — CDK entry point
-      lib/classifieds-stack.ts — main stack (S3, Cognito, Lambda, SES, CloudFront)
-      lambda/                — Python Lambda handlers
-        handler.py           — listings API (CRUD)
+    classifieds/             — CDK app (TypeScript) — dev environment
+      bin/app.ts             — CDK entry point (reads APP_NAME / ENV_NAME env vars)
+      lib/classifieds-stack.ts — full stack definition (S3, Cognito, Lambda, SES, CloudFront)
+      lambda/                — Python Lambda handlers (shared by all env apps)
+        handler.py           — listings API (CRUD + presigned upload URLs)
         create_auth.py       — Cognito CUSTOM_AUTH OTP sender
         define_auth.py       — Cognito CUSTOM_AUTH challenge definer
         verify_auth.py       — Cognito CUSTOM_AUTH verifier
-        email_ingest.py      — SES inbound email processor (stores to S3 by Cognito username)
-      web/index.html         — SPA front-end
-    legacy/                  — Original CDK stack (deployed by main.yml from main branch)
-      src/                   — Python Lambdas, Jinja2 templates, static assets
+        email_ingest.py      — SES inbound email processor (masked relay, stores to S3)
+      web/index.html         — SPA front-end (shared by all env apps)
+      pages/                 — Static pages at /pages/* (shared): about.html, faq.html, terms.html
+      project.json           — nx targets: build / synth / deploy
+    classifieds-eu/          — CDK app — eu production environment (eu-west-1)
+      bin/app.ts             — imports ClassifiedsStack, region=eu-west-1, ENV_NAME=eu
+      lib/classifieds-stack.ts — independent copy of the stack (can diverge from dev)
+      project.json           — nx targets: build / synth / deploy
+    classifieds-us/          — CDK app — us production environment (us-east-1)
+      bin/app.ts             — imports ClassifiedsStack, region=us-east-1, ENV_NAME=us
+      lib/classifieds-stack.ts — independent copy of the stack (can diverge from dev)
+      project.json           — nx targets: build / synth / deploy
+    legacy/                  — Original CDK stack (inactive)
+      project.json
   agent/
     hiclas_agent.py          — this file
   .github/workflows/
-    deploy-classifieds.yml   — deploys apps/classifieds on push to dev or manual trigger
+    deploy-classifieds.yml   — deploys apps/classifieds; triggers on push to dev; environment: dev
+    deploy-production.yml    — deploys eu/us; triggered by rel-eu*/rel-us* tags or manual dispatch
     setup-ses-email.yml      — one-shot SES identity verify + redeploy for classifieds
-    main.yml                 — deploys apps/legacy on push to main
+  nx.json                    — nx workspace config (build/synth/deploy target defaults, caching)
+  package.json               — root: npm workspaces + nx devDep; scripts: deploy:eu, deploy:us, etc.
 
-Key CDK context variables (apps/classifieds):
+## Key CDK context variables
+
   sesFromEmail       — OTP sender address (e.g. noreply@highlyclassifieds.com)
-  sesReceiveDomain   — domain for inbound SES email receiving (e.g. mail.highlyclassifieds.com)
+  sesReceiveDomain   — domain for inbound SES email receiving (e.g. highlyclassifieds.com)
   cfDomain           — custom CloudFront domain (e.g. dev.highlyclassifieds.com)
   cfCertArn          — ACM certificate ARN for cfDomain (must be in us-east-1)
 
-Repo variables (Settings > Variables > Actions):
-  SES_FROM_EMAIL, SES_RECEIVE_DOMAIN, CF_DOMAIN, CF_CERT_ARN
-  All four are picked up automatically on every deploy-classifieds run.
+## GitHub environments and their variables
 
-Deployment:
-  "deploy-classifieds" deploys apps/classifieds. Triggers on push to dev or manual.
-  "setup-ses-email" verifies an SES identity and redeploys apps/classifieds.
-  Both use AWS creds from secrets A_KEY / S_KEY, environment "all".
+  dev   — used by deploy-classifieds.yml; vars: APP_NAME, ENV_NAME, AWS_DEFAULT_REGION,
+          SES_FROM_EMAIL, SES_RECEIVE_DOMAIN, CF_DOMAIN, CF_CERT_ARN
+  eu    — used by deploy-production.yml deploy-eu job; same vars, scoped to eu
+  us    — used by deploy-production.yml deploy-us job; same vars, scoped to us
 
-When you receive a task, use your tools to accomplish it completely, checking your work where possible.
+## Deployment
+
+  dev:        push to dev branch, or manual trigger of deploy-classifieds.yml
+  eu prod:    push a rel-eu* tag  (e.g. git tag rel-eu-1.0.0 && git push origin rel-eu-1.0.0)
+  us prod:    push a rel-us* tag
+  manual:     workflow_dispatch on deploy-production.yml with target=eu|us|both
+  nx local:   npx nx run classifieds:deploy / classifieds-eu:deploy / classifieds-us:deploy
+
+## Asset paths in eu/us stacks
+
+  Lambda code and web/pages assets are shared from apps/classifieds/:
+    path.join(__dirname, '../../classifieds/<dir>')
+  Do NOT create lambda/, web/, or pages/ under classifieds-eu/ or classifieds-us/.
+
+When you receive a task, always sync dev with main first (using run_git_command), then use
+your tools to accomplish the task completely, checking your work where possible.
 """
 
 
@@ -201,6 +239,37 @@ def get_workflow_run_logs(run_id: int) -> str:
         return f"ERROR: {exc}"
 
 
+def run_git_command(args: list[str]) -> str:
+    """Run a git command in the local repo directory."""
+    import subprocess
+
+    safe_subcommands = {
+        "fetch", "pull", "merge", "push", "checkout", "branch",
+        "status", "log", "diff", "add", "commit", "rebase",
+        "tag", "show", "stash",
+    }
+    if not args or args[0] not in safe_subcommands:
+        return f"ERROR: git subcommand '{args[0] if args else ''}' is not permitted"
+
+    cmd = ["git"] + args
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=60,
+            cwd=str(REPO_DIR),
+        )
+        output = (result.stdout + result.stderr).strip()
+        if result.returncode != 0:
+            return f"ERROR (exit {result.returncode}):\n{output}"
+        return output or "(no output)"
+    except subprocess.TimeoutExpired:
+        return "ERROR: git command timed out"
+    except Exception as exc:
+        return f"ERROR: {exc}"
+
+
 def search_code(pattern: str, directory: str = "") -> str:
     """Search for a text pattern across repo files (grep-style)."""
     import subprocess
@@ -288,6 +357,30 @@ TOOLS = [
         },
     },
     {
+        "name": "run_git_command",
+        "description": (
+            "Run a git command inside the local hiclas repository. "
+            "Use this to sync dev with main before any change: "
+            "fetch origin, checkout dev, merge origin/main --no-edit, push. "
+            "Permitted subcommands: fetch, pull, merge, push, checkout, branch, "
+            "status, log, diff, add, commit, rebase, tag, show, stash."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "args": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": (
+                        "Git arguments as a list, e.g. ['fetch', 'origin'] or "
+                        "['merge', 'origin/main', '--no-edit']."
+                    ),
+                }
+            },
+            "required": ["args"],
+        },
+    },
+    {
         "name": "search_code",
         "description": "Search for a text pattern across repo source files (grep). "
                        "Returns file paths, line numbers, and matching lines.",
@@ -372,6 +465,7 @@ TOOL_FNS = {
     "list_files": lambda inp: list_files(inp.get("directory", "")),
     "read_file": lambda inp: read_file(inp["path"]),
     "write_file": lambda inp: write_file(inp["path"], inp["content"]),
+    "run_git_command": lambda inp: run_git_command(inp["args"]),
     "search_code": lambda inp: search_code(inp["pattern"], inp.get("directory", "")),
     "trigger_workflow": lambda inp: trigger_workflow(
         inp["workflow_file"],
