@@ -1051,15 +1051,21 @@
     font-size:0.78rem; color:var(--gray-400);
     border-top:1px solid var(--gray-200); background:var(--white);
   ">
-    <div style="display:flex;flex-direction:column;align-items:center;gap:0.4rem;margin-bottom:0.75rem">
-      <a href="/pages/about.html" style="color:var(--gray-500);text-decoration:none">About</a>
-      <a href="/pages/faq.html" style="color:var(--gray-500);text-decoration:none">FAQ</a>
-      <a href="/pages/terms.html" style="color:var(--gray-500);text-decoration:none">Terms of Service</a>
-      <a href="/pages/contact.html" style="color:var(--gray-500);text-decoration:none">Contact</a>
-      <a href="/pages/user-agreement.html" style="color:var(--gray-500);text-decoration:none">User Agreement</a>
-      <a href="/pages/privacy.html" style="color:var(--gray-500);text-decoration:none">Privacy Policy</a>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.5rem 2rem;max-width:480px;margin:0 auto 0.75rem">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:0.3rem">
+        <a href="/pages/about.html" style="color:var(--gray-500);text-decoration:none">About</a>
+        <a href="/pages/contact.html" style="color:var(--gray-500);text-decoration:none">Contact</a>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:0.3rem">
+        <a href="/pages/faq.html" style="color:var(--gray-500);text-decoration:none">Frequently Asked Questions</a>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:0.3rem">
+        <a href="/pages/terms.html" style="color:var(--gray-500);text-decoration:none">Terms of Service</a>
+        <a href="/pages/user-agreement.html" style="color:var(--gray-500);text-decoration:none">User Agreement</a>
+        <a href="/pages/privacy.html" style="color:var(--gray-500);text-decoration:none">Privacy Policy</a>
+      </div>
     </div>
-    <div>&copy; 2016&ndash;<span id="footer-year"></span> HighlyClassifieds. All rights reserved.</div>
+    <div>&copy; 2026&ndash;<span id="footer-year"></span> HighlyClassifieds. All rights reserved.</div>
   </footer>
   <script>document.getElementById('footer-year').textContent = new Date().getFullYear();</script>
 </body>
