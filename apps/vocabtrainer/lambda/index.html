@@ -189,6 +189,27 @@
   </div>
 
   <div class="panel">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+      <strong>Add a word</strong>
+      <span style="color: var(--muted); font-size: 0.85rem;">Appends to the selected list above.</span>
+    </div>
+    <div class="row">
+      <div style="flex: 1;">
+        <label for="newWord">Word</label>
+        <input id="newWord" type="text" placeholder="e.g. lugubrious" autocomplete="off">
+      </div>
+      <div style="flex: 2;">
+        <label for="newMeaning">Meaning</label>
+        <input id="newMeaning" type="text" placeholder="e.g. looking or sounding sad" autocomplete="off">
+      </div>
+      <div style="flex: 0 0 auto;">
+        <button id="addBtn" style="width: auto; padding: 10px 18px;">Add word</button>
+      </div>
+    </div>
+    <div id="addStatus" style="margin-top: 10px; font-size: 0.9rem; display: none;"></div>
+  </div>
+
+  <div class="panel">
     <div class="score">
       <div>Score: <b id="score">0</b></div>
       <div>Streak: <b id="streak">0</b></div>
@@ -226,6 +247,10 @@ const els = {
   sizeInput: document.getElementById("sizeInput"),
   startBtn: document.getElementById("startBtn"),
   endBtn: document.getElementById("endBtn"),
+  newWord: document.getElementById("newWord"),
+  newMeaning: document.getElementById("newMeaning"),
+  addBtn: document.getElementById("addBtn"),
+  addStatus: document.getElementById("addStatus"),
   err: document.getElementById("err"),
   score: document.getElementById("score"),
   streak: document.getElementById("streak"),
@@ -476,8 +501,51 @@ function flashHint(el) {
   setTimeout(() => el.classList.remove("flash-bad"), 200);
 }
 
+function setAddStatus(msg, kind) {
+  els.addStatus.textContent = msg;
+  els.addStatus.style.display = msg ? "block" : "none";
+  els.addStatus.style.color =
+    kind === "good" ? "var(--good)" :
+    kind === "bad"  ? "var(--bad)"  : "var(--muted)";
+}
+
+async function addWord() {
+  const list = els.listSelect.value;
+  const word = els.newWord.value.trim();
+  const meaning = els.newMeaning.value.trim();
+  if (!list || list.startsWith("(")) {
+    setAddStatus("Pick a word list above first.", "bad");
+    return;
+  }
+  if (!word || !meaning) {
+    setAddStatus("Both word and meaning are required.", "bad");
+    return;
+  }
+  els.addBtn.disabled = true;
+  setAddStatus("Saving…", "muted");
+  try {
+    const result = await api("/words", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ list, word, meaning }),
+    });
+    setAddStatus(`Added "${result.added.word}" to ${result.list} (${result.total} words total).`, "good");
+    els.newWord.value = "";
+    els.newMeaning.value = "";
+    els.newWord.focus();
+  } catch (e) {
+    setAddStatus("Couldn't add word: " + e.message, "bad");
+  } finally {
+    els.addBtn.disabled = false;
+  }
+}
+
 els.startBtn.addEventListener("click", startGame);
 els.endBtn.addEventListener("click", () => endGame("Game ended."));
+els.addBtn.addEventListener("click", addWord);
+els.newMeaning.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") addWord();
+});
 
 loadLists();
 updateAccuracy();
