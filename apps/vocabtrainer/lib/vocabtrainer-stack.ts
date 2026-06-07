@@ -11,22 +11,22 @@ import * as path from 'path';
  * VocabTrainer app stack.
  *
  *   Browser ──▶ Lambda Function URL ──▶ Lambda (handler.py)
- *                                          │
+ *                                          │ serves /  -> index.html
+ *                                          │ serves /lists, /round, /answer
  *                                          ▼
  *                                  S3 vocab bucket (word,meaning CSVs)
  *
- * Browser loads index.html directly from the static-site bucket via its
- * website URL (kept simple — no CloudFront). The Lambda Function URL serves
- * both the game API and is configured with permissive CORS so the static
- * page can call it from any origin.
+ * The Lambda is the whole app: it ships `index.html` in its bundle and
+ * serves it on `GET /`, and exposes the game API on the other routes.
+ * S3 is used only to store CSV word lists, loaded on demand.
  *
  * Vocab CSVs live in the vocab bucket at keys like `default.csv` with rows:
  *     word,meaning
  *     ephemeral,lasting for a very short time
  *     ubiquitous,present everywhere
  *
- * A seed CSV from ../seed is uploaded on deploy so the game works out of the
- * box. Drop additional CSVs into the bucket to add more word lists.
+ * A seed CSV from ../seed is uploaded on deploy so the game works out of
+ * the box. Drop additional CSVs into the bucket to add more word lists.
  */
 export class VocabTrainerStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -34,7 +34,6 @@ export class VocabTrainerStack extends Stack {
 
     const lambdaDir = path.join(__dirname, '../lambda');
 
-    // ── S3 bucket for vocabulary CSV files ────────────────────────────────────
     const vocabBucket = new s3.Bucket(this, 'VocabBucket', {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       encryption: s3.BucketEncryption.S3_MANAGED,
@@ -48,7 +47,6 @@ export class VocabTrainerStack extends Stack {
       destinationBucket: vocabBucket,
     });
 
-    // ── Game API Lambda ───────────────────────────────────────────────────────
     const apiFn = new lambda.Function(this, 'ApiFn', {
       runtime: lambda.Runtime.PYTHON_3_12,
       handler: 'handler.handler',
@@ -72,33 +70,9 @@ export class VocabTrainerStack extends Stack {
       },
     });
 
-    // ── Static site bucket (serves index.html) ────────────────────────────────
-    const siteBucket = new s3.Bucket(this, 'SiteBucket', {
-      websiteIndexDocument: 'index.html',
-      publicReadAccess: true,
-      blockPublicAccess: new s3.BlockPublicAccess({
-        blockPublicAcls: false,
-        blockPublicPolicy: false,
-        ignorePublicAcls: false,
-        restrictPublicBuckets: false,
-      }),
-      removalPolicy: RemovalPolicy.DESTROY,
-      autoDeleteObjects: true,
-    });
-
-    new s3deploy.BucketDeployment(this, 'DeploySite', {
-      sources: [s3deploy.Source.asset(path.join(__dirname, '../web'))],
-      destinationBucket: siteBucket,
-    });
-
-    // ── Outputs ───────────────────────────────────────────────────────────────
-    new CfnOutput(this, 'SiteUrl', {
-      value: siteBucket.bucketWebsiteUrl,
-      description: 'Open this URL to play VocabTrainer',
-    });
-    new CfnOutput(this, 'ApiUrl', {
+    new CfnOutput(this, 'AppUrl', {
       value: apiUrl.url,
-      description: 'Lambda Function URL — paste into the page if it asks',
+      description: 'Open this URL to play VocabTrainer',
     });
     new CfnOutput(this, 'VocabBucketName', {
       value: vocabBucket.bucketName,
