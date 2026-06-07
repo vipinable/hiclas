@@ -10,6 +10,7 @@ Browser ──▶ Lambda Function URL ──▶ Lambda (handler.py)
                                        │  GET /lists         -> available CSV keys
                                        │  GET /board?list=…  -> N words + N shuffled meanings
                                        │  POST /answer       -> grade {list,word,chosen_meaning}
+                                       │  POST /words        -> append {list,word,meaning} to CSV
                                        ▼
                                 S3 vocab bucket
                                 (word,meaning CSVs)
@@ -61,6 +62,14 @@ ubiquitous,present everywhere at the same time
 
 The list appears in the dropdown on the next page load.
 
+## Adding words from the UI
+
+Below the game settings there's an **Add a word** panel. Pick the list
+in the settings dropdown, type the word and its meaning, and click
+**Add word**. The Lambda re-serialises the CSV (with proper quoting,
+so commas in meanings survive) and writes it back to the same key in
+S3. Duplicate words (case-insensitive) are rejected with a 409.
+
 ## API
 
 - `GET /lists` — returns available CSV keys.
@@ -72,3 +81,6 @@ The list appears in the dropdown on the next page load.
   When the pick is correct and `current_words` lists everything still
   on the board, `replacement` is a `{word, meaning}` from the rest of
   the list (or `null` once the list is exhausted).
+- `POST /words` — body `{list, word, meaning}`. Appends a new row to
+  the CSV in S3 (creating it if missing). Returns
+  `{added, list, total}`. Rejects duplicates with 409.

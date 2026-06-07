@@ -12,7 +12,7 @@ import * as path from 'path';
  *
  *   Browser ──▶ Lambda Function URL ──▶ Lambda (handler.py)
  *                                          │ serves /  -> index.html
- *                                          │ serves /lists, /round, /answer
+ *                                          │ serves /lists, /board, /answer, /words
  *                                          ▼
  *                                  S3 vocab bucket (word,meaning CSVs)
  *
@@ -59,7 +59,7 @@ export class VocabTrainerStack extends Stack {
       },
     });
 
-    vocabBucket.grantRead(apiFn);
+    vocabBucket.grantReadWrite(apiFn);
 
     const apiUrl = apiFn.addFunctionUrl({
       authType: lambda.FunctionUrlAuthType.NONE,

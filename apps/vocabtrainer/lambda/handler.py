@@ -15,6 +15,9 @@ and the JSON API:
                                          of the list so the board can refill
                                          in place and play continues
                                          indefinitely.
+    POST /words                       -> append {list, word, meaning} to the
+                                         CSV. Returns 409 if the word is
+                                         already in the list (case-insensitive).
 
 Board shape:
     {
@@ -170,6 +173,42 @@ def _route(method, path, qs, body):
                 rw, rm = random.choice(candidates)
                 response["replacement"] = {"word": rw, "meaning": rm}
         return _json(200, response)
+
+    if method == "POST" and path == "/words":
+        try:
+            data = json.loads(body or "{}")
+        except json.JSONDecodeError:
+            return _json(400, {"error": "invalid JSON body"})
+        key = (data.get("list") or "").strip() or DEFAULT_KEY
+        word = (data.get("word") or "").strip()
+        meaning = (data.get("meaning") or "").strip()
+        if not word or not meaning:
+            return _json(400, {"error": "word and meaning are required"})
+
+        try:
+            existing = _load_vocab(key)
+        except s3.exceptions.NoSuchKey:
+            existing = []
+        if any(w.lower() == word.lower() for w, _ in existing):
+            return _json(409, {"error": f"'{word}' is already in '{key}'"})
+
+        buf = io.StringIO()
+        writer = csv.writer(buf)
+        writer.writerow(["word", "meaning"])
+        for w, m in existing:
+            writer.writerow([w, m])
+        writer.writerow([word, meaning])
+        s3.put_object(
+            Bucket=BUCKET,
+            Key=key,
+            Body=buf.getvalue().encode("utf-8"),
+            ContentType="text/csv",
+        )
+        return _json(200, {
+            "added": {"word": word, "meaning": meaning},
+            "list": key,
+            "total": len(existing) + 1,
+        })
 
     return _json(404, {"error": f"no route for {method} {path}"})
 
