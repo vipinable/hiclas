@@ -11,6 +11,7 @@
     "deploy:classifieds": "nx run classifieds:deploy",
     "deploy:eu": "nx run classifieds-eu:deploy",
     "deploy:us": "nx run classifieds-us:deploy",
+    "deploy:vocabtrainer": "nx run vocabtrainer:deploy",
     "deploy:production": "nx run-many -t deploy --projects=classifieds-eu,classifieds-us"
   },
   "repository": {
