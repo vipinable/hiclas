@@ -1,0 +1,43 @@
+name: Deploy VocabTrainer (dev)
+
+on:
+  push:
+    branches:
+      - dev
+    paths:
+      - 'apps/vocabtrainer/**'
+      - '.github/workflows/deploy-vocabtrainer.yml'
+  workflow_dispatch:
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.A_KEY }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.S_KEY }}
+  AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION || 'us-east-1' }}
+  APP_NAME: vocabtrainer
+  ENV_NAME: ${{ vars.ENV_NAME || 'dev' }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: dev
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Check aws cli
+        run: aws --version && aws sts get-caller-identity --query Account --output text
+
+      - name: Install aws cdk package
+        run: npm install -g aws-cdk && cdk --version
+
+      - name: Check running versions
+        run: echo "node:$(node --version), cdk:$(cdk --version)"
+
+      - name: Deploy stack
+        working-directory: apps/vocabtrainer
+        run: |
+          npm install
+          cdk synth
+          cdk deploy --require-approval never
