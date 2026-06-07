@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>About — HighlyClassifieds</title>
+  <style>
+    :root {
+      --blue-50:#eff6ff; --blue-100:#dbeafe; --blue-600:#2563eb; --blue-700:#1d4ed8;
+      --emerald-50:#ecfdf5; --green-600:#16a34a;
+      --gray-100:#f3f4f6; --gray-200:#e5e7eb; --gray-400:#9ca3af; --gray-500:#6b7280;
+      --gray-600:#4b5563; --gray-700:#374151; --gray-800:#1f2937; --gray-900:#111827;
+      --muted:#64748b; --white:#ffffff;
+      --radius:0.5rem;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin:0; padding:0; }
+    body {
+      font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      color: var(--gray-900); background: var(--white); line-height: 1.6;
+    }
+    a { color: var(--blue-600); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* Nav */
+    .navbar {
+      width:100%; display:flex; align-items:center; justify-content:space-between;
+      border-bottom:1px solid var(--gray-200); background:var(--white);
+      padding:0.75rem 2.5rem; box-shadow:0 1px 2px 0 rgba(0,0,0,0.05);
+      position:sticky; top:0; z-index:30;
+    }
+    .brand { display:flex; align-items:center; gap:0.5rem; text-decoration:none; }
+    .brand svg { color:var(--blue-600); width:1.6rem; height:1.6rem; }
+    .brand .name { font-weight:800; font-size:1.15rem; color:var(--blue-700); }
+    .back-btn {
+      display:inline-flex; align-items:center; gap:0.35rem;
+      font-size:0.85rem; font-weight:600; color:var(--blue-600);
+      background:var(--blue-50); border:1px solid var(--blue-100);
+      border-radius:0.375rem; padding:0.4rem 0.85rem; cursor:pointer;
+      text-decoration:none; transition:background .15s;
+    }
+    .back-btn:hover { background:var(--blue-100); text-decoration:none; }
+
+    /* Hero */
+    .hero {
+      background: linear-gradient(135deg, var(--blue-600) 0%, #1e40af 100%);
+      color: #fff; text-align: center; padding: 4rem 2rem 3.5rem;
+    }
+    .hero h1 { font-size:2.5rem; font-weight:800; margin:0 0 0.75rem; letter-spacing:-0.03em; }
+    .hero p { font-size:1.15rem; opacity:0.9; max-width:560px; margin:0 auto; }
+
+    /* Content */
+    .container { max-width:860px; margin:0 auto; padding:3rem 2rem 4rem; }
+    @media(max-width:640px){ .container{ padding:2rem 1rem 3rem; } }
+
+    h2 { font-size:1.5rem; font-weight:700; color:var(--gray-900); margin:2.5rem 0 1rem; }
+    h2:first-child { margin-top:0; }
+    p { color:var(--gray-700); margin:0 0 1rem; }
+
+    /* Cards */
+    .card-grid {
+      display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+      gap:1.5rem; margin:1.5rem 0;
+    }
+    .card {
+      background:var(--gray-100); border-radius:0.75rem;
+      padding:1.5rem; display:flex; flex-direction:column; gap:0.5rem;
+    }
+    .card .icon {
+      width:2.5rem; height:2.5rem; border-radius:0.5rem;
+      background:var(--blue-600); color:#fff;
+      display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    }
+    .card h3 { font-size:1rem; font-weight:700; color:var(--gray-900); margin:0; }
+    .card p { font-size:0.9rem; color:var(--gray-600); margin:0; }
+
+    /* Steps */
+    .steps { display:flex; flex-direction:column; gap:1.25rem; margin:1.5rem 0; }
+    .step { display:flex; gap:1rem; align-items:flex-start; }
+    .step-num {
+      width:2rem; height:2rem; border-radius:50%; background:var(--blue-600);
+      color:#fff; font-weight:800; font-size:0.9rem; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .step-body h3 { font-size:1rem; font-weight:700; color:var(--gray-900); margin:0 0 0.25rem; }
+    .step-body p { font-size:0.9rem; color:var(--gray-600); margin:0; }
+
+    .highlight-box {
+      background:var(--emerald-50); border-left:4px solid var(--green-600);
+      border-radius:0 0.5rem 0.5rem 0; padding:1.25rem 1.5rem; margin:1.5rem 0;
+    }
+    .highlight-box p { color:var(--gray-700); margin:0; font-size:0.95rem; }
+
+    /* Footer */
+    footer {
+      text-align:center; padding:1.5rem 1rem;
+      font-size:0.78rem; color:var(--gray-400);
+      border-top:1px solid var(--gray-200);
+    }
+    footer a { color:var(--gray-500); margin:0 0.5rem; }
+    footer a:hover { color:var(--blue-600); }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="brand" href="/">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+    <span class="name">HighlyClassifieds</span>
+  </a>
+  <a class="back-btn" href="/">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    Back to marketplace
+  </a>
+</nav>
+
+<div class="hero">
+  <h1>About HighlyClassifieds</h1>
+  <p>A privacy-first local marketplace connecting buyers and sellers in your community.</p>
+</div>
+
+<div class="container">
+
+  <h2>Our Mission</h2>
+  <p>HighlyClassifieds was built on a simple belief: buying and selling locally should be easy, safe, and private. We connect people in their communities without ever exposing personal contact details — your email address stays yours.</p>
+  <p>Whether you're clearing out a garage, searching for a secondhand bargain, or growing a small business, HighlyClassifieds gives you a straightforward marketplace with no middleman fees and no data harvesting.</p>
+
+  <h2>What We Offer</h2>
+  <div class="card-grid">
+    <div class="card">
+      <div class="icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2Z"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+      </div>
+      <h3>Free Listings</h3>
+      <p>Post anything — vehicles, electronics, furniture, clothing and more — at no cost, with up to 10 photos per listing.</p>
+    </div>
+    <div class="card">
+      <div class="icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+      </div>
+      <h3>Private Messaging</h3>
+      <p>Communicate with buyers and sellers through our masked email relay — neither party ever sees the other's real address.</p>
+    </div>
+    <div class="card">
+      <div class="icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <h3>Privacy First</h3>
+      <p>Sign in with just your email and a one-time code — no passwords, no social logins, no tracking.</p>
+    </div>
+    <div class="card">
+      <div class="icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      </div>
+      <h3>Always On</h3>
+      <p>Built on AWS serverless infrastructure — fast, reliable, and available around the clock with no downtime windows.</p>
+    </div>
+  </div>
+
+  <h2>How It Works</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body">
+        <h3>Sign in with your email</h3>
+        <p>Enter your email address and we'll send a one-time 6-digit code. No password to remember, no account to create — just click "Login" and you're in.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body">
+        <h3>Browse or post listings</h3>
+        <p>Search thousands of local listings by keyword, category or location. Ready to sell? Post your item in under a minute with photos, a description and your asking price.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body">
+        <h3>Connect privately</h3>
+        <p>Spotted something you like? Hit "Express Interest" and we'll notify the seller on your behalf. They can reply directly to your masked address — and you to theirs — without either of you ever seeing a real email address.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body">
+        <h3>Close the deal</h3>
+        <p>Once you've agreed on price and pickup details over the relay, meet locally, inspect the item, and complete the transaction. Simple, safe, and community-driven.</p>
+      </div>
+    </div>
+  </div>
+
+  <h2>Privacy &amp; the Masked Email Relay</h2>
+  <div class="highlight-box">
+    <p>When you express interest in a listing, HighlyClassifieds sends a notification to the seller on your behalf. Any reply from the seller is routed through our relay back to your inbox — and vice versa. At no point does either party receive the other's real email address. Your identity stays private until you choose to share it.</p>
+  </div>
+
+  <h2>Built on Solid Foundations</h2>
+  <p>HighlyClassifieds runs entirely on AWS serverless services: S3 for storage, CloudFront for global delivery, DynamoDB for the listings database, Cognito for identity, Lambda for the API, and SES for email. There are no servers to patch, no databases to babysit, and the platform scales automatically with demand.</p>
+
+  <h2>Get in Touch</h2>
+  <p>Questions, feedback, or partnership enquiries? Email us at <a href="mailto:hello@highlyclassifieds.com">hello@highlyclassifieds.com</a>.</p>
+
+</div>
+
+<footer>
+  <div>&copy; <script>document.write(new Date().getFullYear())</script> HighlyClassifieds. All rights reserved.</div>
+  <div style="margin-top:0.5rem">
+    <a href="/pages/about.html">About</a>
+    <a href="/pages/faq.html">FAQ</a>
+    <a href="/pages/terms.html">Terms &amp; Conditions</a>
+    <a href="/">Marketplace</a>
+  </div>
+</footer>
+
+</body>
+</html>

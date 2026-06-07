@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Terms &amp; Conditions — HighlyClassifieds</title>
+  <style>
+    :root {
+      --blue-50:#eff6ff; --blue-100:#dbeafe; --blue-600:#2563eb; --blue-700:#1d4ed8;
+      --gray-100:#f3f4f6; --gray-200:#e5e7eb; --gray-400:#9ca3af; --gray-500:#6b7280;
+      --gray-600:#4b5563; --gray-700:#374151; --gray-800:#1f2937; --gray-900:#111827;
+      --muted:#64748b; --white:#ffffff;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin:0; padding:0; }
+    body {
+      font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      color: var(--gray-900); background: var(--white); line-height: 1.7;
+    }
+    a { color: var(--blue-600); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .navbar {
+      width:100%; display:flex; align-items:center; justify-content:space-between;
+      border-bottom:1px solid var(--gray-200); background:var(--white);
+      padding:0.75rem 2.5rem; box-shadow:0 1px 2px 0 rgba(0,0,0,0.05);
+      position:sticky; top:0; z-index:30;
+    }
+    .brand { display:flex; align-items:center; gap:0.5rem; text-decoration:none; }
+    .brand svg { color:var(--blue-600); width:1.6rem; height:1.6rem; }
+    .brand .name { font-weight:800; font-size:1.15rem; color:var(--blue-700); }
+    .back-btn {
+      display:inline-flex; align-items:center; gap:0.35rem;
+      font-size:0.85rem; font-weight:600; color:var(--blue-600);
+      background:var(--blue-50); border:1px solid var(--blue-100);
+      border-radius:0.375rem; padding:0.4rem 0.85rem; cursor:pointer;
+      text-decoration:none; transition:background .15s;
+    }
+    .back-btn:hover { background:var(--blue-100); text-decoration:none; }
+
+    .hero {
+      background: linear-gradient(135deg, var(--blue-600) 0%, #1e40af 100%);
+      color: #fff; text-align: center; padding: 4rem 2rem 3.5rem;
+    }
+    .hero h1 { font-size:2.5rem; font-weight:800; margin:0 0 0.75rem; letter-spacing:-0.03em; }
+    .hero .meta { font-size:0.9rem; opacity:0.8; }
+
+    .container { max-width:860px; margin:0 auto; padding:3rem 2rem 4rem; }
+    @media(max-width:640px){ .container{ padding:2rem 1rem 3rem; } }
+
+    .effective-notice {
+      background:var(--gray-100); border-radius:0.5rem; padding:1rem 1.25rem;
+      font-size:0.88rem; color:var(--gray-600); margin-bottom:2rem;
+    }
+
+    /* TOC */
+    .toc {
+      background:var(--blue-50); border:1px solid var(--blue-100); border-radius:0.75rem;
+      padding:1.25rem 1.5rem; margin-bottom:2.5rem;
+    }
+    .toc p { font-weight:700; color:var(--gray-800); margin:0 0 0.5rem; font-size:0.9rem; text-transform:uppercase; letter-spacing:0.05em; }
+    .toc ol { margin:0; padding-left:1.4rem; }
+    .toc li { margin:0.2rem 0; }
+    .toc a { color:var(--blue-600); font-size:0.88rem; }
+
+    section { margin-bottom:2.5rem; }
+    section h2 {
+      font-size:1.15rem; font-weight:700; color:var(--gray-900);
+      border-bottom:2px solid var(--gray-200); padding-bottom:0.4rem;
+      margin:0 0 1rem; counter-increment:section;
+    }
+    section h2::before {
+      content:counter(section) ". ";
+      color:var(--blue-600); font-weight:800;
+    }
+    .terms-body { counter-reset:section; }
+
+    p { color:var(--gray-700); margin:0 0 0.8rem; font-size:0.95rem; }
+    ul, ol { color:var(--gray-700); padding-left:1.4rem; margin:0 0 0.8rem; }
+    li { margin-bottom:0.4rem; font-size:0.95rem; }
+    strong { color:var(--gray-900); }
+
+    .warn-box {
+      background:#fef3c7; border-left:4px solid #d97706;
+      border-radius:0 0.5rem 0.5rem 0; padding:1rem 1.25rem; margin:1rem 0;
+      font-size:0.9rem; color:#92400e;
+    }
+
+    footer {
+      text-align:center; padding:1.5rem 1rem;
+      font-size:0.78rem; color:var(--gray-400);
+      border-top:1px solid var(--gray-200);
+    }
+    footer a { color:var(--gray-500); margin:0 0.5rem; }
+    footer a:hover { color:var(--blue-600); }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="brand" href="/">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+    <span class="name">HighlyClassifieds</span>
+  </a>
+  <a class="back-btn" href="/">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    Back to marketplace
+  </a>
+</nav>
+
+<div class="hero">
+  <h1>Terms &amp; Conditions</h1>
+  <p class="meta">Last updated: <span id="date-display"></span></p>
+</div>
+
+<div class="container">
+
+  <div class="effective-notice">
+    Please read these Terms and Conditions carefully before using the HighlyClassifieds platform. By accessing or using the service you agree to be bound by these terms. If you do not agree, do not use the platform.
+  </div>
+
+  <div class="toc">
+    <p>Contents</p>
+    <ol>
+      <li><a href="#definitions">Definitions</a></li>
+      <li><a href="#eligibility">Eligibility</a></li>
+      <li><a href="#account">Account Registration &amp; Security</a></li>
+      <li><a href="#listings">Listing Policies</a></li>
+      <li><a href="#conduct">User Conduct</a></li>
+      <li><a href="#ip">Intellectual Property</a></li>
+      <li><a href="#privacy">Privacy &amp; Data</a></li>
+      <li><a href="#relay">Email Relay Service</a></li>
+      <li><a href="#disclaimer">Disclaimer of Warranties</a></li>
+      <li><a href="#liability">Limitation of Liability</a></li>
+      <li><a href="#indemnification">Indemnification</a></li>
+      <li><a href="#termination">Termination</a></li>
+      <li><a href="#changes">Changes to These Terms</a></li>
+      <li><a href="#law">Governing Law</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ol>
+  </div>
+
+  <div class="terms-body">
+
+    <section id="definitions">
+      <h2>Definitions</h2>
+      <p><strong>"Platform"</strong> means the HighlyClassifieds website and all associated services accessible at highlyclassifieds.com and its subdomains.</p>
+      <p><strong>"User"</strong> means any individual who accesses or uses the Platform, whether registered or not.</p>
+      <p><strong>"Listing"</strong> means any advertisement, offer, or item for sale posted by a User on the Platform.</p>
+      <p><strong>"Relay"</strong> means the masked email relay service that routes communications between Users without exposing real email addresses.</p>
+      <p><strong>"We", "Us", "Our"</strong> refers to the operators of HighlyClassifieds.</p>
+    </section>
+
+    <section id="eligibility">
+      <h2>Eligibility</h2>
+      <p>You must be at least 18 years of age to register an account and post Listings on the Platform. By using the Platform, you represent and warrant that you meet this age requirement and that you have the legal capacity to enter into a binding agreement.</p>
+      <p>The Platform is intended for personal, non-commercial use or small-scale individual selling. Businesses intending to use the Platform at scale must contact us to discuss appropriate terms.</p>
+    </section>
+
+    <section id="account">
+      <h2>Account Registration &amp; Security</h2>
+      <p>Accounts are created automatically when you first sign in using your email address and a one-time verification code. You are responsible for:</p>
+      <ul>
+        <li>Maintaining the security of your email inbox, as it is the sole means of account access;</li>
+        <li>All activity that occurs under your account;</li>
+        <li>Notifying us immediately at <a href="mailto:support@highlyclassifieds.com">support@highlyclassifieds.com</a> if you believe your account has been compromised.</li>
+      </ul>
+      <p>You may not share, sell, or transfer your account to another person. You may not create multiple accounts to circumvent suspensions or restrictions.</p>
+    </section>
+
+    <section id="listings">
+      <h2>Listing Policies</h2>
+      <p>By posting a Listing you represent and warrant that:</p>
+      <ul>
+        <li>You are the lawful owner of the item or are duly authorised to sell it;</li>
+        <li>The Listing content is accurate, complete, and not misleading;</li>
+        <li>The item is legal to sell in the jurisdiction where it is offered;</li>
+        <li>Images are of the actual item being offered and are not stolen or used without permission.</li>
+      </ul>
+      <p>The following are strictly prohibited on the Platform:</p>
+      <ul>
+        <li>Illegal goods, substances, or services;</li>
+        <li>Stolen, counterfeit, or pirated goods;</li>
+        <li>Firearms, ammunition, or regulated weapons (where prohibited by applicable law);</li>
+        <li>Hazardous materials including chemicals, explosives, or radioactive items;</li>
+        <li>Live animals unless sold by a licensed breeder in full compliance with local animal welfare laws;</li>
+        <li>Adult, explicit, or obscene content;</li>
+        <li>Personal data, financial instruments, account credentials, or identity documents;</li>
+        <li>Pyramid schemes, multi-level marketing, or investment solicitations;</li>
+        <li>Listings designed to defraud or mislead other Users.</li>
+      </ul>
+      <div class="warn-box">We reserve the right to remove any Listing at our sole discretion and without notice, particularly where it may violate these Terms, applicable law, or community standards.</div>
+    </section>
+
+    <section id="conduct">
+      <h2>User Conduct</h2>
+      <p>You agree not to use the Platform to:</p>
+      <ul>
+        <li>Harass, threaten, or abuse other Users;</li>
+        <li>Send spam, unsolicited commercial messages, or chain letters;</li>
+        <li>Attempt to gain unauthorised access to any part of the Platform or other Users' accounts;</li>
+        <li>Introduce malware, viruses, or any harmful code;</li>
+        <li>Scrape, crawl, or systematically extract data from the Platform without our prior written consent;</li>
+        <li>Interfere with or disrupt the integrity or performance of the Platform;</li>
+        <li>Circumvent any technical measures designed to protect the Platform or other Users.</li>
+      </ul>
+      <p>Violations of this section may result in immediate account suspension and, where appropriate, referral to law enforcement.</p>
+    </section>
+
+    <section id="ip">
+      <h2>Intellectual Property</h2>
+      <p>The Platform, including its design, code, trademarks, and branding, is the intellectual property of HighlyClassifieds and is protected by applicable intellectual property laws.</p>
+      <p>By posting a Listing, you grant HighlyClassifieds a non-exclusive, worldwide, royalty-free licence to use, display, reproduce, and distribute your Listing content (including images) solely for the purposes of operating and promoting the Platform. You retain all other ownership rights in your content.</p>
+      <p>You must not reproduce, copy, or distribute any part of the Platform without our express written permission.</p>
+    </section>
+
+    <section id="privacy">
+      <h2>Privacy &amp; Data</h2>
+      <p>We collect only the minimum personal data necessary to provide the Platform: your email address, Listing content, and email communications routed through the Relay. We do not sell your personal data to third parties.</p>
+      <p>Your data is stored on Amazon Web Services infrastructure with encryption at rest and in transit. For full details of how we handle personal data, please contact us at <a href="mailto:privacy@highlyclassifieds.com">privacy@highlyclassifieds.com</a>.</p>
+      <p>You may request deletion of your personal data at any time. Requests are processed within 30 days.</p>
+    </section>
+
+    <section id="relay">
+      <h2>Email Relay Service</h2>
+      <p>The Relay is provided as a privacy tool to enable communication between Users without disclosing real email addresses. By using the Relay you acknowledge that:</p>
+      <ul>
+        <li>Messages are temporarily stored on our infrastructure for delivery purposes;</li>
+        <li>We may inspect Relay content where required by law or to investigate abuse reports;</li>
+        <li>The Relay is not end-to-end encrypted and should not be used to transmit sensitive financial or personal information;</li>
+        <li>We are not a party to any transaction or agreement reached through the Relay and accept no responsibility for its outcome.</li>
+      </ul>
+    </section>
+
+    <section id="disclaimer">
+      <h2>Disclaimer of Warranties</h2>
+      <p>The Platform is provided <strong>"as is"</strong> and <strong>"as available"</strong> without warranties of any kind, either express or implied, including but not limited to warranties of merchantability, fitness for a particular purpose, or non-infringement.</p>
+      <p>We do not warrant that the Platform will be uninterrupted, error-free, or free of viruses. We make no representations about the accuracy, reliability, or completeness of any Listing content, which is entirely the responsibility of the User who posted it.</p>
+      <p>HighlyClassifieds is a marketplace platform only. We are not involved in transactions between Users and we do not verify the accuracy, legality, or condition of any item listed.</p>
+    </section>
+
+    <section id="liability">
+      <h2>Limitation of Liability</h2>
+      <p>To the maximum extent permitted by applicable law, HighlyClassifieds and its operators shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to:</p>
+      <ul>
+        <li>Loss of profits, revenue, or data;</li>
+        <li>Losses arising from fraudulent Listings or fraudulent Users;</li>
+        <li>Losses resulting from transactions made between Users;</li>
+        <li>Service interruptions or data loss.</li>
+      </ul>
+      <p>In any event, our aggregate liability to you for any claim arising from use of the Platform shall not exceed the amount you have paid us in the 12 months preceding the claim (which, given the Platform is free, will typically be zero).</p>
+    </section>
+
+    <section id="indemnification">
+      <h2>Indemnification</h2>
+      <p>You agree to indemnify, defend, and hold harmless HighlyClassifieds and its operators from and against any claims, liabilities, damages, losses, and expenses (including reasonable legal fees) arising out of or relating to your use of the Platform, your Listings, your violation of these Terms, or your violation of any rights of a third party.</p>
+    </section>
+
+    <section id="termination">
+      <h2>Termination</h2>
+      <p>We may suspend or permanently terminate your account at any time, with or without notice, if we reasonably believe you have violated these Terms or applicable law, or if your activity poses a risk to other Users or to the Platform.</p>
+      <p>You may close your account at any time by contacting <a href="mailto:support@highlyclassifieds.com">support@highlyclassifieds.com</a>. Upon closure, your Listings will be removed and your personal data will be deleted in accordance with our data retention policy.</p>
+    </section>
+
+    <section id="changes">
+      <h2>Changes to These Terms</h2>
+      <p>We may update these Terms from time to time. When we do, we will revise the "Last updated" date at the top of this page. If changes are material, we will make reasonable efforts to notify registered Users by email.</p>
+      <p>Continued use of the Platform after updated Terms are posted constitutes your acceptance of those changes. If you do not agree to the revised Terms, you must stop using the Platform.</p>
+    </section>
+
+    <section id="law">
+      <h2>Governing Law</h2>
+      <p>These Terms are governed by and construed in accordance with applicable law. Any disputes arising from these Terms or your use of the Platform shall be subject to the exclusive jurisdiction of the courts in the territory where HighlyClassifieds operates.</p>
+      <p>If any provision of these Terms is found to be unenforceable, the remaining provisions will continue in full force and effect.</p>
+    </section>
+
+    <section id="contact">
+      <h2>Contact</h2>
+      <p>If you have questions about these Terms, please contact us:</p>
+      <ul>
+        <li>General enquiries: <a href="mailto:hello@highlyclassifieds.com">hello@highlyclassifieds.com</a></li>
+        <li>Privacy &amp; data requests: <a href="mailto:privacy@highlyclassifieds.com">privacy@highlyclassifieds.com</a></li>
+        <li>Trust &amp; safety: <a href="mailto:trust@highlyclassifieds.com">trust@highlyclassifieds.com</a></li>
+        <li>Technical support: <a href="mailto:support@highlyclassifieds.com">support@highlyclassifieds.com</a></li>
+      </ul>
+    </section>
+
+  </div>
+</div>
+
+<footer>
+  <div>&copy; <script>document.write(new Date().getFullYear())</script> HighlyClassifieds. All rights reserved.</div>
+  <div style="margin-top:0.5rem">
+    <a href="/pages/about.html">About</a>
+    <a href="/pages/faq.html">FAQ</a>
+    <a href="/pages/terms.html">Terms &amp; Conditions</a>
+    <a href="/">Marketplace</a>
+  </div>
+</footer>
+
+<script>
+  var d = new Date();
+  var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('date-display').textContent = months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+</script>
+</body>
+</html>
