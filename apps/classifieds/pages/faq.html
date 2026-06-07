@@ -103,7 +103,8 @@
       font-size:0.78rem; color:var(--gray-400);
       border-top:1px solid var(--gray-200);
     }
-    .footer-links { display:flex; flex-direction:column; align-items:center; gap:0.4rem; margin-bottom:0.75rem; }
+    .footer-links { display:grid; grid-template-columns:1fr 1fr 1fr; gap:0.5rem 2rem; max-width:480px; margin:0 auto 0.75rem; }
+    .footer-links > div { display:flex; flex-direction:column; align-items:center; gap:0.3rem; }
     footer a { color:var(--gray-500); }
     footer a:hover { color:var(--blue-600); }
   </style>
@@ -370,14 +371,20 @@
 
 <footer>
   <div class="footer-links">
-    <a href="/pages/about.html">About</a>
-    <a href="/pages/faq.html">FAQ</a>
-    <a href="/pages/terms.html">Terms of Service</a>
-    <a href="/pages/contact.html">Contact</a>
-    <a href="/pages/user-agreement.html">User Agreement</a>
-    <a href="/pages/privacy.html">Privacy Policy</a>
+    <div>
+      <a href="/pages/about.html">About</a>
+      <a href="/pages/contact.html">Contact</a>
+    </div>
+    <div>
+      <a href="/pages/faq.html">Frequently Asked Questions</a>
+    </div>
+    <div>
+      <a href="/pages/terms.html">Terms of Service</a>
+      <a href="/pages/user-agreement.html">User Agreement</a>
+      <a href="/pages/privacy.html">Privacy Policy</a>
+    </div>
   </div>
-  <div>&copy; 2016&ndash;<span id="footer-year"></span> HighlyClassifieds. All rights reserved.</div>
+  <div>&copy; 2026&ndash;<span id="footer-year"></span> HighlyClassifieds. All rights reserved.</div>
 </footer>
 <script>document.getElementById('footer-year').textContent = new Date().getFullYear();</script>
 
