@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VocabTrainer — match the word to its meaning</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --panel: #1e293b;
+    --panel-2: #273449;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --accent: #38bdf8;
+    --good: #22c55e;
+    --bad: #ef4444;
+    --border: #334155;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 24px 16px 80px;
+  }
+  .wrap { width: 100%; max-width: 640px; }
+  h1 {
+    font-size: 1.6rem;
+    margin: 0 0 4px;
+    letter-spacing: 0.3px;
+  }
+  .sub { color: var(--muted); margin-bottom: 24px; font-size: 0.95rem; }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .row > * { flex: 1; min-width: 0; }
+  label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 6px; }
+  select, input, button {
+    font: inherit;
+    color: inherit;
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    width: 100%;
+  }
+  button {
+    cursor: pointer;
+    background: var(--accent);
+    color: #0f172a;
+    font-weight: 600;
+    border: none;
+    transition: filter 0.15s ease;
+  }
+  button:hover { filter: brightness(1.08); }
+  button.secondary {
+    background: transparent;
+    color: var(--text);
+    border: 1px solid var(--border);
+    font-weight: 500;
+  }
+  .score {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    font-size: 0.95rem;
+    color: var(--muted);
+  }
+  .score b { color: var(--text); }
+  .word {
+    font-size: 2rem;
+    font-weight: 700;
+    text-align: center;
+    margin: 8px 0 4px;
+    letter-spacing: 0.5px;
+  }
+  .word-hint {
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-bottom: 18px;
+  }
+  .choices { display: grid; gap: 10px; }
+  .choice {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    text-align: left;
+    padding: 14px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: transform 0.05s ease, border-color 0.15s ease, background 0.15s ease;
+  }
+  .choice:hover:not(:disabled) { border-color: var(--accent); }
+  .choice:disabled { cursor: default; }
+  .choice.correct { background: rgba(34, 197, 94, 0.18); border-color: var(--good); }
+  .choice.wrong { background: rgba(239, 68, 68, 0.18); border-color: var(--bad); }
+  .feedback {
+    margin-top: 16px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    display: none;
+  }
+  .feedback.good { display: block; background: rgba(34, 197, 94, 0.12); color: var(--good); }
+  .feedback.bad { display: block; background: rgba(239, 68, 68, 0.12); color: var(--bad); }
+  .actions { display: flex; gap: 10px; margin-top: 14px; }
+  .actions button { flex: 1; }
+  .error {
+    background: rgba(239, 68, 68, 0.12);
+    color: var(--bad);
+    border: 1px solid var(--bad);
+    padding: 10px 12px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    display: none;
+    font-size: 0.9rem;
+  }
+  .footer-hint { color: var(--muted); font-size: 0.8rem; text-align: center; margin-top: 24px; }
+  code { background: var(--panel-2); padding: 1px 6px; border-radius: 4px; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>VocabTrainer</h1>
+  <p class="sub">Pick the meaning that matches the word. One point per correct answer.</p>
+
+  <div id="err" class="error"></div>
+
+  <div class="panel">
+    <div class="row">
+      <div>
+        <label for="apiInput">API URL</label>
+        <input id="apiInput" placeholder="https://xxxx.lambda-url.us-east-1.on.aws/">
+      </div>
+      <div style="flex: 0 0 auto;">
+        <label>&nbsp;</label>
+        <button id="saveApi" class="secondary" style="width: auto; padding: 10px 14px;">Save</button>
+      </div>
+    </div>
+    <div class="row" style="margin-top: 12px;">
+      <div>
+        <label for="listSelect">Word list</label>
+        <select id="listSelect"><option>(loading…)</option></select>
+      </div>
+      <div style="flex: 0 0 auto;">
+        <label>&nbsp;</label>
+        <button id="startBtn" style="width: auto; padding: 10px 18px;">Start / Refresh</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="score">
+      <div>Score: <b id="score">0</b></div>
+      <div>Round: <b id="roundNum">0</b></div>
+      <div>Streak: <b id="streak">0</b></div>
+    </div>
+  </div>
+
+  <div class="panel" id="gamePanel" style="display: none;">
+    <div class="word" id="word">—</div>
+    <div class="word-hint">Tap the meaning that matches</div>
+    <div class="choices" id="choices"></div>
+    <div class="feedback" id="feedback"></div>
+    <div class="actions">
+      <button id="nextBtn" disabled>Next word →</button>
+    </div>
+  </div>
+
+  <div class="footer-hint">
+    Add new word lists by uploading <code>word,meaning</code> CSV files to the vocab S3 bucket.
+  </div>
+</div>
+
+<script>
+const API_KEY = "vocabtrainer.apiUrl";
+
+const els = {
+  apiInput: document.getElementById("apiInput"),
+  saveApi: document.getElementById("saveApi"),
+  listSelect: document.getElementById("listSelect"),
+  startBtn: document.getElementById("startBtn"),
+  err: document.getElementById("err"),
+  score: document.getElementById("score"),
+  roundNum: document.getElementById("roundNum"),
+  streak: document.getElementById("streak"),
+  gamePanel: document.getElementById("gamePanel"),
+  word: document.getElementById("word"),
+  choices: document.getElementById("choices"),
+  feedback: document.getElementById("feedback"),
+  nextBtn: document.getElementById("nextBtn"),
+};
+
+let state = {
+  apiUrl: localStorage.getItem(API_KEY) || "",
+  score: 0,
+  roundNum: 0,
+  streak: 0,
+  round: null,
+  answered: false,
+};
+
+els.apiInput.value = state.apiUrl;
+
+function showError(msg) {
+  els.err.textContent = msg;
+  els.err.style.display = msg ? "block" : "none";
+}
+
+function apiBase() {
+  let u = state.apiUrl.trim();
+  if (!u) throw new Error("Set the Lambda Function URL above first.");
+  return u.replace(/\/+$/, "");
+}
+
+async function api(path, opts) {
+  const res = await fetch(apiBase() + path, opts);
+  if (!res.ok) {
+    let msg = `HTTP ${res.status}`;
+    try { const j = await res.json(); if (j.error) msg = j.error; } catch (_) {}
+    throw new Error(msg);
+  }
+  return res.json();
+}
+
+async function loadLists() {
+  showError("");
+  try {
+    const data = await api("/lists");
+    els.listSelect.innerHTML = "";
+    (data.lists || []).forEach(k => {
+      const opt = document.createElement("option");
+      opt.value = k;
+      opt.textContent = k;
+      els.listSelect.appendChild(opt);
+    });
+    if (!data.lists || !data.lists.length) {
+      els.listSelect.innerHTML = "<option>(no lists found)</option>";
+    }
+  } catch (e) {
+    showError("Couldn't load word lists: " + e.message);
+    els.listSelect.innerHTML = "<option>(error)</option>";
+  }
+}
+
+async function nextRound() {
+  showError("");
+  els.feedback.className = "feedback";
+  els.feedback.textContent = "";
+  els.nextBtn.disabled = true;
+  state.answered = false;
+
+  const list = els.listSelect.value;
+  if (!list || list.startsWith("(")) {
+    showError("Pick a word list first.");
+    return;
+  }
+  try {
+    const round = await api(`/round?list=${encodeURIComponent(list)}&n=4`);
+    state.round = round;
+    state.roundNum += 1;
+    els.roundNum.textContent = state.roundNum;
+    els.word.textContent = round.word;
+    els.gamePanel.style.display = "block";
+    renderChoices(round.choices);
+  } catch (e) {
+    showError("Couldn't fetch a round: " + e.message);
+  }
+}
+
+function renderChoices(choices) {
+  els.choices.innerHTML = "";
+  choices.forEach(c => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "choice";
+    btn.textContent = c.meaning;
+    btn.dataset.meaning = c.meaning;
+    btn.addEventListener("click", () => onChoose(btn, c.meaning));
+    els.choices.appendChild(btn);
+  });
+}
+
+async function onChoose(btn, chosenMeaning) {
+  if (state.answered) return;
+  state.answered = true;
+  Array.from(els.choices.children).forEach(c => c.disabled = true);
+
+  try {
+    const result = await api("/answer", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        round_id: state.round.round_id,
+        chosen_meaning: chosenMeaning,
+      }),
+    });
+    if (result.is_correct) {
+      btn.classList.add("correct");
+      state.score += result.points_awarded || 1;
+      state.streak += 1;
+      els.feedback.className = "feedback good";
+      els.feedback.textContent = `Correct! +${result.points_awarded || 1} point.`;
+    } else {
+      btn.classList.add("wrong");
+      state.streak = 0;
+      // highlight the right one
+      Array.from(els.choices.children).forEach(c => {
+        if (c.dataset.meaning === result.correct_meaning) c.classList.add("correct");
+      });
+      els.feedback.className = "feedback bad";
+      els.feedback.textContent = `Not quite. "${state.round.word}" means: ${result.correct_meaning}`;
+    }
+    els.score.textContent = state.score;
+    els.streak.textContent = state.streak;
+    els.nextBtn.disabled = false;
+  } catch (e) {
+    showError("Couldn't grade answer: " + e.message);
+    state.answered = false;
+    Array.from(els.choices.children).forEach(c => c.disabled = false);
+  }
+}
+
+els.saveApi.addEventListener("click", () => {
+  state.apiUrl = els.apiInput.value.trim();
+  localStorage.setItem(API_KEY, state.apiUrl);
+  loadLists();
+});
+els.startBtn.addEventListener("click", nextRound);
+els.nextBtn.addEventListener("click", nextRound);
+
+if (state.apiUrl) loadLists();
+</script>
+</body>
+</html>
