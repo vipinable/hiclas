@@ -46,7 +46,7 @@
   .row { display: flex; gap: 12px; align-items: end; flex-wrap: wrap; }
   .row > * { flex: 1; min-width: 0; }
   label { display: block; font-size: 0.85rem; color: var(--muted); margin-bottom: 6px; }
-  select, button {
+  select, input, button {
     font: inherit;
     color: inherit;
     background: var(--panel-2);
@@ -64,14 +64,17 @@
     transition: filter 0.15s ease;
   }
   button:hover:not(:disabled) { filter: brightness(1.08); }
-  button:disabled { cursor: default; opacity: 0.7; }
+  button:disabled { cursor: default; opacity: 0.6; }
+  button.danger { background: var(--bad); color: #fff; }
   .score {
     display: flex;
     justify-content: space-between;
     gap: 16px;
     font-size: 0.95rem;
     color: var(--muted);
+    flex-wrap: wrap;
   }
+  .score > div { flex: 1; min-width: 80px; }
   .score b { color: var(--text); }
   .board {
     display: grid;
@@ -97,7 +100,8 @@
     cursor: pointer;
     font-weight: 500;
     font-size: 0.95rem;
-    transition: border-color 0.12s ease, background 0.12s ease, transform 0.05s ease;
+    transition: opacity 0.25s ease, transform 0.25s ease,
+                border-color 0.12s ease, background 0.12s ease;
     width: 100%;
   }
   .tile.word { font-weight: 700; text-align: center; font-size: 1.05rem; }
@@ -108,12 +112,12 @@
   }
   .tile.matched {
     border-color: var(--good);
-    background: rgba(34, 197, 94, 0.15);
-    color: var(--muted);
-    cursor: default;
-    text-decoration: line-through;
-    text-decoration-color: rgba(148, 163, 184, 0.5);
+    background: rgba(34, 197, 94, 0.25);
+    color: var(--good);
+    animation: pulse-good 0.4s ease;
   }
+  .tile.leaving { opacity: 0; transform: scale(0.85); pointer-events: none; }
+  .tile.entering { opacity: 0; transform: scale(0.85); }
   .tile.flash-bad {
     border-color: var(--bad);
     background: rgba(239, 68, 68, 0.18);
@@ -123,6 +127,11 @@
     0%, 100% { transform: translateX(0); }
     25% { transform: translateX(-4px); }
     75% { transform: translateX(4px); }
+  }
+  @keyframes pulse-good {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+    100% { transform: scale(1); }
   }
   .error {
     background: rgba(239, 68, 68, 0.12);
@@ -134,11 +143,11 @@
     display: none;
     font-size: 0.9rem;
   }
-  .done-banner {
+  .ended-banner {
     display: none;
-    background: rgba(34, 197, 94, 0.12);
-    color: var(--good);
-    border: 1px solid var(--good);
+    background: rgba(56, 189, 248, 0.10);
+    color: var(--accent);
+    border: 1px solid var(--accent);
     border-radius: 8px;
     padding: 12px 14px;
     margin-bottom: 16px;
@@ -147,6 +156,7 @@
   }
   .footer-hint { color: var(--muted); font-size: 0.8rem; text-align: center; margin-top: 24px; }
   code { background: var(--panel-2); padding: 1px 6px; border-radius: 4px; font-size: 0.85rem; }
+  .hidden { display: none !important; }
   @media (max-width: 520px) {
     .board { grid-template-columns: 1fr; }
   }
@@ -155,7 +165,7 @@
 <body>
 <div class="wrap">
   <h1>VocabTrainer</h1>
-  <p class="sub">Click a word, then click the meaning that matches it. One point per correct match.</p>
+  <p class="sub">Click a word, then click its meaning. Correct matches are replaced on the fly — play as long as you like.</p>
 
   <div id="err" class="error"></div>
 
@@ -166,16 +176,14 @@
         <select id="listSelect"><option>(loading…)</option></select>
       </div>
       <div>
-        <label for="sizeSelect">Pairs per board</label>
-        <select id="sizeSelect">
-          <option value="4">4</option>
-          <option value="6" selected>6</option>
-          <option value="8">8</option>
-          <option value="10">10</option>
-        </select>
+        <label for="sizeInput">Pairs on board</label>
+        <input type="number" id="sizeInput" min="2" max="50" value="6">
       </div>
       <div style="flex: 0 0 auto;">
-        <button id="newBoardBtn" style="width: auto; padding: 10px 18px;">New board</button>
+        <button id="startBtn" style="width: auto; padding: 10px 18px;">Start game</button>
+      </div>
+      <div style="flex: 0 0 auto;">
+        <button id="endBtn" class="danger hidden" style="width: auto; padding: 10px 18px;">End game</button>
       </div>
     </div>
   </div>
@@ -183,14 +191,16 @@
   <div class="panel">
     <div class="score">
       <div>Score: <b id="score">0</b></div>
-      <div>Matched: <b id="matched">0</b> / <b id="total">0</b></div>
+      <div>Streak: <b id="streak">0</b></div>
+      <div>Best streak: <b id="bestStreak">0</b></div>
       <div>Attempts: <b id="attempts">0</b></div>
+      <div>Accuracy: <b id="accuracy">—</b></div>
     </div>
   </div>
 
-  <div id="doneBanner" class="done-banner"></div>
+  <div id="endedBanner" class="ended-banner"></div>
 
-  <div class="panel" id="boardPanel" style="display: none;">
+  <div class="panel hidden" id="boardPanel">
     <div class="board">
       <div>
         <div class="col-title">Words</div>
@@ -209,34 +219,59 @@
 </div>
 
 <script>
+const TRANSITION_MS = 260;
+
 const els = {
   listSelect: document.getElementById("listSelect"),
-  sizeSelect: document.getElementById("sizeSelect"),
-  newBoardBtn: document.getElementById("newBoardBtn"),
+  sizeInput: document.getElementById("sizeInput"),
+  startBtn: document.getElementById("startBtn"),
+  endBtn: document.getElementById("endBtn"),
   err: document.getElementById("err"),
   score: document.getElementById("score"),
-  matched: document.getElementById("matched"),
-  total: document.getElementById("total"),
+  streak: document.getElementById("streak"),
+  bestStreak: document.getElementById("bestStreak"),
   attempts: document.getElementById("attempts"),
-  doneBanner: document.getElementById("doneBanner"),
+  accuracy: document.getElementById("accuracy"),
+  endedBanner: document.getElementById("endedBanner"),
   boardPanel: document.getElementById("boardPanel"),
   wordsCol: document.getElementById("wordsCol"),
   meaningsCol: document.getElementById("meaningsCol"),
 };
 
-let state = {
+const state = {
+  mode: "settings",   // "settings" | "playing"
   list: "",
   selectedWordEl: null,
-  matchedPairs: 0,
-  totalPairs: 0,
-  attempts: 0,
   score: 0,
+  streak: 0,
+  bestStreak: 0,
+  attempts: 0,
   busy: false,
 };
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
 function showError(msg) {
   els.err.textContent = msg;
   els.err.style.display = msg ? "block" : "none";
+}
+
+function updateAccuracy() {
+  els.accuracy.textContent = state.attempts > 0
+    ? Math.round((state.score / state.attempts) * 100) + "%"
+    : "—";
+}
+
+function resetStats() {
+  state.score = 0;
+  state.streak = 0;
+  state.bestStreak = 0;
+  state.attempts = 0;
+  els.score.textContent = "0";
+  els.streak.textContent = "0";
+  els.bestStreak.textContent = "0";
+  els.attempts.textContent = "0";
+  updateAccuracy();
 }
 
 async function api(path, opts) {
@@ -269,53 +304,72 @@ async function loadLists() {
   }
 }
 
-function makeTile(text, kind) {
+function makeTile(text, kind, onClick) {
   const b = document.createElement("button");
   b.type = "button";
-  b.className = `tile ${kind}`;
+  b.className = `tile ${kind} entering`;
   b.textContent = text;
   b.dataset.value = text;
+  b.addEventListener("click", () => onClick(b));
+  // next tick: drop the `entering` class so the transition plays
+  requestAnimationFrame(() => requestAnimationFrame(() => b.classList.remove("entering")));
   return b;
 }
 
-async function newBoard() {
+function currentBoardWords() {
+  return Array.from(els.wordsCol.children).map(c => c.dataset.value);
+}
+
+async function startGame() {
   showError("");
-  els.doneBanner.style.display = "none";
+  els.endedBanner.style.display = "none";
   const list = els.listSelect.value;
   if (!list || list.startsWith("(")) {
     showError("Pick a word list first.");
     return;
   }
-  const n = parseInt(els.sizeSelect.value, 10) || 6;
+  let n = parseInt(els.sizeInput.value, 10);
+  if (!Number.isFinite(n) || n < 2) n = 2;
+  if (n > 50) n = 50;
+  els.sizeInput.value = String(n);
+
   try {
     const board = await api(`/board?list=${encodeURIComponent(list)}&n=${n}`);
+    state.mode = "playing";
     state.list = board.list;
     state.selectedWordEl = null;
-    state.matchedPairs = 0;
-    state.totalPairs = board.words.length;
-    els.matched.textContent = "0";
-    els.total.textContent = String(state.totalPairs);
-
+    resetStats();
     els.wordsCol.innerHTML = "";
     els.meaningsCol.innerHTML = "";
-    board.words.forEach(w => {
-      const t = makeTile(w, "word");
-      t.addEventListener("click", () => onWordClick(t));
-      els.wordsCol.appendChild(t);
-    });
-    board.meanings.forEach(m => {
-      const t = makeTile(m, "meaning");
-      t.addEventListener("click", () => onMeaningClick(t));
-      els.meaningsCol.appendChild(t);
-    });
-    els.boardPanel.style.display = "block";
+    board.words.forEach(w => els.wordsCol.appendChild(makeTile(w, "word", onWordClick)));
+    board.meanings.forEach(m => els.meaningsCol.appendChild(makeTile(m, "meaning", onMeaningClick)));
+    els.boardPanel.classList.remove("hidden");
+    els.endBtn.classList.remove("hidden");
+    els.startBtn.textContent = "Restart";
   } catch (e) {
     showError("Couldn't load a board: " + e.message);
   }
 }
 
+function endGame(reason) {
+  state.mode = "settings";
+  state.selectedWordEl = null;
+  els.boardPanel.classList.add("hidden");
+  els.endBtn.classList.add("hidden");
+  els.startBtn.textContent = "Start game";
+  els.wordsCol.innerHTML = "";
+  els.meaningsCol.innerHTML = "";
+  const acc = state.attempts > 0
+    ? Math.round((state.score / state.attempts) * 100)
+    : 0;
+  const summary = `${reason || "Game ended."} Final score: ${state.score} — ${state.attempts} attempts (${acc}% accuracy), best streak ${state.bestStreak}.`;
+  els.endedBanner.textContent = summary;
+  els.endedBanner.style.display = "block";
+}
+
 function onWordClick(t) {
-  if (state.busy || t.classList.contains("matched")) return;
+  if (state.mode !== "playing" || state.busy) return;
+  if (t.classList.contains("matched") || t.classList.contains("leaving")) return;
   if (state.selectedWordEl) state.selectedWordEl.classList.remove("selected");
   if (state.selectedWordEl === t) {
     state.selectedWordEl = null;
@@ -326,9 +380,9 @@ function onWordClick(t) {
 }
 
 async function onMeaningClick(t) {
-  if (state.busy || t.classList.contains("matched")) return;
+  if (state.mode !== "playing" || state.busy) return;
+  if (t.classList.contains("matched") || t.classList.contains("leaving")) return;
   if (!state.selectedWordEl) {
-    // require word-first per the rules
     flashHint(t);
     return;
   }
@@ -343,26 +397,24 @@ async function onMeaningClick(t) {
     const result = await api("/answer", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ list: state.list, word, chosen_meaning: chosen }),
+      body: JSON.stringify({
+        list: state.list,
+        word,
+        chosen_meaning: chosen,
+        current_words: currentBoardWords(),
+      }),
     });
     if (result.is_correct) {
-      wordEl.classList.remove("selected");
-      wordEl.classList.add("matched");
-      t.classList.add("matched");
-      wordEl.disabled = true;
-      t.disabled = true;
-      state.selectedWordEl = null;
-      state.matchedPairs += 1;
-      state.score += result.points_awarded || 1;
-      els.matched.textContent = String(state.matchedPairs);
-      els.score.textContent = String(state.score);
-      if (state.matchedPairs === state.totalPairs) finishRound();
+      await handleMatch(wordEl, t, result);
     } else {
       flashBad(wordEl);
       flashBad(t);
       wordEl.classList.remove("selected");
       state.selectedWordEl = null;
+      state.streak = 0;
+      els.streak.textContent = "0";
     }
+    updateAccuracy();
   } catch (e) {
     showError("Couldn't grade match: " + e.message);
   } finally {
@@ -370,28 +422,65 @@ async function onMeaningClick(t) {
   }
 }
 
+async function handleMatch(wordEl, meaningEl, result) {
+  wordEl.classList.remove("selected");
+  wordEl.classList.add("matched");
+  meaningEl.classList.add("matched");
+  state.selectedWordEl = null;
+  state.score += result.points_awarded || 1;
+  state.streak += 1;
+  if (state.streak > state.bestStreak) state.bestStreak = state.streak;
+  els.score.textContent = String(state.score);
+  els.streak.textContent = String(state.streak);
+  els.bestStreak.textContent = String(state.bestStreak);
+
+  // green pulse, then fade out and replace
+  await sleep(360);
+  wordEl.classList.add("leaving");
+  meaningEl.classList.add("leaving");
+  await sleep(TRANSITION_MS);
+
+  if (state.mode !== "playing") return; // user ended mid-animation
+
+  if (result.replacement) {
+    // new word slots into the same spot
+    const newWordEl = makeTile(result.replacement.word, "word", onWordClick);
+    wordEl.replaceWith(newWordEl);
+    // new meaning goes to a random slot in the meanings column
+    meaningEl.remove();
+    const newMeaningEl = makeTile(result.replacement.meaning, "meaning", onMeaningClick);
+    const remaining = Array.from(els.meaningsCol.children);
+    if (remaining.length === 0) {
+      els.meaningsCol.appendChild(newMeaningEl);
+    } else {
+      const idx = Math.floor(Math.random() * (remaining.length + 1));
+      if (idx >= remaining.length) els.meaningsCol.appendChild(newMeaningEl);
+      else els.meaningsCol.insertBefore(newMeaningEl, remaining[idx]);
+    }
+  } else {
+    // word pool exhausted — board shrinks
+    wordEl.remove();
+    meaningEl.remove();
+    if (els.wordsCol.children.length === 0) {
+      endGame("Word list exhausted — you matched every word!");
+    }
+  }
+}
+
 function flashBad(el) {
   el.classList.add("flash-bad");
   setTimeout(() => el.classList.remove("flash-bad"), 380);
 }
-
 function flashHint(el) {
-  // Subtle nudge that the user should pick a word first
   el.classList.add("flash-bad");
   setTimeout(() => el.classList.remove("flash-bad"), 200);
 }
 
-function finishRound() {
-  const acc = state.attempts > 0
-    ? Math.round((state.matchedPairs / state.attempts) * 100)
-    : 100;
-  els.doneBanner.textContent = `Board complete! ${state.matchedPairs} matched in ${state.attempts} attempts (${acc}% accuracy).`;
-  els.doneBanner.style.display = "block";
-}
-
-els.newBoardBtn.addEventListener("click", newBoard);
+els.startBtn.addEventListener("click", startGame);
+els.endBtn.addEventListener("click", () => endGame("Game ended."));
 
 loadLists();
+updateAccuracy();
 </script>
 </body>
 </html>
